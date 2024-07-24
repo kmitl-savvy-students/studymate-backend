@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"csharpier.csharpier-vscode",
+		"esbenp.prettier-vscode",
+		"mikeburgh.xml-format",
+		"ms-dotnettools.csharp",
+		"ms-dotnettools.vscode-dotnet-runtime"
+	]
+}
