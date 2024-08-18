@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dev
+
+WORKDIR /app
+EXPOSE 5000
+
+COPY ["studymate-backend.csproj", "./"]
+RUN dotnet restore "./studymate-backend.csproj"
+COPY . .
+
+ENTRYPOINT ["dotnet", "watch", "run"]
