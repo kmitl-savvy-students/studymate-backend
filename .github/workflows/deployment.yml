@@ -1,1 +1,35 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
+name: StudyMate-Backend
+
+on:
+    workflow_dispatch:
+
+jobs:
+    Deploy-Backend:
+        runs-on:
+            labels: ["self-hosted", "Linux", "X64", "back-runner"]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v2
+
+            - name: Build Docker Image
+              run: |
+                docker build -f Dockerfile.prod -t back-img .
+
+            - name: Stop and Remove Container
+              run: |
+                docker stop sdm-backend-container | true
+                docker rm sdm-backend-container | true
+
+            - name: Run Docker Container
+              run: |
+                docker run -d -p 5000:5000 --name sdm-backend-container back-img
+
+            - name: ✅✅ Finish ✅✅
+              run: echo "All Passed => Fisnish !!"
