@@ -29,7 +29,7 @@ jobs:
 
             - name: Run Docker Container
               run: |
-                docker run --dns=8.8.8.8 -d -p 8000:8080 --name sdm-backend-container back-img
+                docker run -d -p 8000:8080 --name sdm-backend-container back-img
 
             - name: ✅✅ Finish ✅✅
               run: echo "All Passed => Fisnish !!"
