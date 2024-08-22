@@ -31,5 +31,11 @@ namespace MyApiProject.Controllers
 				newUser
 			);
 		}
+
+		[HttpGet]
+		public IActionResult HelloWorld()
+		{
+			return Content("Hello, World!");
+		}
 	}
 }
