@@ -32,7 +32,7 @@ namespace MyApiProject.Controllers
 			);
 		}
 
-		[HttpGet]
+		[HttpGet("Home/CustomRoute")]
 		public IActionResult HelloWorld()
 		{
 			return Content("Hello, World!");
