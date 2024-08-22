@@ -20,7 +20,7 @@ jobs:
 
             - name: Build Docker Image
               run: |
-                docker build -f Dockerfile.prod -t back-img .
+                docker build -f Dockerfile.dev -t back-img .
 
             - name: Stop and Remove Container
               run: |
