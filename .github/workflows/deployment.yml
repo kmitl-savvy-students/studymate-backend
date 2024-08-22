@@ -20,7 +20,7 @@ jobs:
 
             - name: Build Docker Image
               run: |
-                docker build -f Dockerfile.dev -t back-img .
+                docker build -f Dockerfile.prod -t back-img .
 
             - name: Stop and Remove Container
               run: |
@@ -29,7 +29,7 @@ jobs:
 
             - name: Run Docker Container
               run: |
-                docker run -d -p 5000:5000 --name sdm-backend-container back-img
+                docker run -d -p 8000:8080 --name sdm-backend-container back-img
 
             - name: ✅✅ Finish ✅✅
               run: echo "All Passed => Fisnish !!"
