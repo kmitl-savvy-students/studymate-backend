@@ -18,7 +18,7 @@ namespace MyApiProject.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<User>> Get()
 		{
-			return await _userService.GetAllUsersAsync();
+			return "Hello, world";
 		}
 
 		[HttpPost]
