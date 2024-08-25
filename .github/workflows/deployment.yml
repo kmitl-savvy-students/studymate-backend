@@ -31,5 +31,9 @@ jobs:
               run: |
                 docker run -d -p 8000:8080 --name sdm-backend-container back-img
 
+            - name: Assign container network
+              run: |
+                docker network connect backend-network sdm-backend-container
+
             - name: ✅✅ Finish ✅✅
               run: echo "All Passed => Fisnish !!"
