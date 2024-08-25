@@ -18,24 +18,7 @@ namespace MyApiProject.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<User>> Get()
 		{
-			return "Hello, world";
-		}
-
-		[HttpPost]
-		public async Task<ActionResult<User>> Post(User user)
-		{
-			var newUser = await _userService.AddUserAsync(user);
-			return CreatedAtAction(
-				nameof(Get),
-				new { id = newUser.Id, username = newUser.Username },
-				newUser
-			);
-		}
-
-		[HttpGet("Home/CustomRoute")]
-		public IActionResult HelloWorld()
-		{
-			return Content("Hello, World!");
+			return await _userService.GetAllUsersAsync();
 		}
 	}
 }
