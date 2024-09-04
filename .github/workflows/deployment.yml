@@ -10,7 +10,8 @@ jobs:
     sonarqube:
         name: SonarQube Analysis
         runs-on: [ 'self-hosted', 'org-runner' ]
-        
+        container:
+            image: mcr.microsoft.com/dotnet/sdk:8.0
         steps:
           - uses: actions/checkout@v4
             with:
@@ -44,10 +45,10 @@ jobs:
           #     .\.sonar\scanner\dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_b3b5cf4a-44d9-4314-956f-2e95d436c401" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           #     dotnet build
           #     .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          - name: Setup .NET Core SDK
-            uses: actions/setup-dotnet@v3
-            with:
-                dotnet-version: '8.0.7' 
+          # - name: Setup .NET Core SDK
+          #   uses: actions/setup-dotnet@v3
+          #   with:
+          #       dotnet-version: '8.0.7' 
           - name: Install SonarQube scanner
             if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
             run: |
