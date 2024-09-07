@@ -1,7 +1,0 @@
-# Build files
-/bin
-/obj
-
-# System files
-.DS_Store
-Thumbs.db

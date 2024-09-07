@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.5.002.0
+VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "studymate-backend", "studymate-backend.csproj", "{6146B4E9-B242-4290-AF6E-0A8D43771813}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "studymate-backend", "studymate-backend.csproj", "{4984CA21-0612-4D45-BC6B-27F235E3D783}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6146B4E9-B242-4290-AF6E-0A8D43771813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6146B4E9-B242-4290-AF6E-0A8D43771813}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6146B4E9-B242-4290-AF6E-0A8D43771813}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6146B4E9-B242-4290-AF6E-0A8D43771813}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4984CA21-0612-4D45-BC6B-27F235E3D783}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4984CA21-0612-4D45-BC6B-27F235E3D783}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4984CA21-0612-4D45-BC6B-27F235E3D783}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4984CA21-0612-4D45-BC6B-27F235E3D783}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {91FDC5CB-BD5C-4275-B836-272727E893A8}
+		SolutionGuid = {152C6391-0358-4391-BFEF-83F2DA8283CE}
 	EndGlobalSection
 EndGlobal
