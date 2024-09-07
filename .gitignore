@@ -1,0 +1,9 @@
+# Builds files
+/.config
+/.vs
+/bin
+/obj
+
+# System files
+.DS_Store
+Thumbs.db

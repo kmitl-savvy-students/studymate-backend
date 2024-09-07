@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\studymate-backend.props" />
-</Project>
