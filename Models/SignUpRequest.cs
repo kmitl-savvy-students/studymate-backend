@@ -9,5 +9,20 @@ namespace StudyMate.Models
 		public required string NameNick { get; set; }
 		public required string NameFirst { get; set; }
 		public required string NameLast { get; set; }
+
+		public bool IsValidRequest()
+		{
+			if (Password != PasswordConfirm)
+			{
+				return false;
+			}
+
+			return string.IsNullOrWhiteSpace(Id)
+			       || string.IsNullOrWhiteSpace(Password)
+			       || string.IsNullOrWhiteSpace(Gender)
+			       || string.IsNullOrWhiteSpace(NameFirst)
+			       || string.IsNullOrWhiteSpace(NameLast)
+			       || string.IsNullOrWhiteSpace(NameNick);
+		}
 	}
 }

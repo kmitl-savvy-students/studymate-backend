@@ -10,9 +10,12 @@ namespace StudyMate.Data
 
 		public DbSet<User> Users { get; set; }
 
+		public DbSet<SignInToken> SignInTokens { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<User>().ToTable("user", "user_management");
+			modelBuilder.Entity<SignInToken>().ToTable("signin_token", "user_management");
 		}
 	}
 }

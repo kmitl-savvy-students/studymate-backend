@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // My Services
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddControllers();
 

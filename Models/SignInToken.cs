@@ -1,6 +1,6 @@
 namespace StudyMate.Models
 {
-	public class SigninToken
+	public class SignInToken
 	{
 		public required string Id { get; set; } // รหัสโทเค็นสุ่ม (Primary Key) เก็บในรูปแบบ varchar(64)
 		public required string UserId { get; set; } // รหัสนักศึกษา (Foreign Key) เก็บในรูปแบบ varchar(8)
@@ -8,6 +8,6 @@ namespace StudyMate.Models
 		public required DateTime TimeExpired { get; set; } // วันที่และเวลาที่โทเค็นหมดอายุ
 
 		// คุณสมบัติการนำทางไปยัง User
-		public User? User { get; set; }
+		// public User? User { get; set; }
 	}
 }
