@@ -1,53 +1,37 @@
 using Microsoft.EntityFrameworkCore;
-using StudyMate.Data;
-using StudyMate.Models;
+using studymate_backend.Contexts;
+using studymate_backend.Models.StudyMate.Raw;
+using studymate_backend.Models;
 
-namespace StudyMate.Services
+namespace studymate_backend.Services
 {
-	public class AuthService
+	public class AuthService(AppDbContext context)
 	{
-		private readonly UserManagementContext _context;
 
-		public AuthService(UserManagementContext context)
+		public bool CheckDataIsNull(SignUpRequest signUpRequest)
 		{
-			_context = context;
+			return string.IsNullOrWhiteSpace(signUpRequest.Id)
+			       || string.IsNullOrWhiteSpace(signUpRequest.Password)
+			       || string.IsNullOrWhiteSpace(signUpRequest.PasswordConfirm)
+			       || string.IsNullOrWhiteSpace(signUpRequest.Gender)
+			       || string.IsNullOrWhiteSpace(signUpRequest.NameFirst)
+			       || string.IsNullOrWhiteSpace(signUpRequest.NameLast)
+			       || string.IsNullOrWhiteSpace(signUpRequest.NameNick);
 		}
 
-		public async Task<IEnumerable<SignInToken>> GetAllSignInTokensAsync()
+		public string HashPassword(string password)
 		{
-			return await _context.SignInTokens.ToListAsync();
+			return BCrypt.Net.BCrypt.EnhancedHashPassword(password, 13);
 		}
 
-		public async Task<bool> CheckDataIsNull(SignUpRequest signUpRequest)
+		public bool CompareHashPassword(string password, string hash)
 		{
-			if (
-				string.IsNullOrWhiteSpace(signUpRequest.Id)
-				|| string.IsNullOrWhiteSpace(signUpRequest.Password)
-				|| string.IsNullOrWhiteSpace(signUpRequest.PasswordConfirm)
-				|| string.IsNullOrWhiteSpace(signUpRequest.Gender)
-				|| string.IsNullOrWhiteSpace(signUpRequest.NameFirst)
-				|| string.IsNullOrWhiteSpace(signUpRequest.NameLast)
-				|| string.IsNullOrWhiteSpace(signUpRequest.NameNick)
-			)
-			{
-				return true;
-			}
-			return false;
+			return BCrypt.Net.BCrypt.EnhancedVerify(password, hash);
 		}
 
-		public async Task<string> HashPassword(string password, string passwordConfirm)
+		public RawUser CreateRawUser(SignUpRequest signUpRequest, string passwordHash)
 		{
-			if (password != passwordConfirm)
-			{
-				return null;
-			}
-			string passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password, 13);
-			return passwordHash;
-		}
-
-		public async Task<User> createUser(SignUpRequest signUpRequest, string passwordHash)
-		{
-			var user = new User
+			var user = new RawUser
 			{
 				Id = signUpRequest.Id,
 				Password = passwordHash, // save passwordHash
@@ -56,18 +40,23 @@ namespace StudyMate.Services
 				NameFirst = signUpRequest.NameFirst,
 				NameLast = signUpRequest.NameLast
 			};
+			
+			context.User.Add(user);
+			context.SaveChanges();
+			
 			return user;
 		}
 
-		public async Task<string> createToken()
+		public string CreateToken()
 		{
 			var token = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
 			token = token.Replace("-", "");
 			token = token.Substring(0, 64);
+			
 			return token;
 		}
 
-		public async Task<SignInToken> createSignInToken(string token, User user)
+		public SignInToken CreateSignInToken(string token, RawUser user)
 		{
 			var signInToken = new SignInToken
 			{
@@ -76,12 +65,16 @@ namespace StudyMate.Services
 				TimeCreated = DateTime.UtcNow,
 				TimeExpired = DateTime.UtcNow.AddHours(1)
 			};
+			
+			context.SignInToken.Add(signInToken);
+			context.SaveChanges();
+			
 			return signInToken;
 		}
 
-		public async Task<User?> GetUserByIdAsync(string id)
+		public async Task<RawUser?> GetRawUserByIdAsync(string id)
 		{
-			return await _context.Users.FindAsync(id);
+			return await context.User.FindAsync(id);
 		}
 	}
 }

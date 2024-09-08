@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Contexts;
 using studymate_backend.Enums;
 using studymate_backend.Helper;
 using studymate_backend.Models.Core;
@@ -9,21 +8,12 @@ namespace studymate_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController(AppDbContext context, UserService userService) : ControllerBase
+    public class UserController(UserService userService) : ControllerBase
     {
-        private readonly AppDbContext _context = context;
-        private readonly UserService _userService = userService;
-
-		[HttpGet]
-		public async Task<IEnumerable<User>> Get()
-		{
-			return await _userService.GetAllUsersAsync();
-		}
-	}
         [HttpGet]
         public BaseResponse GetAll()
         {
-            return new BaseResponse(EnumResponseCode.OK, _userService.GetAll());
+            return new BaseResponse(EnumResponseCode.OK, userService.GetAll());
         }
 
         [HttpGet("{id}")]
@@ -32,13 +22,8 @@ namespace studymate_backend.Controllers
             if (!SDMString.IsValidNumber(id))
                 return new BaseResponse(EnumResponseCode.BAD_REQUEST);
 
-            var user = _userService.Get(id);
-            if (user == null)
-            {
-                return new BaseResponse(EnumResponseCode.NOT_FOUND);
-            }
-
-            return new BaseResponse(EnumResponseCode.OK, user);
+            var user = userService.Get(id);
+            return user == null ? new BaseResponse(EnumResponseCode.NOT_FOUND) : new BaseResponse(EnumResponseCode.OK, user);
         }
     }
 }

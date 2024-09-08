@@ -1,4 +1,4 @@
-namespace StudyMate.Models
+namespace studymate_backend.Models
 {
 	public class SignUpRequest
 	{

@@ -29,7 +29,7 @@
 
         public static BaseEnum Get(string name)
         {
-            return _all.Find(e => e.Name() == name) ?? throw new InvalidOperationException("Enum not found");
+            return _all.Find(e => e.GetName() == name) ?? throw new InvalidOperationException("Enum not found");
         }
         public static IEnumerable<BaseEnum> GetAll()
         {

@@ -1,6 +1,7 @@
 # Builds files
 /.config
 /.vs
+/.idea
 /bin
 /obj
 

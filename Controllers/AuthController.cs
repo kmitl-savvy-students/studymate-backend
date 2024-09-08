@@ -1,64 +1,41 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
-using StudyMate.Data;
-using StudyMate.Models;
-using StudyMate.Services;
+using studymate_backend.Models;
+using studymate_backend.Services;
 
-namespace StudyMate.Controllers
+namespace studymate_backend.Controllers
 {
 	[ApiController]
-	[Route("user")]
-	public class AuthController : ControllerBase
+	[Route("api/[controller]")]
+	public class AuthController(AuthService authService) : ControllerBase
 	{
-		private readonly AuthService _authService;
-		private readonly UserManagementContext _context;
-
-		public AuthController(AuthService authService, UserManagementContext context)
-		{
-			_authService = authService;
-			_context = context;
-		}
-
-		[HttpGet("test")]
-		public async Task<IEnumerable<SignInToken>> Get()
-		{
-			return await _authService.GetAllSignInTokensAsync();
-		}
-
 		[HttpPost("signup")]
 		public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
 		{
-			if (await _authService.CheckDataIsNull(request) == true)
+			if (authService.CheckDataIsNull(request))
 			{
+				
 				return BadRequest(
 					new { response_id = 400, message = "Any Empty Field, Data Too Short" }
 				);
 			}
-
-			if (await _context.Users.FindAsync(request.Id) != null)
+		
+			if (await authService.GetRawUserByIdAsync(request.Id) != null)
 			{
-				return BadRequest(new { response_id = 409, message = "ID Duplicattion" });
+				return BadRequest(new { response_id = 409, message = "ID Duplication" });
 			}
-
-			string hashPassword = await _authService.HashPassword(
-				request.Password,
-				request.PasswordConfirm
-			);
-
-			if (hashPassword == null)
+		
+			if (request.Password != request.PasswordConfirm)
 			{
 				return BadRequest(
 					new { response_id = 400, message = "Password Not match, Too Short, Too Weak" }
 				);
 			}
-			;
-
-			User user = await _authService.createUser(request, hashPassword);
-
+		
+			var hashPassword = authService.HashPassword(request.Password);
+		
 			try
 			{
-				_context.Users.Add(user);
-				await _context.SaveChangesAsync();
+				authService.CreateRawUser(request, hashPassword);
 				return Ok(new { response_id = 200, message = "Success" });
 			}
 			catch (Exception ex)
@@ -78,23 +55,21 @@ namespace StudyMate.Controllers
 		[HttpPost("signin")]
 		public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
 		{
-			User user = await _authService.GetUserByIdAsync(request.Id);
+			var user = await authService.GetRawUserByIdAsync(request.Id);
 			if (user == null)
 			{
 				return NotFound(new { response_id = 401, message = "Invalid id or password" });
 			}
-
-			if (!BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.Password))
+		
+			if (!authService.CompareHashPassword(request.Password, user.Password))
 			{
 				return NotFound(new { response_id = 401, message = "Invalid id or password" });
 			}
-
-			string token = await _authService.createToken();
-			SignInToken signInToken = await _authService.createSignInToken(token, user);
+		
+			var token = authService.CreateToken();
 			try
 			{
-				_context.SignInTokens.Add(signInToken);
-				await _context.SaveChangesAsync();
+				var signInToken = authService.CreateSignInToken(token, user);
 				return Ok(new { response_id = 200, message = token });
 			}
 			catch (Exception ex)
@@ -110,5 +85,6 @@ namespace StudyMate.Controllers
 				);
 			}
 		}
+		
 	}
 }

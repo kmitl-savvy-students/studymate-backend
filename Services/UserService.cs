@@ -15,13 +15,5 @@ namespace studymate_backend.Services
         {
             return _context.User.Find(id);
         }
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
-        {
-            return await _context.Users.ToListAsync();
-        }
-        public async Task<User?> GetUserByIdAsync(string id)
-        {
-            return await _context.Users.FindAsync(id);
-        }
     }
 }
