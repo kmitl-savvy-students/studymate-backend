@@ -1,8 +1,7 @@
-namespace StudyMate.Models
+﻿namespace studymate_backend.Models;
+
+public class SignInRequest
 {
-	public class SignInRequest
-	{
-		public required string Id { get; set; } // รหัสโทเค็นสุ่ม (Primary Key) เก็บในรูปแบบ varchar(64)
-		public required string Password { get; set; } // รหัสนักศึกษา (Foreign Key) เก็บในรูปแบบ varchar(8)
-	}
+		public required string Id { get; set; }
+		public required string Password { get; set; }
 }

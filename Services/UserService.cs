@@ -1,26 +1,27 @@
-using Microsoft.EntityFrameworkCore;
-using StudyMate.Data;
-using StudyMate.Models;
+﻿using studymate_backend.Contexts;
+using studymate_backend.Models.StudyMate.Raw;
 
-namespace StudyMate.Services
+namespace studymate_backend.Services
 {
-	public class UserService
-	{
-		private readonly UserManagementContext _context;
+    public class UserService(AppDbContext context)
+    {
+        private readonly AppDbContext _context = context;
 
-		public UserService(UserManagementContext context)
-		{
-			_context = context;
-		}
-
-		public async Task<IEnumerable<User>> GetAllUsersAsync()
-		{
-			return await _context.Users.ToListAsync();
-		}
-
-		public async Task<User?> GetUserByIdAsync(string id)
-		{
-			return await _context.Users.FindAsync(id);
-		}
-	}
+        public IEnumerable<RawUser> GetAll()
+        {
+            return [.. _context.User];
+        }
+        public RawUser? Get(string id)
+        {
+            return _context.User.Find(id);
+        }
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+        public async Task<User?> GetUserByIdAsync(string id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
+    }
 }

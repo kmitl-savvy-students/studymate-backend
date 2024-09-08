@@ -1,4 +1,6 @@
-# Build files
+# Builds files
+/.config
+/.vs
 /bin
 /obj
 
