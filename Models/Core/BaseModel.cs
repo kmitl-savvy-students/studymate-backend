@@ -1,6 +1,5 @@
-﻿namespace studymate_backend.Models.Core
+﻿namespace studymate_backend.Models.Core;
+
+public class BaseModel
 {
-    public class BaseModel
-    {
-    }
 }

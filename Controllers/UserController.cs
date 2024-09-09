@@ -1,38 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Contexts;
+using studymate_backend.Controllers.Core;
 using studymate_backend.Enums;
-using studymate_backend.Helper;
 using studymate_backend.Models.Core;
 using studymate_backend.Services;
 
-namespace studymate_backend.Controllers
+namespace studymate_backend.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UserController(AppDbContext context, UserService userService) : BaseController
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UserController(AppDbContext context, UserService userService) : ControllerBase
+    [HttpGet]
+    public BaseResponse GetAll()
     {
-        private readonly AppDbContext _context = context;
-        private readonly UserService _userService = userService;
-
-        [HttpGet]
-        public BaseResponse GetAll()
-        {
-            return new BaseResponse(EnumResponseCode.OK, _userService.GetAll());
-        }
-
-        [HttpGet("{id}")]
-        public BaseResponse Get(string id)
-        {
-            if (!SDMString.IsValidNumber(id))
-                return new BaseResponse(EnumResponseCode.BAD_REQUEST);
-
-            var user = _userService.Get(id);
-            if (user == null)
-            {
-                return new BaseResponse(EnumResponseCode.NOT_FOUND);
-            }
-
-            return new BaseResponse(EnumResponseCode.OK, user);
-        }
+        return new BaseResponse(EnumResponseCode.OK, userService.GetAll());
     }
 }

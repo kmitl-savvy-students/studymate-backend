@@ -1,14 +1,15 @@
 ﻿using studymate_backend.Models.Core;
 
-namespace studymate_backend.Models.StudyMate.Raw
+// ReSharper disable All
+
+namespace studymate_backend.Models.StudyMate.Raw;
+
+public class RawUser(string id, string password, string gender, string nameNick, string nameFirst, string nameLast) : BaseModelRaw
 {
-    public class RawUser : BaseModelRaw
-    {
-        public required string Id { get; set; }
-        public required string Password { get; set; }
-        public string? Gender { get; set; }
-        public string? NameNick { get; set; }
-        public string? NameFirst { get; set; }
-        public string? NameLast { get; set; }
-    }
+    public string Id { get; init; } = id;
+    public string Password { get; init; } = password;
+    public string Gender { get; init; } = gender;
+    public string NameNick { get; init; } = nameNick;
+    public string NameFirst { get; init; } = nameFirst;
+    public string NameLast { get; init; } = nameLast;
 }

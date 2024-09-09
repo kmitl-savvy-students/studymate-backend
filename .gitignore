@@ -2,7 +2,12 @@
 /.config
 /.vs
 /bin
+
 /obj
+/Tests/obj
+
+# Jetbrains
+/.idea
 
 # System files
 .DS_Store
