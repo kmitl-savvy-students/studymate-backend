@@ -39,7 +39,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore studymate-backend.sln
       - name: Build the project
-        run: dotnet build --no-restore studymate-backend.sln--no-restore
+        run: dotnet build studymate-backend.sln --no-restore
       - name: Test
         run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
       - name: Test Report
