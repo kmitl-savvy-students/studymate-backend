@@ -9,6 +9,8 @@ on:
       - develop
   workflow_dispatch:
 
+run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
+
 jobs:
   build:
     name: Build
@@ -42,7 +44,7 @@ jobs:
         with:
           name: .NET xUnit Test
           path: "**/test-results.trx"
-          reporter: dotnet-trxF
+          reporter: dotnet-trx
           fail-on-error: true
           fail-on-empty: false
 
@@ -101,6 +103,7 @@ jobs:
           .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   deploy:
+    name : Deploy
     needs: sonarqube
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
