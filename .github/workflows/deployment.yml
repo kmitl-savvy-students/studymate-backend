@@ -25,6 +25,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cleanup
+        run: |
+          sudo rm -rf /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend/obj
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
