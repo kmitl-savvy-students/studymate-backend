@@ -18,10 +18,10 @@ jobs:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
 
     steps:
-      - name: Ensure proper file ownership
-        run: |
-          sudo chown -R $USER:$USER ./bin
-          sudo chown -R $USER:$USER ./obj
+      # - name: Ensure proper file ownership
+      #   run: |
+      #     sudo chown -R $USER:$USER ./bin
+      #     sudo chown -R $USER:$USER ./obj
       - name: Checkout code
         uses: actions/checkout@v4
 
