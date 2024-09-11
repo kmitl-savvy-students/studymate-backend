@@ -38,16 +38,16 @@ jobs:
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
     steps:
-      # - name: Checkout code
-      #   uses: actions/checkout@v4
-      # - name: Setup .NET Core SDK
-      #   uses: actions/setup-dotnet@v3
-      #   with:
-      #     dotnet-version: '8.0' # Specify the required .NET version
-      # - name: Restore dependencies
-      #   run: dotnet restore studymate-backend.sln
-      # - name: Build the project
-      #   run: dotnet build --no-restore studymate-backend.sln --no--restore
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0' # Specify the required .NET version
+      - name: Restore dependencies
+        run: dotnet restore studymate-backend.sln
+      - name: Build the project
+        run: dotnet build --no-restore studymate-backend.sln --no--restore
       - name: Test
         run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
       - name: Test Report
