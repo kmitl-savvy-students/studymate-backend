@@ -1,7 +1,5 @@
 ﻿using studymate_backend.Enums;
 
-// ReSharper disable All
-
 namespace studymate_backend.Models.Core;
 
 public class BaseResponse
