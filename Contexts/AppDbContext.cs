@@ -13,5 +13,6 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<RawUser> User { get; set; }
+    public DbSet<RawUser> User { get; init; }
+    public DbSet<RawUserToken> UserToken { get; init; }
 }

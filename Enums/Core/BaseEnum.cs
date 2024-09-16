@@ -2,7 +2,7 @@
 
 public abstract class BaseEnum
 {
-    private static readonly List<BaseEnum> All = [];
+    private static readonly List<BaseEnum> _all = [];
     private readonly string _name;
     private readonly string[] _values;
 
@@ -11,7 +11,7 @@ public abstract class BaseEnum
         _name = name;
         _values = values;
 
-        All.Add(this);
+        _all.Add(this);
     }
 
     public string GetName()
@@ -29,11 +29,11 @@ public abstract class BaseEnum
 
     public static T? Get<T>(string name) where T : BaseEnum
     {
-        return All.Find(e => e.GetName() == name) as T;
+        return _all.Find(e => e.GetName() == name) as T;
     }
 
     public static IEnumerable<BaseEnum> GetAll()
     {
-        return All;
+        return _all;
     }
 }

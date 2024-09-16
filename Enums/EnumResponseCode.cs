@@ -16,7 +16,7 @@ public class EnumResponseCode : BaseEnum
     public static readonly EnumResponseCode PASSWORD_WEAK = new("PASSWORD_WEAK", ["Password is too weak", "400"]);
 
     public static readonly EnumResponseCode INTERNAL_SERVER_ERROR = new("INTERNAL_SERVER_ERROR", ["Internal Server Error", "500"]);
-    public static readonly EnumResponseCode UNAUTHORIZED = new("AUTHORIZED", ["Unauthorized", "401"]);
+    public static readonly EnumResponseCode UNAUTHORIZED = new("UNAUTHORIZED", ["Unauthorized", "401"]);
     public static readonly EnumResponseCode FORBIDDEN = new("FORBIDDEN", ["Forbidden", "403"]);
 
     private EnumResponseCode(string name, string[] values) : base(name, values)

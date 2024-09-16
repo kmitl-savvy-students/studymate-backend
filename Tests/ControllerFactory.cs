@@ -16,18 +16,11 @@ public static class ControllerFactory
         return new AppDbContext(options);
     }
 
-    public static UserController GetUserController()
-    {
-        var context = GetInMemoryDbContext();
-        var userService = new UserService(context);
-        return new UserController(context, userService);
-    }
-
     public static AuthController GetAuthController()
     {
         var context = GetInMemoryDbContext();
-        var authService = new AuthService(context);
         var userService = new UserService(context);
-        return new AuthController(authService, userService);
+        var userTokenService = new UserTokenService(context, userService);
+        return new AuthController(userService, userTokenService);
     }
 }

@@ -1,8 +1,6 @@
-﻿using studymate_backend.Models.Core;
+﻿namespace studymate_backend.Models.StudyMate.Raw.Request.Auth;
 
-namespace studymate_backend.Models.StudyMate.Raw.Request.Auth;
-
-public class RequestSignUp : BaseModelRaw
+public class RequestSignUp
 {
     public string? Id { get; set; }
     public string? Password { get; set; }

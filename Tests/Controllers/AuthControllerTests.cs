@@ -139,10 +139,17 @@ public class AuthControllerTests
     [MemberData(nameof(SignIn_BAD_REQUEST_FIELDS_INVALID_TestCases))]
     public void SignIn_BAD_REQUEST_FIELDS_INVALID(string expectedResult, string id, string password)
     {
+        var controller = ControllerFactory.GetAuthController();
+
+        requestSignUp.Id = "12345678";
+        requestSignUp.Password = "AnyValidPassword1!";
+        requestSignUp.PasswordConfirm = "AnyValidPassword1!";
+        controller.SignUp(requestSignUp);
+
         requestSignIn.Id = id;
         requestSignIn.Password = password;
 
-        var result = ControllerFactory.GetAuthController().SignIn(requestSignIn);
+        var result = controller.SignIn(requestSignIn);
         Assert.Equal(expectedResult, result.Message);
     }
 }
