@@ -54,7 +54,7 @@ jobs:
 
   sonarqube:
     name: SonarQube Analyze
-    # needs: test
+    needs: build
     runs-on: ["self-hosted", "org-runner"]
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0
