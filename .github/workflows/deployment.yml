@@ -102,7 +102,7 @@ jobs:
           dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
       - name: Build and analyze
         run: |
-          .sonar/canner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_f1d31c89-a4c8-4f96-bf88-b267f8c016d5" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_f1d31c89-a4c8-4f96-bf88-b267f8c016d5" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           dotnet build
           .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
