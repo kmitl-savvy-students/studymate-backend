@@ -85,7 +85,7 @@ jobs:
       - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ./.sonar/scanner
+          mkdir -p .sonar/scanner
           dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
 
       - name: Build and analyze
