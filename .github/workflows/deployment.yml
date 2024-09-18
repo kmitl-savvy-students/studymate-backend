@@ -90,8 +90,7 @@ jobs:
 
       - name: Build and analyze
         run: |
-          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_e1f143f6-58da-477c-bbd1-c29b69824f0a" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-          /d:sonar.scanner.scanAll=false
+          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_e1f143f6-58da-477c-bbd1-c29b69824f0a" /d:sonar.scanner.scanAll=false /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           dotnet build
           .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
