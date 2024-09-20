@@ -12,23 +12,8 @@ on:
 run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
 
 jobs:
-  build:
-    name: Build
-    runs-on:
-      labels: ["self-hosted", "Linux", "X64", "back-runner"]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build Docker Image
-        run: |
-          docker build -f Dockerfile.prod -t back-img .
   test:
     name: xUnit Testing
-    needs: build
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
     container:
@@ -120,11 +105,24 @@ jobs:
           dotnet build
           .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
+  build:
+    name: sonarqube
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
 
-          
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -f Dockerfile.prod -t back-img .
+
   deploy:
     name : Deploy
-    needs: sonarqube
+    needs: build
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
 
