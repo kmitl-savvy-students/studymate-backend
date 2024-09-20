@@ -4,9 +4,9 @@
 name: StudyMate-Backend CICD
 
 on:
-  push:
-    branches:
-      - develop
+  # push:
+  #   branches:
+  #     - develop
   workflow_dispatch:
 
 run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
@@ -62,49 +62,38 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
       - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
           java-version: 17
+
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
-          path: ~\.sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache SonarQube scanner
         id: cache-sonar-scanner
         uses: actions/cache@v1
         with:
-          path: .\.sonar\scanner
+          path: ./.sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
-      # - name: Install SonarQube scanner
-      #  if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-      #   shell: powershell
-      #   run: |
-      #     New-Item -Path .\.sonar\scanner -ItemType Directory
-      #     dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      # - name: Build and analyze
-      #   shell: powershell
-      #   run: |
-      #     .\.sonar\scanner\dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_b3b5cf4a-44d9-4314-956f-2e95d436c401" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-      #     dotnet build
-      #     .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-      # - name: Setup .NET Core SDK
-      #   uses: actions/setup-dotnet@v3
-      #   with:
-      #       dotnet-version: '8.0.7'
+
       - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         run: |
-          mkdir -p .sonar/scanner
-          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+          mkdir -p ./.sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
+
       - name: Build and analyze
         run: |
-          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_e1f143f6-58da-477c-bbd1-c29b69824f0a" /d:sonar.scanner.scanAll=false /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+          ./.sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_2c8cb903-e9a7-4060-8cf0-94439c275333" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false
           dotnet build
-          .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
 
           
