@@ -26,35 +26,60 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -f Dockerfile.prod -t back-img .
-  # test:
-  #   name: xUnit Testing
-  #   needs: build
-  #   runs-on:
-  #     labels: ["self-hosted", "Linux", "X64", "back-runner"]
-  #   container:
-  #     image: mcr.microsoft.com/dotnet/sdk:8.0
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Restore dependencies
-  #       run: dotnet restore studymate-backend.sln
-  #     - name: Build the project
-  #       run: dotnet build studymate-backend.sln --no-restore
-  #     - name: Test
-  #       run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
-  #     - name: Test Report
-  #       uses: dorny/test-reporter@v1
-  #       if: success() || failure()
-  #       with:
-  #         name: .NET xUnit Test
-  #         path: "**/test-results.trx"
-  #         reporter: dotnet-trx
-  #         fail-on-error: true
-  #         fail-on-empty: false
+  test:
+    name: xUnit Testing
+    needs: build
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build the project
+        run: dotnet build --no-restore
+      - name: Test
+        run: dotnet test --no--build --verbosity normal 
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: .NET xUnit Test
+          path: "**/test-results.trx"
+          reporter: dotnet-trx
+          fail-on-error: true
+          fail-on-empty: false
+    # test:
+    # name: xUnit Testing
+    # needs: build
+    # runs-on:
+    #   labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    # container:
+    #   image: mcr.microsoft.com/dotnet/sdk:8.0
+    # steps:
+    #   - name: Checkout code
+    #     uses: actions/checkout@v4
+    #   - name: Restore dependencies
+    #     run: dotnet restore studymate-backend.sln
+    #   - name: Build the project
+    #     run: dotnet build studymate-backend.sln --no-restore
+    #   - name: Test
+    #     run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
+    #   - name: Test Report
+    #     uses: dorny/test-reporter@v1
+    #     if: success() || failure()
+    #     with:
+    #       name: .NET xUnit Test
+    #       path: "**/test-results.trx"
+    #       reporter: dotnet-trx
+    #       fail-on-error: true
+    #       fail-on-empty: false
 
   sonarqube:
     name: SonarQube Analyze
-    needs: build
+    needs: test
     runs-on: ["self-hosted", "org-runner"]
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0
