@@ -79,21 +79,21 @@ jobs:
         id: cache-sonar-scanner
         uses: actions/cache@v1
         with:
-          path: ./.sonar/scanner
+          path: .sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
       - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ./.sonar/scanner
-          dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
+          mkdir -p .sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
 
       - name: Build and analyze
         run: |
-          ./.sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_2c8cb903-e9a7-4060-8cf0-94439c275333" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true 
+          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_2c8cb903-e9a7-4060-8cf0-94439c275333" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true /d:sonar.sources="src/" /d:sonar.exclusions="**/*.json" 
           dotnet build
-          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
 
           
