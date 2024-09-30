@@ -115,7 +115,6 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-        shell: powershell
         run: |
           .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_AZJC05a-lFVQB4lItCaz" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
           dotnet build
