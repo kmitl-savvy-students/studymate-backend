@@ -18,6 +18,13 @@ public class BaseResponse
         Data = data;
     }
 
+    public BaseResponse(EnumResponseCode response, string data)
+    {
+        Code = response.GetCode();
+        Message = response.GetName();
+        Data = data;
+    }
+
     public BaseResponse(EnumResponseCode response)
     {
         Code = response.GetCode();
