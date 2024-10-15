@@ -37,6 +37,9 @@ jobs:
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0
     steps:
+      - name: Configure Git safe directory
+        run: |
+         git config --global --add safe.directory /__w/studymate-backend/studymate-backend
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Restore dependencies
