@@ -125,7 +125,7 @@ jobs:
       - name: Build and analyze
         run: |
           .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_9cb6e3af-69ca-4169-ab00-b313f0119e1e" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true
-          dotnet build <.csproject file path>
+          dotnet build .
           .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           
 
