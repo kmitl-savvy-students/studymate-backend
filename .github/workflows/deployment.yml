@@ -17,6 +17,9 @@ jobs:
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
     steps:
+      - name: Clean up the repository
+        run: | 
+          rm -rf /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Docker Buildx
