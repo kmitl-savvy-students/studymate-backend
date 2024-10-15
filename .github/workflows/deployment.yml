@@ -12,74 +12,82 @@ on:
 run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
 
 jobs:
-  # build:
-  #   name: Build
-  #   runs-on:
-  #     labels: ["self-hosted", "Linux", "X64", "back-runner"]
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2
+  build:
+    name: Build
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-  #     - name: Build Docker Image
-  #       run: |
-  #         docker build -f Dockerfile.prod -t back-img .
+      - name: Build Docker Image
+        run: |
+          docker build -f Dockerfile.prod -t back-img .
 
+  test:
+    name: xUnit Testing
+    needs: build
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - name: Configure Git safe directory
+        run: |
+         git config --global --add safe.directory /__w/studymate-backend/studymate-backend
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build the project
+        run: dotnet build --no-restore
+      - name: Test
+        run: dotnet test --no-build --verbosity normal 
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: .NET xUnit Test
+          path: "**/test-results.trx"
+          reporter: dotnet-trx
+          fail-on-error: true
+          fail-on-empty: false
+      - name: cleaning project
+        run: |
+          rm -rf bin/
+          rm -rf obj/
+          
   # test:
-  #   name: xUnit Testing
-  #   needs: build
-  #   runs-on:
-  #     labels: ["self-hosted", "Linux", "X64", "back-runner"]
-  #   container:
-  #     image: mcr.microsoft.com/dotnet/sdk:8.0
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Restore dependencies
-  #       run: dotnet restore
-  #     - name: Build the project
-  #       run: dotnet build --no-restore
-  #     - name: Test
-  #       run: dotnet test --no-build --verbosity normal 
-  #     - name: Test Report
-  #       uses: dorny/test-reporter@v1
-  #       if: success() || failure()
-  #       with:
-  #         name: .NET xUnit Test
-  #         path: "**/test-results.trx"
-  #         reporter: dotnet-trx
-  #         fail-on-error: true
-  #         fail-on-empty: false
-    # test:
-    # name: xUnit Testing
-    # needs: build
-    # runs-on:
-    #   labels: ["self-hosted", "Linux", "X64", "back-runner"]
-    # container:
-    #   image: mcr.microsoft.com/dotnet/sdk:8.0
-    # steps:
-    #   - name: Checkout code
-    #     uses: actions/checkout@v4
-    #   - name: Restore dependencies
-    #     run: dotnet restore studymate-backend.sln
-    #   - name: Build the project
-    #     run: dotnet build studymate-backend.sln --no-restore
-    #   - name: Test
-    #     run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
-    #   - name: Test Report
-    #     uses: dorny/test-reporter@v1
-    #     if: success() || failure()
-    #     with:
-    #       name: .NET xUnit Test
-    #       path: "**/test-results.trx"
-    #       reporter: dotnet-trx
-    #       fail-on-error: true
-    #       fail-on-empty: false
+  # name: xUnit Testing
+  # needs: build
+  # runs-on:
+  #   labels: ["self-hosted", "Linux", "X64", "back-runner"]
+  # container:
+  #   image: mcr.microsoft.com/dotnet/sdk:8.0
+  # steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Restore dependencies
+  #     run: dotnet restore studymate-backend.sln
+  #   - name: Build the project
+  #     run: dotnet build studymate-backend.sln --no-restore
+  #   - name: Test
+  #     run: dotnet test ./Tests/Tests.csproj --no--build --verbosity normal 
+  #   - name: Test Report
+  #     uses: dorny/test-reporter@v1
+  #     if: success() || failure()
+  #     with:
+  #       name: .NET xUnit Test
+  #       path: "**/test-results.trx"
+  #       reporter: dotnet-trx
+  #       fail-on-error: true
+  #       fail-on-empty: false
 
   sonarqube:
     name: SonarQube Analyze
-    # needs: test
+    needs: test
     runs-on: ["self-hosted", "org-runner"]
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0
@@ -92,6 +100,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
+
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
@@ -106,54 +115,18 @@ jobs:
           path: .sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
-          
+
       - name: Install SonarQube scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         run: |
-           mkdir -p .sonar/scanner
-           dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+          mkdir -p .sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+
       - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: |
-          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_AZJC05a-lFVQB4lItCaz" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_9cb6e3af-69ca-4169-ab00-b313f0119e1e" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false
           dotnet build
-          .sonar/scanner/dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-      # - uses: actions/checkout@v4
-      #   with:
-      #     fetch-depth: 0
-      
-      # - name: Set up JDK 17
-      #   uses: actions/setup-java@v1
-      #   with:
-      #     java-version: 17
-
-      # - name: Cache SonarQube packages
-      #   uses: actions/cache@v1
-      #   with:
-      #     path: ~/.sonar/cache
-      #     key: ${{ runner.os }}-sonar
-      #     restore-keys: ${{ runner.os }}-sonar
-
-      # - name: Cache SonarQube scanner
-      #   id: cache-sonar-scanner
-      #   uses: actions/cache@v1
-      #   with:
-      #     path: .sonar/scanner
-      #     key: ${{ runner.os }}-sonar-scanner
-      #     restore-keys: ${{ runner.os }}-sonar-scanner
-
-      # - name: Install SonarQube scanner
-      #   if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-      #   run: |
-      #     mkdir -p .sonar/scanner
-      #     dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
-
-      # - name: Build and analyze
-      #   run: |
-      #     .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_AZJC05a-lFVQB4lItCaz" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true /d:sonar.sources="src/" /d:sonar.exclusions="**/*.json" 
-      #     dotnet build
-      #     .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           
 
   deploy:
