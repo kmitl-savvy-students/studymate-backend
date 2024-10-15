@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Controllers.Core;
 using studymate_backend.Enums;
@@ -17,17 +18,63 @@ public class GoogleOAuthController(
     UserTokenService userTokenService
 ) : BaseController
 {
-    [HttpPost]
-    public async Task<BaseResponse> Continue(RequestContinueWithGoogle request)
+    private const string clientId = "119650545901-2l5s16n5j047nsqb09uj86focr7jkvk5.apps.googleusercontent.com";
+    private const string clientSecret = "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";
+
+    [HttpGet("link/sign-in")]
+    public BaseResponse GetLinkSignIn()
     {
-        var googleToken = SDMString.cleanAndTrim(request.GoogleToken);
+        return new BaseResponse(EnumResponseCode.OK, GetLink("http://localhost:4200/sign-in"));
+    }
+
+    [HttpGet("link/sign-up")]
+    public BaseResponse GetLinkSignUp()
+    {
+        return new BaseResponse(EnumResponseCode.OK, GetLink("http://localhost:4200/sign-up"));
+    }
+
+    public static string GetLink(string redirectUri)
+    {
+        const string authEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        var scopes = new[] { "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile" };
+
+        return $"{authEndpoint}?client_id={Uri.EscapeDataString(clientId)}" +
+               $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+               "&response_type=code" +
+               $"&scope={Uri.EscapeDataString(string.Join(" ", scopes))}" +
+               "&access_type=offline" +
+               "&prompt=consent";
+    }
+
+    [HttpPost("callback")]
+    public async Task<BaseResponse> PostCallback(RequestGoogleCallback request)
+    {
+        var authorizationCode = SDMString.cleanAndTrim(request.Code);
 
         try
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(googleToken);
+            // Get Access Token
+            var googleAccessToken = await GetAccessTokenAsync(authorizationCode, "http://localhost:4200/sign-in");
+            if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
 
-            var id = payload.Email.Split('@')[0];
-            var domain = payload.HostedDomain;
+            // Get User Info from Access Token
+            var client = new HttpClient();
+            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v2/userinfo");
+            userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
+
+            var response = await client.SendAsync(userInfoRequest);
+            if (!response.IsSuccessStatusCode)
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var userInfo = JsonSerializer.Deserialize<UserInfo>(responseContent);
+
+            if (userInfo == null)
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+
+            var id = (userInfo.email ?? "00000000@kmitl.ac.th").Split('@')[0];
+            var domain = userInfo.hd;
 
             // Verify KMITL user
             if (domain != "kmitl.ac.th" || !SDMNumber.IsValid(id) || !SDMString.IsValid(id, 8, 8))
@@ -39,11 +86,11 @@ public class GoogleOAuthController(
                 // Create user if user doesn't exist
                 user = new User(
                     id,
-                    SDMAuthentication.passwordHash(payload.Subject),
+                    SDMAuthentication.passwordHash(SDMString.generateRandomToken()),
                     EnumGender.OTHER,
-                    payload.GivenName,
-                    payload.GivenName,
-                    payload.FamilyName
+                    userInfo.given_name ?? "",
+                    userInfo.given_name ?? "",
+                    userInfo.family_name ?? ""
                 );
                 userService.Add(user);
             }
@@ -69,9 +116,52 @@ public class GoogleOAuthController(
 
             return new BaseResponse(EnumResponseCode.CREATED, userToken.Serialized());
         }
-        catch (InvalidJwtException)
+        catch (Exception ex)
         {
-            return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+            return new BaseResponse(EnumResponseCode.INTERNAL_SERVER_ERROR, ex.Message);
         }
     }
+
+    private static async Task<GoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
+    {
+        var client = new HttpClient();
+        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
+        {
+            Content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("code", code),
+                new KeyValuePair<string, string>("client_id", clientId),
+                new KeyValuePair<string, string>("client_secret", clientSecret),
+                new KeyValuePair<string, string>("redirect_uri", redirectUri),
+                new KeyValuePair<string, string>("grant_type", "authorization_code")
+            })
+        };
+
+        var response = await client.SendAsync(tokenRequest);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<GoogleAccessToken>(responseContent);
+    }
+}
+
+public class GoogleAccessToken
+{
+    public string? access_token { get; set; }
+    public int? expires_in { get; set; }
+    public string? refresh_token { get; set; }
+    public string? scope { get; set; }
+    public string? token_type { get; set; }
+    public string? id_token { get; set; }
+}
+
+public class UserInfo
+{
+    public string? id { get; set; }
+    public string? email { get; set; }
+    public bool? verified_email { get; set; }
+    public string? name { get; set; }
+    public string? given_name { get; set; }
+    public string? family_name { get; set; }
+    public string? picture { get; set; }
+    public string? hd { get; set; }
 }

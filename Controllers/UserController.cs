@@ -27,4 +27,10 @@ public class UserController(UserTokenService userTokenService) : BaseController
 
         return new BaseResponse(EnumResponseCode.OK, userToken.User.Serialized());
     }
+
+    [HttpGet]
+    public Task<string> Test()
+    {
+        return new SDMVertexAI().GenerateContent();
+    }
 }
