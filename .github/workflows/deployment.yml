@@ -89,8 +89,8 @@ jobs:
           fail-on-empty: false
       - name: cleaning project
         run: |
-          rm -rf bin/
-          rm -rf obj/
+          rm -rf /Tests/bin/
+          rm -rf /Tests/obj/
 
   sonarqube:
     name: SonarQube Analyze
