@@ -77,13 +77,13 @@ jobs:
       - name: Build the project
         run: dotnet build studymate-backend.sln --no-restore
       - name: Test
-        run: dotnet test ./Tests/Tests.csproj --logger "trx" --no-build --verbosity normal 
+        run: dotnet test ./Tests/Tests.csproj --logger "trx;LogFileName=test-results.trx" --no-build --verbosity normal
       - name: Test Reporter
         uses: dorny/test-reporter@v1.9.1
         if: success() || failure()
         with:
           name: .NET xUnit Test
-          path: "**/*.trx"
+          path: "**/test-results.trx"
           reporter: dotnet-trx
           fail-on-error: true
           fail-on-empty: false
