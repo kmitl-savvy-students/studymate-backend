@@ -11,6 +11,8 @@
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
         <PackageReference Include="Google.Apis.Auth" Version="1.68.0"/>
         <PackageReference Include="Google.Cloud.AIPlatform.V1" Version="3.8.0"/>
+        <PackageReference Include="xunit" Version="2.9.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
