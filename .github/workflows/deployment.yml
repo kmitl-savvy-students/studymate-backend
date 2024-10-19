@@ -13,7 +13,7 @@ run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(gi
 
 jobs:
   test:
-    name: xUnit Testing
+    name: Unit Test
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
     container:
@@ -44,48 +44,48 @@ jobs:
           rm -rf /Tests/bin/
           rm -rf /Tests/obj/
 
-  # sonarqube:
-  #   name: SonarQube Analyze
-  #   needs: test
-  #   runs-on: ["self-hosted", "org-runner"]
-  #   container:
-  #     image: mcr.microsoft.com/dotnet/sdk:8.0
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  sonarqube:
+    name: SonarQube Analyze
+    needs: test
+    runs-on: ["self-hosted", "org-runner"]
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-  #     - name: Set up JDK 17
-  #       uses: actions/setup-java@v1
-  #       with:
-  #         java-version: 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
 
-  #     - name: Cache SonarQube packages
-  #       uses: actions/cache@v1
-  #       with:
-  #         path: ~/.sonar/cache
-  #         key: ${{ runner.os }}-sonar
-  #         restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-  #     - name: Cache SonarQube scanner
-  #       id: cache-sonar-scanner
-  #       uses: actions/cache@v1
-  #       with:
-  #         path: .sonar/scanner
-  #         key: ${{ runner.os }}-sonar-scanner
-  #         restore-keys: ${{ runner.os }}-sonar-scanner
+      - name: Cache SonarQube scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v1
+        with:
+          path: .sonar/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
 
-  #     - name: Install SonarQube scanner
-  #       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-  #       run: |
-  #         mkdir -p .sonar/scanner
-  #         dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+      - name: Install SonarQube scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .sonar/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
 
-  #     - name: Build and analyze
-  #       run: |
-  #         .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_9cb6e3af-69ca-4169-ab00-b313f0119e1e" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true
-  #         dotnet build .
-  #         .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: Build and analyze
+        run: |
+          .sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_944fc207-7ea9-446a-ace5-ef3f9905d4ac" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true
+          dotnet build .
+          .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}" 
 
   build:
     name: Build
