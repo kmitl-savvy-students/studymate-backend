@@ -10,7 +10,7 @@ namespace studymate_backend.Controllers;
 
 [ApiController]
 [Route("api/user")]
-public class UserController(UserTokenService userTokenService) : BaseController
+public class UserController(UserTokenService userTokenService) : IController
 {
     [HttpPost]
     public BaseResponse Get(RequestUser requestUser)

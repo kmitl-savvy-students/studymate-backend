@@ -8,6 +8,8 @@ using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Object;
 using studymate_backend.Models.StudyMate.Raw.Request.Auth;
 using studymate_backend.Services;
+using studymate_backend.Services.FrontendUrl;
+using studymate_backend.Services.GoogleOAuthUrl;
 
 namespace studymate_backend.Controllers;
 
@@ -15,8 +17,10 @@ namespace studymate_backend.Controllers;
 [Route("api/google")]
 public class GoogleOAuthController(
     UserService userService,
-    UserTokenService userTokenService
-) : BaseController
+    UserTokenService userTokenService,
+    IFrontendUrlService frontendUrlService,
+    IGoogleOAuthUrlService googleOAuthUrlService
+) : IController
 {
     private const string clientId = "119650545901-2l5s16n5j047nsqb09uj86focr7jkvk5.apps.googleusercontent.com";
     private const string clientSecret = "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";
@@ -24,19 +28,19 @@ public class GoogleOAuthController(
     [HttpGet("link/sign-in")]
     public BaseResponse GetLinkSignIn()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink("http://localhost:4200/sign-in"));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-in"));
     }
 
     [HttpGet("link/sign-up")]
     public BaseResponse GetLinkSignUp()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink("http://localhost:4200/sign-up"));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-up"));
     }
 
-    public static string GetLink(string redirectUri)
+    public string GetLink(string redirectUri)
     {
-        const string authEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-        var scopes = new[] { "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile" };
+        var authEndpoint = googleOAuthUrlService.GetAuthEndpoint();
+        var scopes = new[] { googleOAuthUrlService.GetUserInfoEndpoint() + ".email", googleOAuthUrlService.GetUserInfoEndpoint() + ".profile" };
 
         return $"{authEndpoint}?client_id={Uri.EscapeDataString(clientId)}" +
                $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
@@ -54,13 +58,13 @@ public class GoogleOAuthController(
         try
         {
             // Get Access Token
-            var googleAccessToken = await GetAccessTokenAsync(authorizationCode, "http://localhost:4200/sign-in");
+            var googleAccessToken = await GetAccessTokenAsync(authorizationCode, frontendUrlService.GetFrontendUrl() + "/sign-in");
             if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
                 return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
 
             // Get User Info from Access Token
             var client = new HttpClient();
-            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v2/userinfo");
+            var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, googleOAuthUrlService.GetUserInfoOAuth2Endpoint());
             userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
 
             var response = await client.SendAsync(userInfoRequest);
@@ -122,10 +126,10 @@ public class GoogleOAuthController(
         }
     }
 
-    private static async Task<GoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
+    private async Task<GoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
     {
         var client = new HttpClient();
-        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
+        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, googleOAuthUrlService.GetOAuthTokenEndpoint())
         {
             Content = new FormUrlEncodedContent(new[]
             {

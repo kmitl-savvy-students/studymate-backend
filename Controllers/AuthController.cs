@@ -15,7 +15,7 @@ namespace studymate_backend.Controllers;
 public class AuthController(
     UserService userService,
     UserTokenService userTokenService
-) : BaseController
+) : IController
 {
     [HttpPost("sign-up")]
     public BaseResponse SignUp(RequestSignUp requestSignUp)

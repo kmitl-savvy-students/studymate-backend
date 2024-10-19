@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-ENV ASPNETCORE_ENVIRONMENT=prod
+ENV ASPNETCORE_ENVIRONMENT=preprod
 
 WORKDIR /app
 

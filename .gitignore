@@ -1,10 +1,13 @@
 # Builds files
 /.config
+
 /.vs
 /bin
-
 /obj
+
+/Tests/.vs
 /Tests/obj
+/Tests/bin
 
 # Jetbrains
 /.idea

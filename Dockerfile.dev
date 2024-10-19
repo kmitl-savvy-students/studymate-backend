@@ -4,8 +4,6 @@ WORKDIR /app
 
 EXPOSE 5000
 
-ENV ASPNETCORE_URLS=http://*:5000
-
 COPY ["studymate-backend.csproj", "./"]
 RUN dotnet restore "./studymate-backend.csproj"
 
