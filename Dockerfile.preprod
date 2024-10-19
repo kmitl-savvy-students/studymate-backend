@@ -10,8 +10,7 @@ COPY ["studymate-backend.csproj", "./"]
 RUN dotnet restore "./studymate-backend.csproj"
 
 COPY . .
-
-RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore --verbosity detailed
+RUN dotnet publish -c Release -o /app/publish --no-self-contained
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
