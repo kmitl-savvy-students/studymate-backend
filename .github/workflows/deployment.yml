@@ -89,7 +89,7 @@ jobs:
 
   build:
     name: Build
-    needs: test
+    needs: sonarqube
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
     steps:
