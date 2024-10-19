@@ -1,21 +1,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-ENV ASPNETCORE_ENVIRONMENT=prod
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 WORKDIR /app
-
-EXPOSE 8080
 
 COPY ["studymate-backend.csproj", "./"]
 RUN dotnet restore "./studymate-backend.csproj"
 
 COPY . .
-
 RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore --verbosity detailed
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 WORKDIR /app
+EXPOSE 8080
+
 COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "studymate-backend.dll"]
