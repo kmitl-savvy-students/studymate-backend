@@ -9,6 +9,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/vertex-ai-access-key.json
     volumes:
       - ./tmp/keys/vertex-ai-access-key.json:/keys/vertex-ai-access-key.json:ro
+    networks:
+      - backend-network
 
 networks:
   backend-network:
