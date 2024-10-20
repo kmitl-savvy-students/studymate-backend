@@ -21,8 +21,8 @@ public class RawUserToken(string id, string userId, DateTime created, DateTime e
         return new UserToken(
             Id,
             user,
-            new SDMDateTime(Created),
-            new SDMDateTime(Expired)
+            new SdmDateTime(Created),
+            new SdmDateTime(Expired)
         );
     }
 }

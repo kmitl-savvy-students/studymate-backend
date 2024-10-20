@@ -1,6 +1,6 @@
 ﻿namespace studymate_backend.Helper;
 
-public static class SDMNumber
+public static class SdmNumber
 {
     public static bool IsValid(string? input)
     {

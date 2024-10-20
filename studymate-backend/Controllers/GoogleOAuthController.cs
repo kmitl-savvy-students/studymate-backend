@@ -28,13 +28,13 @@ public class GoogleOAuthController(
     [HttpGet("link/sign-in")]
     public BaseResponse GetLinkSignIn()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-in"));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() ?? ""));
     }
 
     [HttpGet("link/sign-up")]
     public BaseResponse GetLinkSignUp()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-up"));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() ?? ""));
     }
 
     private string GetLink(string redirectUri)
@@ -53,7 +53,7 @@ public class GoogleOAuthController(
     [HttpPost("callback")]
     public async Task<BaseResponse> PostCallback(RequestGoogleCallback request)
     {
-        var authorizationCode = SDMString.cleanAndTrim(request.Code);
+        var authorizationCode = SdmString.cleanAndTrim(request.Code);
 
         try
         {
@@ -81,7 +81,7 @@ public class GoogleOAuthController(
             var domain = userInfo.hd;
 
             // Verify KMITL user
-            if (domain != "kmitl.ac.th" || !SDMNumber.IsValid(id) || !SDMString.IsValid(id, 8, 8))
+            if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
                 return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
 
             var user = userService.Get(id);
@@ -90,7 +90,7 @@ public class GoogleOAuthController(
                 // Create user if user doesn't exist
                 user = new User(
                     id,
-                    SDMAuthentication.passwordHash(SDMString.generateRandomToken()),
+                    SdmAuthentication.passwordHash(SdmString.generateRandomToken()),
                     EnumGender.OTHER,
                     userInfo.given_name ?? "",
                     userInfo.given_name ?? "",
@@ -100,9 +100,9 @@ public class GoogleOAuthController(
             }
 
             // Generate token string
-            var randomizeToken = SDMString.generateRandomToken();
+            var randomizeToken = SdmString.generateRandomToken();
             while (userTokenService.Get(randomizeToken) != null)
-                randomizeToken = SDMString.generateRandomToken();
+                randomizeToken = SdmString.generateRandomToken();
 
             // Verify if token is already exists
             var userToken = userTokenService.GetByUser(user);
@@ -113,8 +113,8 @@ public class GoogleOAuthController(
             userToken = new UserToken(
                 randomizeToken,
                 user,
-                SDMDateTime.Now(),
-                SDMDateTime.Now().AddHours(12)
+                SdmDateTime.Now(),
+                SdmDateTime.Now().AddHours(12)
             );
             userTokenService.Add(userToken);
 

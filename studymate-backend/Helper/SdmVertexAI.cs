@@ -4,7 +4,7 @@ using Google.Cloud.AIPlatform.V1;
 
 namespace studymate_backend.Helper;
 
-public class SDMVertexAI
+public class SdmVertexAI
 {
     public async Task<string> GenerateContent(
         string projectId = "savvy-studymate",

@@ -15,22 +15,19 @@ public class UserController(UserTokenService userTokenService) : IController
     [HttpPost]
     public BaseResponse Get(RequestUser requestUser)
     {
-        if (!SDMString.IsValid(requestUser.UserTokenId, 64, 64))
+        if (!SdmString.IsValid(requestUser.UserTokenId, 64, 64))
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
 
-        var userTokenId = SDMString.cleanAndTrim(requestUser.UserTokenId);
+        var userTokenId = SdmString.cleanAndTrim(requestUser.UserTokenId);
 
         // Verify token
         var userToken = userTokenService.Get(userTokenId);
         if (userToken == null)
             return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
-
+        
+        // Remove password
+        userToken.User.Password = "";
+        
         return new BaseResponse(EnumResponseCode.OK, userToken.User.Serialized());
-    }
-
-    [HttpGet]
-    public Task<string> Test()
-    {
-        return new SDMVertexAI().GenerateContent();
     }
 }

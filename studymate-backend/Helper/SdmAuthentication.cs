@@ -2,7 +2,7 @@
 
 namespace studymate_backend.Helper;
 
-public static partial class SDMAuthentication
+public static partial class SdmAuthentication
 {
     [GeneratedRegex(@"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$")]
     private static partial Regex RegexPasswordStrong();
