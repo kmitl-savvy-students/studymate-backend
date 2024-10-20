@@ -126,6 +126,8 @@ jobs:
           name: "vertex-ai-access-key.json"
           json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           dir: '/studymate-backend/tmp/keys/'
+      - name: list directory
+        run: ls
       - name: Wait for file creation
         run: sleep 10
       - name: Verify JSON File Content
