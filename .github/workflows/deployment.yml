@@ -125,7 +125,11 @@ jobs:
         with:
           name: "vertex-ai-access-key.json"
           json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          dir: '/studymate-backend/tmp/keys/'  
+          dir: '/studymate-backend/tmp/keys/'
+      - name: Wait for file creation
+        run: sleep 5
+      - name: Verify JSON File Content
+        run: cat /studymate-backend/tmp/keys/vertex-ai-access-key.json         
       - name: Deploy application using Docker Compose
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build

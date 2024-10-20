@@ -8,7 +8,7 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/vertex-ai-access-key.json
     volumes:
-      - /studymate-backend/studymate-backend/tmp/keys/vertex-ai-access-key.json:/app/vertex-ai-access-key.json:ro
+      - /studymate-backend/tmp/keys/vertex-ai-access-key.json:/app/vertex-ai-access-key.json:ro
     networks:
       - backend-network
 
