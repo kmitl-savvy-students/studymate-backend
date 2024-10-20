@@ -127,7 +127,7 @@ jobs:
           json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           dir: '/studymate-backend/tmp/keys/'
       - name: Wait for file creation
-        run: sleep 5
+        run: sleep 20
       - name: Verify JSON File Content
         run: cat /studymate-backend/tmp/keys/vertex-ai-access-key.json         
       - name: Deploy application using Docker Compose
