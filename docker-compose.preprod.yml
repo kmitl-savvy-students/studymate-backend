@@ -7,10 +7,9 @@ services:
       - "8000:8080"
     environment:
       # - GOOGLE_APPLICATION_CREDENTIALS=/studymate-backend/tmp/keys/vertex-ai-access-key.json
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/studymate-backend/keys/vertex-ai-access-key.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/studymate-backend/keys/vertex-ai-access-key.json
     volumes:
-      - ./studymate-backend/tmp/keys/vertex-ai-access-key.json:/app/studymate-backend/keys/vertex-ai-access-key.json:ro
-      - ../studymate-backend/studymate-backend:/app/studymate-backend
+      - /studymate-backend/tmp/keys/vertex-ai-access-key.json:/keys/vertex-ai-access-key.json:ro
     networks:
       - backend-network
 
