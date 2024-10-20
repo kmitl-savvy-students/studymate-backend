@@ -40,7 +40,7 @@ var frontendUrl = frontendUrlService.GetFrontendUrl();
 
 app.UseCors(policyBuilder =>
 {
-    policyBuilder.WithOrigins(frontendUrl ?? "http://localhost:4200")
+    policyBuilder.WithOrigins(frontendUrl ?? "http://192.168.50.51:4200")
         .AllowAnyHeader()
         .AllowAnyMethod();
 });
