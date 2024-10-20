@@ -114,13 +114,37 @@ jobs:
     steps:
       - name: Stop and Remove Container
         run: |
-          docker stop sdm-backend-container | true
-          docker rm sdm-backend-container | true
-      - name: Run Docker Container
+          docker compose -f docker-compose.preprod.yml down -v
+      - name: Deploy application using Docker Compose
         run: |
-          docker run -d -p 8000:8080 --name sdm-backend-container --restart=always back-img
-      - name: Assign container network
-        run: |
-          docker network connect backend-network sdm-backend-container
+          docker compose -f docker-compose.preprod.yml up -d --build
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/keys/vertex-ai-access-key.json
+      - name: Clean up credentials file
+        run: rm -f /tmp/keys/vertex-ai-access-key.json
       - name: ✅✅ Finish ✅✅
         run: echo "All Passed => Fisnish !!"
+
+
+
+  # old deploy method
+  
+  # deploy:
+  #     name : Deploy
+  #     needs: build
+  #     runs-on:
+  #       labels: ["self-hosted", "Linux", "X64", "back-runner"]
+
+  #     steps:
+  #       - name: Stop and Remove Container
+  #         run: |
+  #           docker stop sdm-backend-container | true
+  #           docker rm sdm-backend-container | true
+  #       - name: Run Docker Container
+  #         run: |
+  #           docker run -d -p 8000:8080 --name sdm-backend-container --restart=always back-img
+  #       - name: Assign container network
+  #         run: |
+  #           docker network connect backend-network sdm-backend-container
+  #       - name: ✅✅ Finish ✅✅
+  #         run: echo "All Passed => Fisnish !!"
