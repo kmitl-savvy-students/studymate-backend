@@ -115,13 +115,17 @@ jobs:
       - name: Stop and Remove Container
         run: |
           docker compose -f docker-compose.preprod.yml down -v | true
-      - name: Create Google Credentials File
+      - name: Create Directory To Store File
         run: |
           mkdir -p ./studymate-backend/tmp/keys
           sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend/studymate-backend/tmp/keys
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_SECRET" > /studymate-backend/tmp/keys/vertex-ai-access-key.json
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_SECRET: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
+      - name: Create Google Credentials File
+        id: create-json
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "vertex-ai-access-key.json"
+          json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
+          dir: '/studymate-backend/tmp/keys/'  
       - name: Deploy application using Docker Compose
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build
