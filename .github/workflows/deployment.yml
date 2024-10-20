@@ -130,7 +130,7 @@ jobs:
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build
       - name: Clean up credentials file
-        run: rm -f /tmp/keys/vertex-ai-access-key.json
+        run: rm -f /studymate-backend/tmp/keys/vertex-ai-access-key.json
       - name: ✅✅ Finish ✅✅
         run: echo "All Passed => Fisnish !!"
 
