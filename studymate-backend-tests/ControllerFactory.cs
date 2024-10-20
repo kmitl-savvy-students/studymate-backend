@@ -3,7 +3,7 @@ using studymate_backend.Contexts;
 using studymate_backend.Controllers;
 using studymate_backend.Services;
 
-namespace studymate_backend.Tests;
+namespace Tests;
 
 public static class ControllerFactory
 {

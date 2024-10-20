@@ -1,13 +1,15 @@
 # Builds files
 /.config
 
-/.vs
-/bin
-/obj
+/studymate-backend/.vs
+/studymate-backend/bin
+/studymate-backend/obj
+/studymate-backend/keys
 
-/Tests/.vs
-/Tests/obj
-/Tests/bin
+/studymate-backend-tests/.vs
+/studymate-backend-tests/obj
+/studymate-backend-tests/bin
+
 
 # Jetbrains
 /.idea

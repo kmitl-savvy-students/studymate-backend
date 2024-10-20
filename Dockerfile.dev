@@ -8,7 +8,12 @@ ENV ASPNETCORE_URLS=http://*:5000
 ENV ASPNETCORE_ENVIRONMENT=dev
 
 COPY ["studymate-backend.csproj", "./"]
+COPY ["Tests/Tests.csproj", "./Tests/"]
+
+RUN dotnet clean
+
 RUN dotnet restore "./studymate-backend.csproj"
+RUN dotnet restore "./Tests/Tests.csproj"
 
 COPY . .
 

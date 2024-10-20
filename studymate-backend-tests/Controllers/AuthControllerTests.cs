@@ -2,7 +2,7 @@
 using studymate_backend.Models.StudyMate.Raw.Request.Auth;
 using Xunit;
 
-namespace studymate_backend.Tests.Controllers;
+namespace Tests.Controllers;
 
 public class AuthControllerTests
 {
