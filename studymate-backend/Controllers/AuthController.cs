@@ -20,23 +20,23 @@ public class AuthController(
     [HttpPost("sign-up")]
     public BaseResponse SignUp(RequestSignUp requestSignUp)
     {
-        if (!SDMNumber.IsValid(requestSignUp.Id) ||
-            !SDMString.IsValid(requestSignUp.Id, 8, 8) ||
-            !SDMString.IsValid(requestSignUp.Password, 64) ||
-            !SDMString.IsValid(requestSignUp.PasswordConfirm, 64) ||
-            !SDMString.IsValid(requestSignUp.NameNick, 256) ||
-            !SDMString.IsValid(requestSignUp.NameFirst, 256) ||
-            !SDMString.IsValid(requestSignUp.NameLast, 256) ||
-            !SDMString.IsValid(requestSignUp.Gender, 6))
+        if (!SdmNumber.IsValid(requestSignUp.Id) ||
+            !SdmString.IsValid(requestSignUp.Id, 8, 8) ||
+            !SdmString.IsValid(requestSignUp.Password, 64) ||
+            !SdmString.IsValid(requestSignUp.PasswordConfirm, 64) ||
+            !SdmString.IsValid(requestSignUp.NameNick, 256) ||
+            !SdmString.IsValid(requestSignUp.NameFirst, 256) ||
+            !SdmString.IsValid(requestSignUp.NameLast, 256) ||
+            !SdmString.IsValid(requestSignUp.Gender, 6))
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
 
-        var id = SDMString.cleanAndTrim(requestSignUp.Id);
-        var password = SDMString.cleanAndTrim(requestSignUp.Password);
-        var passwordConfirm = SDMString.cleanAndTrim(requestSignUp.PasswordConfirm);
-        var gender = BaseEnum.Get<EnumGender>(SDMString.cleanAndTrim(requestSignUp.Gender)) ?? EnumGender.OTHER;
-        var nameNick = SDMString.cleanAndTrim(requestSignUp.NameNick);
-        var nameFirst = SDMString.cleanAndTrim(requestSignUp.NameFirst);
-        var nameLast = SDMString.cleanAndTrim(requestSignUp.NameLast);
+        var id = SdmString.cleanAndTrim(requestSignUp.Id);
+        var password = SdmString.cleanAndTrim(requestSignUp.Password);
+        var passwordConfirm = SdmString.cleanAndTrim(requestSignUp.PasswordConfirm);
+        var gender = BaseEnum.Get<EnumGender>(SdmString.cleanAndTrim(requestSignUp.Gender)) ?? EnumGender.OTHER;
+        var nameNick = SdmString.cleanAndTrim(requestSignUp.NameNick);
+        var nameFirst = SdmString.cleanAndTrim(requestSignUp.NameFirst);
+        var nameLast = SdmString.cleanAndTrim(requestSignUp.NameLast);
 
         // Check if id is already exists
         if (userService.Get(id) != null)
@@ -45,13 +45,13 @@ public class AuthController(
         // Verify password
         if (password != passwordConfirm)
             return new BaseResponse(EnumResponseCode.PASSWORD_MISMATCH);
-        if (!SDMAuthentication.isPasswordStrong(password))
+        if (!SdmAuthentication.isPasswordStrong(password))
             return new BaseResponse(EnumResponseCode.PASSWORD_WEAK);
 
         // Create user
         userService.Add(new User(
             id,
-            SDMAuthentication.passwordHash(password),
+            SdmAuthentication.passwordHash(password),
             gender,
             nameNick,
             nameFirst,
@@ -64,10 +64,10 @@ public class AuthController(
     [HttpPost("sign-out")]
     public BaseResponse SignOut(RequestSignOut requestSignOut)
     {
-        if (!SDMString.IsValid(requestSignOut.UserTokenId, 64, 64))
+        if (!SdmString.IsValid(requestSignOut.UserTokenId, 64, 64))
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
 
-        var userTokenId = SDMString.cleanAndTrim(requestSignOut.UserTokenId);
+        var userTokenId = SdmString.cleanAndTrim(requestSignOut.UserTokenId);
 
         // Find token to remove
         var userToken = userTokenService.Get(userTokenId);
@@ -82,13 +82,13 @@ public class AuthController(
     [HttpPost("sign-in")]
     public BaseResponse SignIn(RequestSignIn requestSignIn)
     {
-        if (!SDMNumber.IsValid(requestSignIn.Id) ||
-            !SDMString.IsValid(requestSignIn.Id, 8, 8) ||
-            !SDMString.IsValid(requestSignIn.Password, 64))
+        if (!SdmNumber.IsValid(requestSignIn.Id) ||
+            !SdmString.IsValid(requestSignIn.Id, 8, 8) ||
+            !SdmString.IsValid(requestSignIn.Password, 64))
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
 
-        var id = SDMString.cleanAndTrim(requestSignIn.Id);
-        var password = SDMString.cleanAndTrim(requestSignIn.Password);
+        var id = SdmString.cleanAndTrim(requestSignIn.Id);
+        var password = SdmString.cleanAndTrim(requestSignIn.Password);
 
         // Find user to authenticate
         var user = userService.Get(id);
@@ -96,13 +96,13 @@ public class AuthController(
             return new BaseResponse(EnumResponseCode.NOT_FOUND);
 
         // Verify password
-        if (!SDMAuthentication.passwordVerify(password, user.Password))
+        if (!SdmAuthentication.passwordVerify(password, user.Password))
             return new BaseResponse(EnumResponseCode.NOT_FOUND);
 
         // Generate token string
-        var randomizeToken = SDMString.generateRandomToken();
+        var randomizeToken = SdmString.generateRandomToken();
         while (userTokenService.Get(randomizeToken) != null)
-            randomizeToken = SDMString.generateRandomToken();
+            randomizeToken = SdmString.generateRandomToken();
 
         // Verify if token is already exists
         var userToken = userTokenService.GetByUser(user);
@@ -113,8 +113,8 @@ public class AuthController(
         userToken = new UserToken(
             randomizeToken,
             user,
-            SDMDateTime.Now(),
-            SDMDateTime.Now().AddHours(12)
+            SdmDateTime.Now(),
+            SdmDateTime.Now().AddHours(12)
         );
         userTokenService.Add(userToken);
 

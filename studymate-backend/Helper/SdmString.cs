@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace studymate_backend.Helper;
 
-public static partial class SDMString
+public static partial class SdmString
 {
     public static string generateRandomToken(int length = 64)
     {
