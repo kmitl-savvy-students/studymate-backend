@@ -7,14 +7,12 @@ EXPOSE 5000
 ENV ASPNETCORE_URLS=http://*:5000
 ENV ASPNETCORE_ENVIRONMENT=dev
 
-COPY ["studymate-backend.csproj", "./"]
-COPY ["Tests/Tests.csproj", "./Tests/"]
+COPY ["studymate-backend.sln", "./"]
+COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
+COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
 
-RUN dotnet clean
-
-RUN dotnet restore "./studymate-backend.csproj"
-RUN dotnet restore "./Tests/Tests.csproj"
+RUN dotnet restore .
 
 COPY . .
 
-ENTRYPOINT ["dotnet", "watch", "run"]
+ENTRYPOINT ["dotnet", "watch", "run", "--project", "studymate-backend"]
