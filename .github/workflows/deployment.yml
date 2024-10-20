@@ -130,7 +130,7 @@ jobs:
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: /studymate-backend/tmp/keys/vertex-ai-access-key.json
+          GOOGLE_APPLICATION_CREDENTIALS: /app/studymate-backend/keys/vertex-ai-access-key.json
       # - name: Clean up credentials file
       #   run: rm -f /tmp/keys/vertex-ai-access-key.json
       - name: ✅✅ Finish ✅✅
