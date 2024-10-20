@@ -118,6 +118,7 @@ jobs:
       - name: Create Google Credentials File
         run: |
           mkdir -p ./studymate-backend/tmp/keys
+          sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend/studymate-backend/tmp/keys
           echo "$GOOGLE_APPLICATION_CREDENTIALS_SECRET" > /studymate-backend/tmp/keys/vertex-ai-access-key.json
         env:
           GOOGLE_APPLICATION_CREDENTIALS_SECRET: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
