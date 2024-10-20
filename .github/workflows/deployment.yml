@@ -115,6 +115,12 @@ jobs:
       - name: Stop and Remove Container
         run: |
           docker compose -f docker-compose.preprod.yml down -v | true
+      # Create the JSON key file from GitHub secret
+      - name: Create Google Credentials File
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_SECRET" > /tmp/keys/vertex-ai-access-key.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_SECRET: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
       - name: Deploy application using Docker Compose
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build
