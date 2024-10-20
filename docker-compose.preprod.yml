@@ -8,11 +8,8 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/vertex-ai-access-key.json
     volumes:
-      - /tmp/keys/vertex-ai-access-key.json:/keys/vertex-ai-access-key.json:ro
+      - ./tmp/keys/vertex-ai-access-key.json:/keys/vertex-ai-access-key.json:ro
 
 networks:
   backend-network:
     external: true
-
-volumes:
-  /tmp/keys/vertex-ai-access-key.json:
