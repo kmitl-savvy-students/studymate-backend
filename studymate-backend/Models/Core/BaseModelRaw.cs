@@ -1,3 +1,3 @@
 ﻿namespace studymate_backend.Models.Core;
 
-public class BaseModelRaw;
+public interface BaseModelRaw;

@@ -34,9 +34,13 @@ builder.Services.AddCors();
 
 var app = builder.Build();
 
+// Get the frontend URL from the configured FrontendUrlService
+var frontendUrlService = app.Services.GetRequiredService<IFrontendUrlService>();
+var frontendUrl = frontendUrlService.GetFrontendUrl();
+
 app.UseCors(policyBuilder =>
 {
-    policyBuilder.WithOrigins("http://localhost:4200")
+    policyBuilder.WithOrigins(frontendUrl ?? "http://localhost:4200")
         .AllowAnyHeader()
         .AllowAnyMethod();
 });
@@ -48,4 +52,4 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
