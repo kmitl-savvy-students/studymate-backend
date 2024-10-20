@@ -118,6 +118,7 @@ jobs:
       # Create the JSON key file from GitHub secret
       - name: Create Google Credentials File
         run: |
+          mkdir -p /tmp/keys
           echo "$GOOGLE_APPLICATION_CREDENTIALS_SECRET" > /tmp/keys/vertex-ai-access-key.json
         env:
           GOOGLE_APPLICATION_CREDENTIALS_SECRET: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
