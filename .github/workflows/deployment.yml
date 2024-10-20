@@ -124,7 +124,7 @@ jobs:
         uses: jsdaniell/create-json@v1.2.3
         with:
           name: "vertex-ai-access-key.json"
-          json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
+          json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           dir: '/studymate-backend/tmp/keys/'  
       - name: Deploy application using Docker Compose
         run: |
