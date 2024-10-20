@@ -120,8 +120,8 @@ jobs:
           docker compose -f docker-compose.preprod.yml up -d --build
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/keys/vertex-ai-access-key.json
-      - name: Clean up credentials file
-        run: rm -f /tmp/keys/vertex-ai-access-key.json
+      # - name: Clean up credentials file
+      #   run: rm -f /tmp/keys/vertex-ai-access-key.json
       - name: ✅✅ Finish ✅✅
         run: echo "All Passed => Fisnish !!"
 
