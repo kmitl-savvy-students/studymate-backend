@@ -37,7 +37,7 @@ public class GoogleOAuthController(
         return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-up"));
     }
 
-    public string GetLink(string redirectUri)
+    private string GetLink(string redirectUri)
     {
         var authEndpoint = googleOAuthUrlService.GetAuthEndpoint();
         var scopes = new[] { googleOAuthUrlService.GetUserInfoEndpoint() + ".email", googleOAuthUrlService.GetUserInfoEndpoint() + ".profile" };

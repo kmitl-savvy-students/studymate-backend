@@ -34,16 +34,11 @@ builder.Services.AddCors();
 
 var app = builder.Build();
 
-// Resolve IFrontendUrlService using DI, and configure CORS dynamically
-var frontendUrlService = app.Services.GetRequiredService<IFrontendUrlService>();
-var frontendUrl = frontendUrlService.GetFrontendUrl();
-
 app.UseCors(policyBuilder =>
 {
-    if (frontendUrl != null)
-        policyBuilder.WithOrigins(frontendUrl)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+    policyBuilder.WithOrigins("http://localhost:4200")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
 });
 
 // Configure the HTTP request pipeline
