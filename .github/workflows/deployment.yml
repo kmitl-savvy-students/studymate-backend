@@ -103,7 +103,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -f Dockerfile.prod -t back-img .
+          docker build -f Dockerfile.preprod -t back-img .
           
   deploy:
     name : Deploy
