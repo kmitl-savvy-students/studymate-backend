@@ -118,25 +118,21 @@ jobs:
       - name: Create Directory To Store File
         run: |
           mkdir -p ./studymate-backend/tmp/keys
-          sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend/studymate-backend/tmp/keys
+          sudo chown -R admin-preprod:admin-preprod ./studymate-backend/tmp/keys
       - name: Create Google Credentials File
         id: create-json
         uses: jsdaniell/create-json@v1.2.3
         with:
           name: "vertex-ai-access-key.json"
           json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          dir: '/studymate-backend/tmp/keys/'
-      - name: list directory
-        run: ls
-      - name: Wait for file creation
-        run: sleep 10
+          dir: './studymate-backend/tmp/keys/'
       - name: Verify JSON File Content
-        run: cat /studymate-backend/studymate-backend/tmp/keys/vertex-ai-access-key.json         
+        run: cat ./studymate-backend/tmp/keys/vertex-ai-access-key.json         
       - name: Deploy application using Docker Compose
         run: |
           docker compose -f docker-compose.preprod.yml up -d --build
       - name: Clean up credentials file
-        run: rm -f /studymate-backend/studymate-backend/tmp/keys/vertex-ai-access-key.json
+        run: rm -f ./studymate-backend/tmp/keys/vertex-ai-access-key.json
       - name: ✅✅ Finish ✅✅
         run: echo "All Passed => Fisnish !!"
 
