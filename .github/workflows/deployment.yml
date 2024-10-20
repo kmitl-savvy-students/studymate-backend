@@ -87,27 +87,27 @@ jobs:
   #         dotnet build .
   #         ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}" 
 
-  build:
-    name: Build
-    # needs: sonarqube
-    runs-on:
-      labels: ["self-hosted", "Linux", "X64", "back-runner"]
-    steps:
-      - name: give runner permission
-        run: |
-          sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+  # build:
+  #   name: Build
+  #   # needs: sonarqube
+  #   runs-on:
+  #     labels: ["self-hosted", "Linux", "X64", "back-runner"]
+  #   steps:
+  #     - name: give runner permission
+  #       run: |
+  #         sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker Image
-        run: |
-          docker build -f Dockerfile.preprod -t back-img .
+  #     - name: Build Docker Image
+  #       run: |
+  #         docker build -f Dockerfile.preprod -t back-img .
           
   deploy:
     name : Deploy
-    needs: build
+    # needs: build
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
 
@@ -117,7 +117,7 @@ jobs:
           docker compose -f docker-compose.preprod.yml down -v | true
       - name: Create Google Credentials File
         run: |
-          sudo mkdir -p /studymate-backend/tmp/keys
+          mkdir -p ./studymate-backend/tmp/keys
           echo "$GOOGLE_APPLICATION_CREDENTIALS_SECRET" > /studymate-backend/tmp/keys/vertex-ai-access-key.json
         env:
           GOOGLE_APPLICATION_CREDENTIALS_SECRET: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
