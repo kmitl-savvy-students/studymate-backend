@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>studymate_backend</RootNamespace>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <SonarQubeTestProject>false</SonarQubeTestProject>
     </PropertyGroup>
 
     <PropertyGroup>
