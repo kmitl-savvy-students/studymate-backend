@@ -8,6 +8,7 @@
         <IsTestProject>true</IsTestProject>
         <RootNamespace>Tests</RootNamespace>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <SonarQubeExclude>true</SonarQubeExclude>
     </PropertyGroup>
 
     <PropertyGroup>
