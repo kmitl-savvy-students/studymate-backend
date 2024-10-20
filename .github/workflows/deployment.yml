@@ -107,7 +107,7 @@ jobs:
           
   deploy:
     name : Deploy
-    # needs: build
+    needs: build
     runs-on:
       labels: ["self-hosted", "Linux", "X64", "back-runner"]
 
