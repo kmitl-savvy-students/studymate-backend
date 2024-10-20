@@ -28,13 +28,13 @@ public class GoogleOAuthController(
     [HttpGet("link/sign-in")]
     public BaseResponse GetLinkSignIn()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() ?? ""));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-in"));
     }
 
     [HttpGet("link/sign-up")]
     public BaseResponse GetLinkSignUp()
     {
-        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() ?? ""));
+        return new BaseResponse(EnumResponseCode.OK, GetLink(frontendUrlService.GetFrontendUrl() + "/sign-up"));
     }
 
     private string GetLink(string redirectUri)
