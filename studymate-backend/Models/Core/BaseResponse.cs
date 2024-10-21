@@ -4,14 +4,14 @@ namespace studymate_backend.Models.Core;
 
 public class BaseResponse
 {
-    public BaseResponse(EnumResponseCode response, BaseModelRaw data)
+    public BaseResponse(EnumResponseCode response, IBaseModelRaw data)
     {
         Code = response.GetCode();
         Message = response.GetName();
         Data = data;
     }
 
-    public BaseResponse(EnumResponseCode response, IEnumerable<BaseModelRaw> data)
+    public BaseResponse(EnumResponseCode response, IEnumerable<IBaseModelRaw> data)
     {
         Code = response.GetCode();
         Message = response.GetName();

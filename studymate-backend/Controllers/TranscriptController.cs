@@ -1,21 +1,13 @@
 ﻿using System.Text;
 using Google.Api.Gax.Grpc;
 using Google.Cloud.AIPlatform.V1;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Controllers.Core;
 using studymate_backend.Enums;
-using studymate_backend.Helper;
 using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Raw.Request.Transcript;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
-using UglyToad.PdfPig.Geometry;
 
 namespace studymate_backend.Controllers
 {
@@ -126,10 +118,10 @@ namespace studymate_backend.Controllers
                     var rightColumnBounds = new PdfRectangle(pageWidth / 2, 0, pageWidth, pageHeight);
 
                     var leftText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, leftColumnBounds)).Select(word => word.Text).ToArray();
-                    text.Append(string.Join(" ", leftText)).Append(" ");
+                    text.Append(string.Join(" ", leftText)).Append(' ');
 
                     var rightText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, rightColumnBounds)).Select(word => word.Text).ToArray();
-                    text.Append(string.Join(" ", rightText)).Append(" ");
+                    text.Append(string.Join(" ", rightText)).Append(' ');
                 }
 
                 return text.ToString();

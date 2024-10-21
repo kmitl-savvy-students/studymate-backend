@@ -5,7 +5,7 @@ using studymate_backend.Services;
 
 namespace studymate_backend.Models.StudyMate.Raw;
 
-public class RawUserToken(string id, string userId, DateTime created, DateTime expired) : BaseModelRaw
+public class RawUserToken(string id, string userId, DateTime created, DateTime expired) : IBaseModelRaw
 {
     public string Id { get; set; } = id;
     public string UserId { get; set; } = userId;

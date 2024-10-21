@@ -4,7 +4,7 @@ using studymate_backend.Models.StudyMate.Raw;
 
 namespace studymate_backend.Models.StudyMate.Object;
 
-public class User(string id, string password, EnumGender gender, string nameNick, string nameFirst, string nameLast) : BaseModel
+public class User(string id, string password, EnumGender gender, string nameNick, string nameFirst, string nameLast) : IBaseModel
 {
     public string Id { get; set; } = id;
     public string Password { get; set; } = password;

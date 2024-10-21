@@ -5,7 +5,7 @@ using studymate_backend.Models.StudyMate.Object;
 
 namespace studymate_backend.Models.StudyMate.Raw;
 
-public class RawUser(string id, string password, string gender, string nameNick, string nameFirst, string nameLast) : BaseModelRaw
+public class RawUser(string id, string password, string gender, string nameNick, string nameFirst, string nameLast) : IBaseModelRaw
 {
     public string Id { get; set; } = id;
     public string Password { get; set; } = password;

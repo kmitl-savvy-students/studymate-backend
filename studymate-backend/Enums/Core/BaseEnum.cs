@@ -22,7 +22,7 @@ public abstract class BaseEnum
     protected string GetValue(int index)
     {
         if (index < 0 || index >= _values.Length)
-            throw new IndexOutOfRangeException("Invalid index in Enum");
+            return "";
 
         return _values[index];
     }
