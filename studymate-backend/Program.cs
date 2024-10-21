@@ -5,7 +5,6 @@ using studymate_backend.Services.FrontendUrl;
 using studymate_backend.Services.GoogleOAuthUrl;
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
 
 // Add PostgreSQL database context using NpgSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -35,12 +34,9 @@ builder.Services.AddCors();
 
 var app = builder.Build();
 
-// Get the frontend URL from the configured FrontendUrlService
-var frontendUrl = configuration["AppSettings:FrontendUrl"];
-
 app.UseCors(policyBuilder =>
 {
-    policyBuilder.WithOrigins(frontendUrl ?? "")
+    policyBuilder.WithOrigins("https://preprod.savvystudymate.com")
         .AllowAnyHeader()
         .AllowAnyMethod();
 });

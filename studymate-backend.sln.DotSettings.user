@@ -5,6 +5,12 @@
   &lt;Assembly Path="C:\Users\KORN\.nuget\packages\pdfpig\0.1.9\lib\net8.0\UglyToad.PdfPig.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\KORN\AppData\Local\JetBrains\Rider2024.2\resharper-host\temp\Rider\vAny\CoverageData\_studymate-backend.998719337\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8e76e92d_002D365b_002D4f03_002Da649_002D29d53f8515b5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c7f62677_002D1fbe_002D4054_002Db07d_002Dde0ded399293/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;studymate-backend-tests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="C:\Users\KORN\Repositories\studymate\studymate-backend\studymate-backend-tests" Presentation="&amp;lt;studymate-backend-tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e596cb97_002D758a_002D4abe_002D99dd_002D254b5d1f7c65/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="AuthControllerTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::2F8C1031-5E6F-433C-B2DD-4A5F2484F8BF::net8.0::Tests.Controllers.AuthControllerTests&lt;/TestId&gt;&#xD;
