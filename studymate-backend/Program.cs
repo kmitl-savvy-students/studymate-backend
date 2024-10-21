@@ -36,7 +36,9 @@ var app = builder.Build();
 
 app.UseCors(policyBuilder =>
 {
-    policyBuilder.WithOrigins("https://preprod.savvystudymate.com")
+    policyBuilder.WithOrigins(
+            "http://localhost:4200",
+            "https://preprod.savvystudymate.com")
         .AllowAnyHeader()
         .AllowAnyMethod();
 });
