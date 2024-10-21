@@ -22,8 +22,8 @@ public class GoogleOAuthController(
     IGoogleOAuthUrlService googleOAuthUrlService
 ) : IController
 {
-    private const string clientId = "119650545901-2l5s16n5j047nsqb09uj86focr7jkvk5.apps.googleusercontent.com";
-    private const string clientSecret = "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";
+    private readonly string clientId = Environment.GetEnvironmentVariable("OAUTH_CLIENT_ID") ?? "";
+    private readonly string clientSecret = Environment.GetEnvironmentVariable("OAUTH_CLIENT_SECRET") ?? "";
 
     [HttpGet("link/sign-in")]
     public BaseResponse GetLinkSignIn()

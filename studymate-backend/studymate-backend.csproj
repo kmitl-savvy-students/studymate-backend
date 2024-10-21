@@ -5,7 +5,6 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>studymate_backend</RootNamespace>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <SonarQubeTestProject>false</SonarQubeTestProject>
     </PropertyGroup>
 
@@ -41,10 +40,6 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
         <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
         <PackageReference Include="xunit" Version="2.9.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="keys\vertex-ai-access-key.json" />
     </ItemGroup>
     
 </Project>
