@@ -16,10 +16,11 @@ COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
 COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
 
 RUN dotnet restore
+RUN dotnet clean
 
 COPY . .
 
-RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore
+RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-parallel --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
