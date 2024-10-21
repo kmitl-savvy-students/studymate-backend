@@ -11,6 +11,14 @@ services:
       - ./studymate-backend/tmp/keys/vertex-ai-access-key.json:/app/vertex-ai-access-key.json:ro
     networks:
       - backend-network
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.sonarqube.loadbalancer.server.port: "8080"
+      traefik.http.services.sonarqube.loadbalancer.server.scheme: "http"
+      traefik.http.routers.sonarqube-https.entrypoints: "websecure"
+      traefik.http.routers.sonarqube-https.rule: "Host( `preprod-backend.tntdverse.com` )"
+      traefik.http.routers.sonarqube-https.tls: "true"
+      traefik.http.routers.sonarqube-https.tls.certresolver: "cloudflare"
 
 networks:
   backend-network:
