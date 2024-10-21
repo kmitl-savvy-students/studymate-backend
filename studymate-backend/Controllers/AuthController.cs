@@ -27,7 +27,8 @@ public class AuthController(
             !SdmString.IsValid(requestSignUp.NameNick, 256) ||
             !SdmString.IsValid(requestSignUp.NameFirst, 256) ||
             !SdmString.IsValid(requestSignUp.NameLast, 256) ||
-            !SdmString.IsValid(requestSignUp.Gender, 6))
+            !SdmString.IsValid(requestSignUp.Gender, 6) ||
+            !SdmString.IsValid(requestSignUp.Profile, 256))
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
 
         var id = SdmString.cleanAndTrim(requestSignUp.Id);
@@ -37,6 +38,7 @@ public class AuthController(
         var nameNick = SdmString.cleanAndTrim(requestSignUp.NameNick);
         var nameFirst = SdmString.cleanAndTrim(requestSignUp.NameFirst);
         var nameLast = SdmString.cleanAndTrim(requestSignUp.NameLast);
+        var profile = SdmString.cleanAndTrim(requestSignUp.Profile);
 
         // Check if id is already exists
         if (userService.Get(id) != null)
@@ -55,7 +57,8 @@ public class AuthController(
             gender,
             nameNick,
             nameFirst,
-            nameLast
+            nameLast,
+            profile
         ));
 
         return new BaseResponse(EnumResponseCode.CREATED);
@@ -65,7 +68,7 @@ public class AuthController(
     public BaseResponse SignOut(RequestSignOut requestSignOut)
     {
         if (!SdmString.IsValid(requestSignOut.UserTokenId, 64, 64))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+            return new BaseResponse(EnumResponseCode.OK);
 
         var userTokenId = SdmString.cleanAndTrim(requestSignOut.UserTokenId);
 
@@ -75,7 +78,6 @@ public class AuthController(
             return new BaseResponse(EnumResponseCode.OK);
 
         userTokenService.Remove(userToken);
-
         return new BaseResponse(EnumResponseCode.OK);
     }
 
@@ -119,5 +121,21 @@ public class AuthController(
         userTokenService.Add(userToken);
 
         return new BaseResponse(EnumResponseCode.CREATED, userToken.Serialized());
+    }
+    
+    [HttpPost("token")]
+    public BaseResponse Token(RequestToken requestToken)
+    {
+        if (!SdmString.IsValid(requestToken.UserTokenId, 64, 64))
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+
+        var userTokenId = SdmString.cleanAndTrim(requestToken.UserTokenId);
+
+        // Verify token
+        var userToken = userTokenService.Get(userTokenId);
+        if (userToken == null)
+            return new BaseResponse(EnumResponseCode.NOT_FOUND);
+        
+        return new BaseResponse(EnumResponseCode.OK, userToken.Serialized());
     }
 }

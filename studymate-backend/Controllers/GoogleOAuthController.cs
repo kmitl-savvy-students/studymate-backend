@@ -94,9 +94,17 @@ public class GoogleOAuthController(
                     EnumGender.OTHER,
                     userInfo.given_name ?? "",
                     userInfo.given_name ?? "",
-                    userInfo.family_name ?? ""
+                    userInfo.family_name ?? "",
+                    userInfo.picture ?? ""
                 );
                 userService.Add(user);
+            }
+            else
+            {
+                user.NameFirst = userInfo.given_name ?? user.NameFirst;
+                user.NameLast = userInfo.family_name ?? user.NameLast;
+                user.Profile = userInfo.picture ?? user.Profile;
+                userService.Update(user);
             }
 
             // Generate token string
