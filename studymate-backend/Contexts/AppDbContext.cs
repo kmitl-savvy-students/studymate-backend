@@ -3,16 +3,8 @@ using studymate_backend.Models.StudyMate.Raw;
 
 namespace studymate_backend.Contexts;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext()
-    {
-    }
-
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-    
     public DbSet<RawUser> User { get; init; }
     public DbSet<RawUserToken> UserToken { get; init; }
 }
