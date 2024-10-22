@@ -6,9 +6,17 @@ using studymate_backend.Services.GoogleOAuthUrl;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// add environment variables
+var server = Environment.GetEnvironmentVariable("DB_SERVER");
+var database = Environment.GetEnvironmentVariable("DB_NAME");
+var userId = Environment.GetEnvironmentVariable("DB_USER"); 
+var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+var connectionString = $"Host={server};Database={database};Username={userId};Password={password};";
+
 // Add PostgreSQL database context using NpgSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(connectionString)
 );
 
 // Frontend URL Service

@@ -4,14 +4,6 @@ WORKDIR /app
 
 EXPOSE 5000
 
-ENV ASPNETCORE_URLS=http://*:5000
-ENV ASPNETCORE_ENVIRONMENT=dev
-
-ENV OAUTH_CLIENT_ID=119650545901-2l5s16n5j047nsqb09uj86focr7jkvk5.apps.googleusercontent.com
-ENV OAUTH_CLIENT_SECRET=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
-
-ENV ConnectionStrings__DefaultConnection=Host=database;Database=studymate;Username=studymate;Password=studymate
-
 COPY ["studymate-backend.sln", "./"]
 COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
 COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
