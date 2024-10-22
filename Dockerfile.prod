@@ -20,7 +20,7 @@ RUN dotnet clean
 
 COPY . .
 
-RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-parallel --no-restore
+RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
