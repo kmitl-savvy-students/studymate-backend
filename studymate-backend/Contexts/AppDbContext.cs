@@ -7,4 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<RawUser> User { get; init; }
     public DbSet<RawUserToken> UserToken { get; init; }
+    
+    public DbSet<RawTranscript> Transcript { get; init; }
+    public DbSet<RawTranscriptData> TranscriptData { get; init; }
 }

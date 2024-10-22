@@ -20,6 +20,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserTokenService>();
+builder.Services.AddScoped<TranscriptService>();
+builder.Services.AddScoped<TranscriptDataService>();
 
 builder.Services.AddControllers();
 
