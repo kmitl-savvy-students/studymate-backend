@@ -7,16 +7,14 @@ services:
       - "8000:8080"
     env_file:
       - /home/admin-preprod/backend-env/.env
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
-      - DB_SERVER=${DB_SERVER}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
-      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
-    depends_on:
-      - database
+    # environment:
+    #   - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+    #   - DB_SERVER=${DB_SERVER}
+    #   - DB_NAME=${DB_NAME}
+    #   - DB_USER=${DB_USER}
+    #   - DB_PASSWORD=${DB_PASSWORD}
+    #   - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+    #   - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
     volumes:
       - ./studymate-backend/tmp/keys/vertex-ai-access-key.json:/app/vertex-ai-access-key.json:ro
     networks:
