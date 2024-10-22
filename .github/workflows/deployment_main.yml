@@ -1,0 +1,26 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: CI for StudyMate-Backend Main Branch
+
+on:
+# !!! danger for production if uncomment push branch main !!!
+#   push:
+#     branches:
+#       - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to trigger the workflow on'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  pull_image:  
+    name: Pull Backend Image
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "prod-runner"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
