@@ -1,12 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using studymate_backend.Contexts;
 using studymate_backend.Services;
-using studymate_backend.Services.FrontendUrl;
-using studymate_backend.Services.GoogleOAuthUrl;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// add environment variables
+// Resolve database connection
 var server = Environment.GetEnvironmentVariable("DB_SERVER");
 var database = Environment.GetEnvironmentVariable("DB_NAME");
 var userId = Environment.GetEnvironmentVariable("DB_USER"); 
@@ -18,14 +16,6 @@ var connectionString = $"Host={server};Database={database};Username={userId};Pas
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
-
-// Frontend URL Service
-builder.Services.Configure<FrontendConfig>(builder.Configuration.GetSection("AppSettings"));
-builder.Services.AddSingleton<IFrontendUrlService, FrontendUrlService>();
-
-// Google OAuth Endpoint URL Service
-builder.Services.Configure<GoogleOAuthConfig>(builder.Configuration.GetSection("GoogleOAuth"));
-builder.Services.AddSingleton<IGoogleOAuthUrlService, GoogleOAuthUrlService>();
 
 // Add services to the container
 builder.Services.AddScoped<UserService>();
@@ -45,10 +35,10 @@ var app = builder.Build();
 app.UseCors(policyBuilder =>
 {
     policyBuilder.WithOrigins(
-            "http://localhost:4200",
-            "https://preprod.savvystudymate.com")
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        "http://localhost:4200",
+        "https://preprod.savvystudymate.com",
+        "https://savvystudymate.com"
+    ).AllowAnyHeader().AllowAnyMethod();
 });
 
 // Configure the HTTP request pipeline
