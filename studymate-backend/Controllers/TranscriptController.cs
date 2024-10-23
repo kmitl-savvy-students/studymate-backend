@@ -99,7 +99,7 @@ public class TranscriptController(
         const string model = "gemini-1.5-flash-001";
 
         var prompt =
-            "Extract data as the following JSON structure: { \"student_id\": \"\", \"transfer_credits\": { // If it exists [ \"subject_id\": \"\", \"grade\": \"\", // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 ] }, \"grades\": [ { \"semester\": \"\", // only number 1, 2, 3 \"year\": \"\", // start year only \"courses\": { [ \"subject_id\": \"\", \"grade\": \"\" // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 ] } } ] }: " +
+            "Extract data as the following JSON structure: { \"student_id\": \"\", \"transfer_credits\": [ // If it exists { \"subject_id\": \"\", \"grade\": \"\", // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 } ], \"grades\": [ { \"semester\": \"\", // only number 1, 2, 3 \"year\": \"\", // start year only \"courses\": { [ \"subject_id\": \"\", \"grade\": \"\" // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 ] } } ] }: " +
             fileContent;
         var content = await GenerateContentInternal(projectId, location, publisher, model, prompt);
         var cleanedContent = content.Replace("```json", "").Replace("```", "").Trim();
@@ -114,9 +114,11 @@ public class TranscriptController(
         if (user == null)
             return new BaseResponse(EnumResponseCode.NOT_FOUND);
 
+        /*
         // Check if user matches
         if (user.Id != userToken.User.Id)
             return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+        */
 
         // Create a new Transcript entry
         var transcript = new Transcript(0, transcriptData.student_id, 3, DateTime.UtcNow);
