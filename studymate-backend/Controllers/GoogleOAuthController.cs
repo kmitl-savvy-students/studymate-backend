@@ -62,7 +62,7 @@ public class GoogleOAuthController(
             // Get Access Token
             var googleAccessToken = await GetAccessTokenAsync(authorizationCode, oAuthRedirectUri + "/sign-in");
             if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
-                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "เกิดข้อผิดพลาดกรุณาลองใหม่");
 
             // Get User Info from Access Token
             var client = new HttpClient();
@@ -71,20 +71,20 @@ public class GoogleOAuthController(
 
             var response = await client.SendAsync(userInfoRequest);
             if (!response.IsSuccessStatusCode)
-                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "เกิดข้อผิดพลาดกรุณาลองใหม่");
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var userInfo = JsonSerializer.Deserialize<UserInfo>(responseContent);
 
             if (userInfo == null)
-                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "เกิดข้อผิดพลาดกรุณาลองใหม่");
 
             var id = (userInfo.email ?? "00000000@kmitl.ac.th").Split('@')[0];
             var domain = userInfo.hd;
 
             // Verify KMITL user
             if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
-                return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
+                return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "กรุณาใช้บัญชีของสถาบัน KMITL");
 
             var user = userService.Get(id);
             if (user == null)
