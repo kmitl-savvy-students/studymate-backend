@@ -153,7 +153,7 @@ public partial class TranscriptController(
                          {
                            "subject_id": "str",
                            "grade": "str",
-                           "weight": "int"
+                           "credit": "int"
                          }
                        ],
                        "grades": [
@@ -164,7 +164,7 @@ public partial class TranscriptController(
                              {
                                "subject_id": "str",
                                "grade": "str",
-                               "weight": "int"
+                               "credit": "int"
                              }
                            ]
                          }
