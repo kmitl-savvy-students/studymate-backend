@@ -1,4 +1,5 @@
-﻿using studymate_backend.Helper;
+﻿using System.Text.Json.Serialization;
+using studymate_backend.Helper;
 using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Object;
 using studymate_backend.Services;
@@ -25,4 +26,7 @@ public class RawUserToken(string id, string userId, DateTime created, DateTime e
             new SdmDateTime(Expired)
         );
     }
+    
+    [JsonIgnore]
+    public RawUser? User { get; set; }
 }

@@ -25,6 +25,4 @@ public class TranscriptData(int id, int transcriptId, string subjectId, int seme
             Credit
         );
     }
-    
-    public Transcript? Transcript { get; set; }
 }

@@ -1,4 +1,5 @@
-﻿using studymate_backend.Models.Core;
+﻿using System.Text.Json.Serialization;
+using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Object;
 
 namespace studymate_backend.Models.StudyMate.Raw;
@@ -20,8 +21,8 @@ public class RawTranscript(int id, string userId, int curriculumId, DateTime cre
         );
     }
     
-        
+    [JsonIgnore]
     public RawUser? User { get; set; }
-    
+    [JsonIgnore]
     public ICollection<RawTranscriptData>? TranscriptData { get; set; }
 }

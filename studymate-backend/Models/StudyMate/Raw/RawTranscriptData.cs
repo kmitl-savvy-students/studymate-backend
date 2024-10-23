@@ -1,4 +1,5 @@
-﻿using studymate_backend.Models.Core;
+﻿using System.Text.Json.Serialization;
+using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Object;
 
 namespace studymate_backend.Models.StudyMate.Raw;
@@ -26,5 +27,6 @@ public class RawTranscriptData(int id, int transcriptId, string subjectId, int s
         );
     }
     
+    [JsonIgnore]
     public RawTranscript? Transcript { get; set; }
 }

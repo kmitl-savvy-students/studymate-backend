@@ -13,8 +13,18 @@ public class TranscriptDataService(AppDbContext context)
     }
     public IEnumerable<RawTranscriptData> GetByUser(User user)
     {
+        var latestTranscript = context.Transcript
+            .Where(t => t.UserId == user.Id)
+            .OrderByDescending(t => t.Created)
+            .FirstOrDefault();
+
+        if (latestTranscript == null)
+        {
+            return [];
+        }
+
         return context.TranscriptData
-            .Where(td => td.Transcript != null && td.Transcript.UserId == user.Id)
+            .Where(td => td.TranscriptId == latestTranscript.Id)
             .ToList();
     }
     
