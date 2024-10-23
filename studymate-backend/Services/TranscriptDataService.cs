@@ -33,7 +33,10 @@ public class TranscriptDataService(AppDbContext context)
         
         updateTranscriptData.TranscriptId = transcriptData.TranscriptId;
         updateTranscriptData.SubjectId = transcriptData.SubjectId;
+        updateTranscriptData.Semester = transcriptData.Semester;
+        updateTranscriptData.Year = transcriptData.Year;
         updateTranscriptData.Grade = transcriptData.Grade;
+        updateTranscriptData.Credit = transcriptData.Credit;
 
         context.SaveChanges();
     }

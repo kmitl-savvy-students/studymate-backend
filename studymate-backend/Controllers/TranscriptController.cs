@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using studymate_backend.Controllers.Core;
 using studymate_backend.Enums;
+using studymate_backend.Helper;
 using studymate_backend.Models.Core;
 using studymate_backend.Models.StudyMate.Object;
 using studymate_backend.Models.StudyMate.Raw.Request.Transcript;
@@ -18,37 +19,54 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public class TranscriptController(
     TranscriptService transcriptService,
-    TranscriptDataService transcriptDataService
+    TranscriptDataService transcriptDataService,
+    UserService userService,
+    UserTokenService userTokenService
 ) : IController
 {
-    private struct TranscriptDataStructure(string student_id, Dictionary<string, TransferCredit> transfer_credits, List<SemesterGrade> grades)
+    private struct TranscriptDataStructure(string student_id, List<TransferCredit> transfer_credits, List<SemesterGrade> grades)
     {
         public string student_id { get; } = student_id;
-        public Dictionary<string, TransferCredit> transfer_credits { get; } = transfer_credits;
+        public List<TransferCredit> transfer_credits { get; } = transfer_credits;
         public List<SemesterGrade> grades { get; } = grades;
     }
-    private readonly struct TransferCredit(string subject_id, string grade)
+
+    private readonly struct TransferCredit(string subject_id, string grade, int credit)
     {
         public string subject_id { get; } = subject_id;
         public string grade { get; } = grade;
+        public int credit { get; } = credit;
     }
-    private readonly struct SemesterGrade(string semester, string year, List<CourseGrade> courses)
+
+    private readonly struct SemesterGrade(int semester, int year, List<CourseGrade> courses)
     {
-        public string semester { get; } = semester;
-        public string year { get; } = year;
+        public int semester { get; } = semester;
+        public int year { get; } = year;
         public List<CourseGrade> courses { get; } = courses;
     }
-    private readonly struct CourseGrade(string subject_id, string grade)
+
+    private readonly struct CourseGrade(string subject_id, string grade, int credit)
     {
         public string subject_id { get; } = subject_id;
         public string grade { get; } = grade;
+        public int credit { get; } = credit;
     }
-    
+
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     public async Task<BaseResponse> Upload([FromForm] RequestTranscriptUpload requestTranscriptUpload)
     {
         var file = requestTranscriptUpload.File;
+
+        if (!SdmString.IsValid(requestTranscriptUpload.UserTokenId, 64, 64))
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+
+        var userTokenId = SdmString.cleanAndTrim(requestTranscriptUpload.UserTokenId);
+
+        // Verify token
+        var userToken = userTokenService.Get(userTokenId);
+        if (userToken == null)
+            return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
 
         // Verify Files
         if (file == null || file.Length == 0)
@@ -80,25 +98,56 @@ public class TranscriptController(
         const string publisher = "google";
         const string model = "gemini-1.5-flash-001";
 
-        var prompt = "Extract data as the following JSON structure: { \"student_id\": \"\", \"transfer_credits\": { // If it exists [ \"subject_id\": \"\", \"grade\": \"\", // A, B, C, D ] }, \"grades\": [ { \"semester\": \"\", // only number 1, 2, 3 \"year\": \"\", // start year only \"courses\": { [ \"subject_id\": \"\", \"grade\": \"\" // A, B, C, D ] } } ] }: " + fileContent;
+        var prompt =
+            "Extract data as the following JSON structure: { \"student_id\": \"\", \"transfer_credits\": { // If it exists [ \"subject_id\": \"\", \"grade\": \"\", // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 ] }, \"grades\": [ { \"semester\": \"\", // only number 1, 2, 3 \"year\": \"\", // start year only \"courses\": { [ \"subject_id\": \"\", \"grade\": \"\" // 0, A, B, C, D \"credit\": \"\", // 0, 1, 2, 3 ] } } ] }: " +
+            fileContent;
         var content = await GenerateContentInternal(projectId, location, publisher, model, prompt);
         var cleanedContent = content.Replace("```json", "").Replace("```", "").Trim();
 
+        Console.WriteLine(cleanedContent);
+
         // Parse JSON content into C# object
         var transcriptData = JsonConvert.DeserializeObject<TranscriptDataStructure>(cleanedContent);
+
+        // Check for user in transcript
+        var user = userService.Get(transcriptData.student_id);
+        if (user == null)
+            return new BaseResponse(EnumResponseCode.NOT_FOUND);
+
+        // Check if user matches
+        if (user.Id != userToken.User.Id)
+            return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
 
         // Create a new Transcript entry
         var transcript = new Transcript(0, transcriptData.student_id, 3, DateTime.UtcNow);
         var transcriptId = transcriptService.Add(transcript);
 
         // Add transfer credits as TranscriptData
-        foreach (var transcriptDataEntry in transcriptData.transfer_credits.Values.Select(transferCredit => new TranscriptData(0, transcriptId, transferCredit.subject_id, transferCredit.grade)))
+        foreach (var transcriptDataEntry in transcriptData.transfer_credits.Select(transferCredit => new TranscriptData(
+                     0,
+                     transcriptId,
+                     transferCredit.subject_id,
+                     -1,
+                     -1,
+                     transferCredit.grade,
+                     transferCredit.credit
+                 )))
             transcriptDataService.Add(transcriptDataEntry);
-        
+
         // Add grades for each semester
-        foreach (var transcriptDataEntry in from semesterGrade in transcriptData.grades from course in semesterGrade.courses select new TranscriptData(0, transcriptId, course.subject_id, course.grade))
+        foreach (var transcriptDataEntry in from semesterGrade in transcriptData.grades
+                 from course in semesterGrade.courses
+                 select new TranscriptData(
+                     0,
+                     transcriptId,
+                     course.subject_id,
+                     semesterGrade.semester,
+                     semesterGrade.year,
+                     course.grade,
+                     course.credit
+                 ))
             transcriptDataService.Add(transcriptDataEntry);
-        
+
         return new BaseResponse(EnumResponseCode.OK);
     }
 
@@ -124,6 +173,7 @@ public class TranscriptController(
             return false;
         }
     }
+
     private static string ExtractTextFromPdf(IFormFile file)
     {
         try
@@ -155,6 +205,7 @@ public class TranscriptController(
             return string.Empty;
         }
     }
+
     private static bool IsWithinBounds(PdfRectangle wordBounds, PdfRectangle columnBounds)
     {
         return wordBounds.Left >= columnBounds.Left &&
@@ -162,6 +213,7 @@ public class TranscriptController(
                wordBounds.Bottom >= columnBounds.Bottom &&
                wordBounds.Top <= columnBounds.Top;
     }
+
     private static async Task<string> GenerateContentInternal(string projectId, string location, string publisher, string model, string prompt)
     {
         var predictionServiceClient = await new PredictionServiceClientBuilder

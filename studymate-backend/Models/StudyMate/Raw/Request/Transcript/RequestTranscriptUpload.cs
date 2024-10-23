@@ -2,5 +2,6 @@
 
 public class RequestTranscriptUpload
 {
+    public string? UserTokenId { get; set; }
     public IFormFile? File { get; set; }
 }
