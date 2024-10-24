@@ -27,7 +27,6 @@ public class GoogleOAuthController(
     private readonly string oAuth2EndpointToken = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_TOKEN") ?? "";
     private readonly string oAuth2EndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_USER_INFO") ?? "";
     
-
     [HttpGet("link/sign-in")]
     public BaseResponse GetLinkSignIn()
     {
@@ -60,7 +59,7 @@ public class GoogleOAuthController(
         try
         {
             // Get Access Token
-            var googleAccessToken = await GetAccessTokenAsync(authorizationCode, oAuthRedirectUri + "/sign-in");
+            var googleAccessToken = await GetAccessTokenAsync(authorizationCode, oAuthRedirectUri + "/" + request.RedirectUri);
             if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
                 return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "เกิดข้อผิดพลาดกรุณาลองใหม่");
 

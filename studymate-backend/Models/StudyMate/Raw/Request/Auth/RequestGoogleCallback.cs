@@ -3,4 +3,5 @@
 public class RequestGoogleCallback
 {
     public string? Code { get; set; }
+    public string? RedirectUri { get; set; }
 }
