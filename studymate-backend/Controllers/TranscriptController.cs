@@ -69,11 +69,23 @@ public partial class TranscriptController(
     [GeneratedRegex(@"Checked by\s+[\w\s\(\)]+")]
     private static partial Regex RemoveCheckedByRegex();
 
-    private string SanitizeTranscript(string transcript)
+    [GeneratedRegex(@"----------------------------- Continue next column -----------------------------|-------------------------------- Transcript Closed --------------------------------", RegexOptions.IgnoreCase)]
+    private static partial Regex RemoveTranscriptMarkersRegex();
+
+    [GeneratedRegex(@"GPS\s*:\s*\S+|GPA\s*:\s*\S+", RegexOptions.IgnoreCase)]
+    private static partial Regex RemoveGpsGpaRegex();
+
+    [GeneratedRegex(@"This document is\s*\)\s*Photo", RegexOptions.IgnoreCase)]
+    private static partial Regex RemoveDocumentPhotoRegex();
+
+    private static string SanitizeTranscript(string transcript)
     {
-        transcript = RemoveNameRegex().Replace(transcript, "Unofficial Name [REDACTED]");
-        transcript = RemoveDOBRegex().Replace(transcript, "Date of Birth [REDACTED]");
-        transcript = RemoveCheckedByRegex().Replace(transcript, "Checked by [REDACTED]");
+        transcript = RemoveNameRegex().Replace(transcript, "");
+        transcript = RemoveDOBRegex().Replace(transcript, "");
+        transcript = RemoveCheckedByRegex().Replace(transcript, "");
+        transcript = RemoveTranscriptMarkersRegex().Replace(transcript, "");
+        transcript = RemoveGpsGpaRegex().Replace(transcript, "");
+        transcript = RemoveDocumentPhotoRegex().Replace(transcript, "");
         return transcript;
     }
 
