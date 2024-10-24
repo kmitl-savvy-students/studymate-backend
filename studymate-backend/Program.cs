@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Resolve database connection
 var server = Environment.GetEnvironmentVariable("DB_SERVER");
 var database = Environment.GetEnvironmentVariable("DB_NAME");
-var userId = Environment.GetEnvironmentVariable("DB_USER"); 
+var userId = Environment.GetEnvironmentVariable("DB_USER");
 var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
 var connectionString = $"Host={server};Database={database};Username={userId};Password={password};";
@@ -37,9 +37,10 @@ var app = builder.Build();
 app.UseCors(policyBuilder =>
 {
     policyBuilder.WithOrigins(
-        "http://localhost:4200",
-        "https://preprod.savvystudymate.com",
-        "https://savvystudymate.com"
+        // "http://localhost:4200",
+        // "https://preprod.savvystudymate.com",
+        // "https://savvystudymate.com"
+        "*"
     ).AllowAnyHeader().AllowAnyMethod();
 });
 
