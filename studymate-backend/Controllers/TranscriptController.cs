@@ -24,12 +24,18 @@ public partial class TranscriptController(
     UserTokenService userTokenService
 ) : IController
 {
+    private class ParseData(string id, string data)
+    {
+        public string Id { get; } = id;
+        public string Data { get; } = data;
+    }
+
     private class GenerateContentResult(string content, int promptTokenCount, int outputTokenCount, int totalTokenCount)
     {
-        public string Content { get; init; } = content;
-        public int PromptTokenCount { get; init; } = promptTokenCount;
-        public int OutputTokenCount { get; init; } = outputTokenCount;
-        public int TotalTokenCount { get; init; } = totalTokenCount;
+        public string Content { get; } = content;
+        public int PromptTokenCount { get; } = promptTokenCount;
+        public int OutputTokenCount { get; } = outputTokenCount;
+        public int TotalTokenCount { get; } = totalTokenCount;
     }
 
     private struct TranscriptDataStructure(string student_id, List<TransferCredit> transfer_credits, List<SemesterGrade> grades)
@@ -59,35 +65,23 @@ public partial class TranscriptController(
         public string grade { get; } = grade;
         public int credit { get; } = credit;
     }
-    
-    [GeneratedRegex(@"Unofficial Name\s+\w+\s+\w+")]
-    private static partial Regex RemoveNameRegex();
-
-    [GeneratedRegex(@"Date of Birth\s+\w+\s+\d{1,2},\s+\d{4}")]
-    private static partial Regex RemoveDOBRegex();
 
     [GeneratedRegex(@"Checked by\s+[\w\s\(\)]+")]
     private static partial Regex RemoveCheckedByRegex();
 
-    [GeneratedRegex(@"----------------------------- Continue next column -----------------------------|-------------------------------- Transcript Closed --------------------------------", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(
+        @"----------------------------- Continue next column -----------------------------|-------------------------------- Transcript Closed --------------------------------",
+        RegexOptions.IgnoreCase)]
     private static partial Regex RemoveTranscriptMarkersRegex();
 
     [GeneratedRegex(@"GPS\s*:\s*\S+|GPA\s*:\s*\S+", RegexOptions.IgnoreCase)]
     private static partial Regex RemoveGpsGpaRegex();
 
-    [GeneratedRegex(@"This document is\s*\)\s*Photo", RegexOptions.IgnoreCase)]
-    private static partial Regex RemoveDocumentPhotoRegex();
+    [GeneratedRegex(@"\b\d{8}\b")]
+    private static partial Regex ExtractStudentIdRegex();
 
-    private static string SanitizeTranscript(string transcript)
-    {
-        transcript = RemoveNameRegex().Replace(transcript, "");
-        transcript = RemoveDOBRegex().Replace(transcript, "");
-        transcript = RemoveCheckedByRegex().Replace(transcript, "");
-        transcript = RemoveTranscriptMarkersRegex().Replace(transcript, "");
-        transcript = RemoveGpsGpaRegex().Replace(transcript, "");
-        transcript = RemoveDocumentPhotoRegex().Replace(transcript, "");
-        return transcript;
-    }
+    [GeneratedRegex(@"Total number of credit earned: \d+ Cumulative")]
+    private static partial Regex RemoveCreditCumulativeRegex();
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
@@ -103,49 +97,60 @@ public partial class TranscriptController(
         // Verify token
         var userToken = userTokenService.Get(userTokenId);
         if (userToken == null)
-            return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "User token not found");
+            return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ไม่อนุญาตให้อัปโหลด");
 
         // Verify Files
         if (file == null || file.Length == 0)
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "File is empty");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ไม่มีไฟล์");
 
         const long maxFileSize = 15 * 1024 * 1024;
         if (file.Length > maxFileSize)
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "File size exceeds the maximum limit");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ขนาดไฟล์ใหญ่เกิน 15MB");
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (extension != ".pdf")
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "Invalid file extension. Only PDF files are allowed");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ระบบตรวจพบว่านี่ไม่ใช่ไฟล์นามสกุล .pdf");
 
         if (file.ContentType != "application/pdf")
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "Invalid content type. Only PDF files are allowed");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ระบบตรวจพบว่านี่ไม่ใช่ไฟล์ PDF");
 
         if (!await IsValidPdf(file))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "Invalid PDF file");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ระบบตรวจพบว่านี่ไม่ใช่ไฟล์ PDF");
 
         Console.WriteLine("=========== " + file.FileName + " ===========");
         Console.WriteLine("Starting extract PDF using PDFPig...");
 
-        string fileContent;
+        ParseData data;
         try
         {
-            // Extract text content from PDF
-            fileContent = ExtractTextFromPdf(file);
+            data = ExtractTextFromPdf(file);
 
-            if (string.IsNullOrEmpty(fileContent))
-                return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "Failed to extract content from PDF");
+            if (data.Data == "")
+                return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ไม่พบข้อมูลใน PDF");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing PDF file: {ex.Message}");
-            return new BaseResponse(EnumResponseCode.INTERNAL_SERVER_ERROR, "An error occurred while processing the PDF file");
+            return new BaseResponse(EnumResponseCode.INTERNAL_SERVER_ERROR, "เกิดปัญหาระหว่างประมวลผล PDF");
         }
 
-        var cleanedText = SanitizeTranscript(fileContent);
+        Console.WriteLine("==== START PDFPig Transcript result ====");
+        Console.WriteLine(data.Data);
+        Console.WriteLine("==== END PDFPig Transcript result ====");
 
-        Console.WriteLine("==== START AI Transcript result ====");
-        Console.WriteLine(cleanedText);
-        Console.WriteLine("==== END AI Transcript result ====");
+        Console.WriteLine("Checking Student ID...");
+
+        if (data.Id == "")
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ระบบพบว่านี่ไม่ใช่ Transcript");
+
+        // // Check for user in transcript
+        // var user = userService.Get(data.Id);
+        // if (user == null)
+        //     return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
+        //
+        // // Check if user matches
+        // if (user.Id != userToken.User.Id)
+        //     return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
 
         Console.WriteLine("Start extract data using AI...");
 
@@ -154,39 +159,24 @@ public partial class TranscriptController(
         const string location = "us-central1";
         const string publisher = "google";
         const string model = "gemini-1.5-flash-002";
-
+        
         var prompt = """
-                     Extract data into the following JSON structure (use 0 for empty values; transfer_credits can be an empty array if none)
-                     and student_id is 8 digits
-                     Also provide empty string only if transcript text is out of context or violating any policies do not output any sentences:
-                     {
-                       "student_id": "str",
-                       "transfer_credits": [
-                         {
-                           "subject_id": "str",
-                           "grade": "str",
-                           "credit": "int"
-                         }
-                       ],
-                       "grades": [
-                         {
-                           "semester": "int",
-                           "year": "int",
-                           "courses": [
-                             {
-                               "subject_id": "str",
-                               "grade": "str",
-                               "credit": "int"
-                             }
-                           ]
-                         }
-                       ]
-                     }
-                     Here's the transcript text: 
-                     """ + cleanedText;
+                     - Example: {"student_id":"","transfer_credits":[{"subject_id":"str","grade":"str","credit":"int"}],"grades":[{"semester":"int","year":"int","courses":[{"subject_id":"str","grade":"str","credit":"int"}]}]}
+                     - Use 0 for empty values; if no transfer_credits, use []
+                     - Grade is 0 if X or empty
+                     - subject_id is 8 digits
+                     - Format: "courseTitle credit grade"
+                     - Ignore numbers in courseTitle, credit and grade are always last
+                     - Return compact JSON with no extra whitespace
+                     """ + "\nId:" + data.Id + "\nTranscript:" + data.Data;
+
+
+        Console.WriteLine("==== START AI Prompt result ====");
+        Console.WriteLine(prompt);
+        Console.WriteLine("==== END AI Prompt result ====");
 
         GenerateContentResult generateResult;
-        
+
         try
         {
             generateResult = await GenerateContentInternal(projectId, location, publisher, model, prompt);
@@ -208,23 +198,29 @@ public partial class TranscriptController(
 
         Console.WriteLine("Parsing data...");
 
-        var transcriptData = JsonConvert.DeserializeObject<TranscriptDataStructure>(cleanedContent);
+        TranscriptDataStructure transcriptData;
 
-        // Check for user in transcript
-        var user = userService.Get(transcriptData.student_id);
-        if (user == null)
-            return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
-
-        // Check if user matches
-        if (user.Id != userToken.User.Id)
-            return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
+        try
+        {
+            transcriptData = JsonConvert.DeserializeObject<TranscriptDataStructure>(cleanedContent);
+        }
+        catch (JsonReaderException ex)
+        {
+            Console.WriteLine($"Error parsing JSON: {ex.Message}");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "AI เอ๋อ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"General error: {ex.Message}");
+            return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "AI เอ๋อ");
+        }
 
         Console.WriteLine("Saving data to database...");
 
         try
         {
             // Create a new Transcript entry
-            var transcript = new Transcript(0, transcriptData.student_id, 3, DateTime.UtcNow);
+            var transcript = new Transcript(0, userToken.User.Id, 3, DateTime.UtcNow);
             var transcriptId = transcriptService.Add(transcript);
 
             // Add transfer credits as TranscriptData
@@ -263,7 +259,6 @@ public partial class TranscriptController(
             return new BaseResponse(EnumResponseCode.INTERNAL_SERVER_ERROR, "ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้");
         }
 
-        // Gemini 1.5 Flash Pricing
         const decimal textInputCostPerCountBaht = 0.18m / 291268m;
         const decimal textOutputCostPerCountBaht = 0.53m / 217365m;
 
@@ -304,30 +299,54 @@ public partial class TranscriptController(
         }
     }
 
-    private static string ExtractTextFromPdf(IFormFile file)
+    private static ParseData ExtractTextFromPdf(IFormFile file)
     {
         try
         {
             using var stream = file.OpenReadStream();
             using var pdfDocument = PdfDocument.Open(stream);
-            var text = new StringBuilder();
+
+            var textTop = new StringBuilder();
+            var textLeft = new StringBuilder();
+            var textRight = new StringBuilder();
 
             foreach (var page in pdfDocument.GetPages())
             {
                 var pageWidth = page.Width;
                 var pageHeight = page.Height;
 
-                var leftColumnBounds = new PdfRectangle(0, 0, pageWidth / 2, pageHeight);
-                var rightColumnBounds = new PdfRectangle(pageWidth / 2, 0, pageWidth, pageHeight);
+                const double topPercent = 0.22;
+                const double topIgnorePercent = 0.03;
+                var topBoxHeight = pageHeight * (topPercent - topIgnorePercent);
+                var topBoxBounds = new PdfRectangle(0, pageHeight - topBoxHeight, pageWidth, pageHeight);
+
+                const double bottomIgnorePercent = 0.1;
+                var leftColumnBounds = new PdfRectangle(0, pageHeight * bottomIgnorePercent, pageWidth / 2, pageHeight - (pageHeight * topPercent));
+                var rightColumnBounds = new PdfRectangle(pageWidth / 2, pageHeight * bottomIgnorePercent, pageWidth, pageHeight - (pageHeight * topPercent));
+
+                var topBoxText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, topBoxBounds)).Select(word => word.Text).ToArray();
+                textTop.Append(string.Join(" ", topBoxText));
 
                 var leftText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, leftColumnBounds)).Select(word => word.Text).ToArray();
-                text.Append(string.Join(" ", leftText)).Append(' ');
+                textLeft.Append(string.Join(" ", leftText));
 
                 var rightText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, rightColumnBounds)).Select(word => word.Text).ToArray();
-                text.Append(string.Join(" ", rightText)).Append(' ');
+                textRight.Append(string.Join(" ", rightText)).Append(' ');
             }
 
-            return text.ToString();
+            var resultTop = ExtractStudentIdRegex().Match(textTop.ToString()).Value;
+
+            var resultLeft = RemoveGpsGpaRegex().Replace(textLeft.ToString(), "");
+            resultLeft = RemoveTranscriptMarkersRegex().Replace(resultLeft, "");
+            resultLeft = RemoveAccessSpaceRegex().Replace(resultLeft, " ");
+
+            var resultRight = RemoveGpsGpaRegex().Replace(textRight.ToString(), "");
+            resultRight = RemoveCheckedByRegex().Replace(resultRight, "");
+            resultRight = RemoveTranscriptMarkersRegex().Replace(resultRight, "");
+            resultRight = RemoveCreditCumulativeRegex().Replace(resultRight, "");
+            resultRight = RemoveAccessSpaceRegex().Replace(resultRight, " ");
+
+            return new ParseData(resultTop, resultLeft + resultRight);
         }
         catch (Exception ex)
         {
@@ -442,4 +461,7 @@ public partial class TranscriptController(
             throw;
         }
     }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex RemoveAccessSpaceRegex();
 }
