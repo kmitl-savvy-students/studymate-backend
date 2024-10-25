@@ -38,9 +38,8 @@ public partial class TranscriptController(
         public int TotalTokenCount { get; } = totalTokenCount;
     }
 
-    private struct TranscriptDataStructure(string student_id, List<TransferCredit> transfer_credits, List<SemesterGrade> grades)
+    private struct TranscriptDataStructure(List<TransferCredit> transfer_credits, List<SemesterGrade> grades)
     {
-        public string student_id { get; } = student_id;
         public List<TransferCredit> transfer_credits { get; } = transfer_credits;
         public List<SemesterGrade> grades { get; } = grades;
     }
@@ -143,14 +142,14 @@ public partial class TranscriptController(
         if (data.Id == "")
             return new BaseResponse(EnumResponseCode.FIELDS_INVALID, "ระบบพบว่านี่ไม่ใช่ Transcript");
 
-        // // Check for user in transcript
-        // var user = userService.Get(data.Id);
-        // if (user == null)
-        //     return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
-        //
-        // // Check if user matches
-        // if (user.Id != userToken.User.Id)
-        //     return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
+        // Check for user in transcript
+        var user = userService.Get(data.Id);
+        if (user == null)
+            return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
+        
+        // Check if user matches
+        if (user.Id != userToken.User.Id)
+            return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
 
         Console.WriteLine("Start extract data using AI...");
 
@@ -161,14 +160,13 @@ public partial class TranscriptController(
         const string model = "gemini-1.5-flash-002";
         
         var prompt = """
-                     - Example: {"student_id":"","transfer_credits":[{"subject_id":"str","grade":"str","credit":"int"}],"grades":[{"semester":"int","year":"int","courses":[{"subject_id":"str","grade":"str","credit":"int"}]}]}
+                     - Example: {"transfer_credits":[{"subject_id":"str","grade":"str","credit":"int"}],"grades":[{"semester":"int","year":"int","courses":[{"subject_id":"str","grade":"str","credit":"int"}]}]}
                      - Use 0 for empty values; if no transfer_credits, use []
-                     - Grade is 0 if X or empty
-                     - subject_id is 8 digits
+                     - Grade is "0" if "X" or empty
                      - Format: "courseTitle credit grade"
                      - Ignore numbers in courseTitle, credit and grade are always last
                      - Return compact JSON with no extra whitespace
-                     """ + "\nId:" + data.Id + "\nTranscript:" + data.Data;
+                     """ + "\nTranscript:" + data.Data;
 
 
         Console.WriteLine("==== START AI Prompt result ====");
