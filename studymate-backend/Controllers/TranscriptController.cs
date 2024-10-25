@@ -24,6 +24,8 @@ public partial class TranscriptController(
     UserTokenService userTokenService
 ) : IController
 {
+    private const bool ALLOW_UPLOAD_SOMEONE_TRANSCRIPT = false; // DEFAULT : FALSE
+    
     private class ParseData(string id, string data)
     {
         public string Id { get; } = id;
@@ -145,10 +147,10 @@ public partial class TranscriptController(
         // Check for user in transcript
         var user = userService.Get(data.Id);
         if (user == null)
-            return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
+            return new BaseResponse(EnumResponseCode.NOT_FOUND, "ระบบพบว่านี่ไม่ใช่ Transcript ของผู้ใช้ในระบบ");
         
         // Check if user matches
-        if (user.Id != userToken.User.Id)
+        if (user.Id != userToken.User.Id && !ALLOW_UPLOAD_SOMEONE_TRANSCRIPT)
             return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "ระบบพบว่านี่ไม่ใช่ Transcript ของคุณ");
 
         Console.WriteLine("Start extract data using AI...");
@@ -257,8 +259,8 @@ public partial class TranscriptController(
             return new BaseResponse(EnumResponseCode.INTERNAL_SERVER_ERROR, "ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้");
         }
 
-        const decimal textInputCostPerCountBaht = 0.18m / 291268m;
-        const decimal textOutputCostPerCountBaht = 0.53m / 217365m;
+        const decimal textInputCostPerCountBaht = 0.40m / 652198m;
+        const decimal textOutputCostPerCountBaht = 1.21m / 494202m;
 
         var inputCostBaht = generateResult.PromptTokenCount * textInputCostPerCountBaht;
         var outputCostBaht = generateResult.OutputTokenCount * textOutputCostPerCountBaht;

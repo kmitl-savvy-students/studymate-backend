@@ -89,7 +89,7 @@ public class GoogleOAuthController(
             if (user == null)
             {
                 if (request.RedirectUri == "sign-in")
-                    return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "There is no account the system, please sign up first.");
+                    return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "คุณไม่มีบัญชีในระบบ กรุณาสมัครสมาชิก");
                 
                 // Create user if user doesn't exist
                 user = new User(
@@ -106,7 +106,7 @@ public class GoogleOAuthController(
             else
             {
                 if (request.RedirectUri == "sign-up")
-                    return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "You've already sign up for this account. Go sign in to login.");
+                    return new BaseResponse(EnumResponseCode.UNAUTHORIZED, "คุณสมัครสมาชิกไว้แล้ว กรุณาเข้าสู่ระบบ");
                 
                 user.NameFirst = userInfo.given_name ?? user.NameFirst;
                 user.NameLast = userInfo.family_name ?? user.NameLast;
