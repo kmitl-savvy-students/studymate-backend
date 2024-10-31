@@ -11,12 +11,10 @@ public static partial class SdmAuthentication
     {
         return RegexPasswordStrong().IsMatch(password);
     }
-
     public static string passwordHash(string password)
     {
         return BCrypt.Net.BCrypt.EnhancedHashPassword(password, 13);
     }
-
     public static bool passwordVerify(string password, string hash)
     {
         return BCrypt.Net.BCrypt.EnhancedVerify(password, hash);

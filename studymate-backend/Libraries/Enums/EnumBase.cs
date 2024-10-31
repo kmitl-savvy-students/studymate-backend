@@ -1,12 +1,12 @@
-﻿namespace studymate_backend.Enums.Core;
+﻿namespace studymate_backend.Libraries.Enums;
 
-public abstract class BaseEnum
+public abstract class EnumBase
 {
-    private static readonly List<BaseEnum> _all = [];
+    private static readonly List<EnumBase> _all = [];
     private readonly string _name;
     private readonly string[] _values;
 
-    protected BaseEnum(string name, string[] values)
+    protected EnumBase(string name, string[] values)
     {
         _name = name;
         _values = values;
@@ -27,12 +27,12 @@ public abstract class BaseEnum
         return _values[index];
     }
 
-    public static T? Get<T>(string name) where T : BaseEnum
+    public static T? Get<T>(string name) where T : EnumBase
     {
         return _all.Find(e => e.GetName() == name) as T;
     }
 
-    public static IEnumerable<BaseEnum> GetAll()
+    public static IEnumerable<EnumBase> GetAll()
     {
         return _all;
     }

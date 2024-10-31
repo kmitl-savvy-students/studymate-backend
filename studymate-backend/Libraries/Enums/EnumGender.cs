@@ -1,8 +1,6 @@
-﻿using studymate_backend.Enums.Core;
+﻿namespace studymate_backend.Libraries.Enums;
 
-namespace studymate_backend.Enums;
-
-public class EnumGender : BaseEnum
+public class EnumGender : EnumBase
 {
     public static readonly EnumGender OTHER = new("OTHER", ["Other", "อื่น ๆ"]);
     public static readonly EnumGender MALE = new("MALE", ["Male", "ผู้ชาย"]);

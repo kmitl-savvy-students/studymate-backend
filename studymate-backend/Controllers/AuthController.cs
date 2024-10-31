@@ -1,141 +1,142 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Controllers.Core;
-using studymate_backend.Enums;
-using studymate_backend.Enums.Core;
 using studymate_backend.Helper;
-using studymate_backend.Models.Core;
-using studymate_backend.Models.StudyMate.Object;
-using studymate_backend.Models.StudyMate.Raw.Request.Auth;
-using studymate_backend.Services;
+using studymate_backend.Libraries.Enums;
+using studymate_backend.Libraries.Methods;
+using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(
-    UserService userService,
-    UserTokenService userTokenService
-) : IController
+public class AuthController : ControllerBase
 {
     [HttpPost("sign-up")]
-    public BaseResponse SignUp(RequestSignUp requestSignUp)
+    public IActionResult SignUp([FromBody] SignUpDto signUpDto)
     {
-        if (!SdmNumber.IsValid(requestSignUp.Id) ||
-            !SdmString.IsValid(requestSignUp.Id, 8, 8) ||
-            !SdmString.IsValid(requestSignUp.Password, 64) ||
-            !SdmString.IsValid(requestSignUp.PasswordConfirm, 64) ||
-            !SdmString.IsValid(requestSignUp.NameNick, 256) ||
-            !SdmString.IsValid(requestSignUp.NameFirst, 256) ||
-            !SdmString.IsValid(requestSignUp.NameLast, 256) ||
-            !SdmString.IsValid(requestSignUp.Gender, 6) ||
-            !SdmString.IsValid(requestSignUp.Profile, 256))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+        if (!SdmNumber.IsValid(signUpDto.id) ||
+            !SdmString.IsValid(signUpDto.id, 8, 8) ||
+            !SdmString.IsValid(signUpDto.password, 64) ||
+            !SdmString.IsValid(signUpDto.passwordConfirm, 64) ||
+            !SdmString.IsValid(signUpDto.gender, 6) ||
+            !SdmString.IsValid(signUpDto.nameNick, 256) ||
+            !SdmString.IsValid(signUpDto.nameFirst, 256) ||
+            !SdmString.IsValid(signUpDto.nameLast, 256))
+            return BadRequest("Invalid request data.");
 
-        var id = SdmString.cleanAndTrim(requestSignUp.Id);
-        var password = SdmString.cleanAndTrim(requestSignUp.Password);
-        var passwordConfirm = SdmString.cleanAndTrim(requestSignUp.PasswordConfirm);
-        var gender = BaseEnum.Get<EnumGender>(SdmString.cleanAndTrim(requestSignUp.Gender)) ?? EnumGender.OTHER;
-        var nameNick = SdmString.cleanAndTrim(requestSignUp.NameNick);
-        var nameFirst = SdmString.cleanAndTrim(requestSignUp.NameFirst);
-        var nameLast = SdmString.cleanAndTrim(requestSignUp.NameLast);
-        var profile = SdmString.cleanAndTrim(requestSignUp.Profile);
+        var id = SdmString.cleanAndTrim(signUpDto.id);
+        var password = SdmString.cleanAndTrim(signUpDto.password);
+        var passwordConfirm = SdmString.cleanAndTrim(signUpDto.passwordConfirm);
+        var gender = EnumBase.Get<EnumGender>(SdmString.cleanAndTrim(signUpDto.gender)) ?? EnumGender.OTHER;
+        var nameNick = SdmString.cleanAndTrim(signUpDto.nameNick);
+        var nameFirst = SdmString.cleanAndTrim(signUpDto.nameFirst);
+        var nameLast = SdmString.cleanAndTrim(signUpDto.nameLast);
 
-        // Check if id is already exists
-        if (userService.Get(id) != null)
-            return new BaseResponse(EnumResponseCode.DUPLICATE_ID);
+        if (SdmUser.getById(id) != null)
+            return Conflict("User with the given ID already exists.");
 
-        // Verify password
         if (password != passwordConfirm)
-            return new BaseResponse(EnumResponseCode.PASSWORD_MISMATCH);
+            return BadRequest("Password mismatch.");
         if (!SdmAuthentication.isPasswordStrong(password))
-            return new BaseResponse(EnumResponseCode.PASSWORD_WEAK);
+            return BadRequest("Password does not meet strength requirements.");
 
-        // Create user
-        userService.Add(new User(
+        var user = new User(
             id,
             SdmAuthentication.passwordHash(password),
             gender,
             nameNick,
             nameFirst,
             nameLast,
-            profile
-        ));
-
-        return new BaseResponse(EnumResponseCode.CREATED);
-    }
-
-    [HttpPost("sign-out")]
-    public BaseResponse SignOut(RequestSignOut requestSignOut)
-    {
-        if (!SdmString.IsValid(requestSignOut.UserTokenId, 64, 64))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-
-        var userTokenId = SdmString.cleanAndTrim(requestSignOut.UserTokenId);
-
-        // Find token to remove
-        var userToken = userTokenService.Get(userTokenId);
-        if (userToken == null)
-            return new BaseResponse(EnumResponseCode.NOT_FOUND);
-
-        userTokenService.Remove(userToken);
-        return new BaseResponse(EnumResponseCode.OK);
-    }
-
-    [HttpPost("sign-in")]
-    public BaseResponse SignIn(RequestSignIn requestSignIn)
-    {
-        if (!SdmNumber.IsValid(requestSignIn.Id) ||
-            !SdmString.IsValid(requestSignIn.Id, 8, 8) ||
-            !SdmString.IsValid(requestSignIn.Password, 64))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-
-        var id = SdmString.cleanAndTrim(requestSignIn.Id);
-        var password = SdmString.cleanAndTrim(requestSignIn.Password);
-
-        // Find user to authenticate
-        var user = userService.Get(id);
-        if (user == null)
-            return new BaseResponse(EnumResponseCode.NOT_FOUND);
-
-        // Verify password
-        if (!SdmAuthentication.passwordVerify(password, user.Password))
-            return new BaseResponse(EnumResponseCode.NOT_FOUND);
-
-        // Generate token string
-        var randomizeToken = SdmString.generateRandomToken();
-        while (userTokenService.Get(randomizeToken) != null)
-            randomizeToken = SdmString.generateRandomToken();
-
-        // Verify if token is already exists
-        var userToken = userTokenService.GetByUser(user);
-        if (userToken != null)
-            userTokenService.Remove(userToken);
-
-        // Create new token
-        userToken = new UserToken(
-            randomizeToken,
-            user,
-            SdmDateTime.Now(),
-            SdmDateTime.Now().AddHours(12)
+            "",
+            null
         );
-        userTokenService.Add(userToken);
 
-        return new BaseResponse(EnumResponseCode.CREATED, userToken.Serialized());
+        SdmUser.insert(user);
+        return Ok("User created.");
     }
-    
-    [HttpPost("token")]
-    public BaseResponse Token(RequestToken requestToken)
+
+    // [HttpPost("sign-out")]
+    // public BaseResponse SignOut(RequestSignOut requestSignOut)
+    // {
+    //     if (!SdmString.IsValid(requestSignOut.UserTokenId, 64, 64))
+    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+    //
+    //     var userTokenId = SdmString.cleanAndTrim(requestSignOut.UserTokenId);
+    //
+    //     // Find token to remove
+    //     var userToken = userTokenService.Get(userTokenId);
+    //     if (userToken == null)
+    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
+    //
+    //     userTokenService.Remove(userToken);
+    //     return new BaseResponse(EnumResponseCode.OK);
+    // }
+    //
+    // [HttpPost("sign-in")]
+    // public BaseResponse SignIn(RequestSignIn requestSignIn)
+    // {
+    //     if (!SdmNumber.IsValid(requestSignIn.Id) ||
+    //         !SdmString.IsValid(requestSignIn.Id, 8, 8) ||
+    //         !SdmString.IsValid(requestSignIn.Password, 64))
+    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+    //
+    //     var id = SdmString.cleanAndTrim(requestSignIn.Id);
+    //     var password = SdmString.cleanAndTrim(requestSignIn.Password);
+    //
+    //     // Find user to authenticate
+    //     var user = userService.Get(id);
+    //     if (user == null)
+    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
+    //
+    //     // Verify password
+    //     if (!SdmAuthentication.passwordVerify(password, user.Password))
+    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
+    //
+    //     // Generate token string
+    //     var randomizeToken = SdmString.generateRandomToken();
+    //     while (userTokenService.Get(randomizeToken) != null)
+    //         randomizeToken = SdmString.generateRandomToken();
+    //
+    //     // Verify if token is already exists
+    //     var userToken = userTokenService.GetByUser(user);
+    //     if (userToken != null)
+    //         userTokenService.Remove(userToken);
+    //
+    //     // Create new token
+    //     userToken = new UserToken(
+    //         randomizeToken,
+    //         user,
+    //         SdmDateTime.Now(),
+    //         SdmDateTime.Now().AddHours(12)
+    //     );
+    //     userTokenService.Add(userToken);
+    //
+    //     return new BaseResponse(EnumResponseCode.CREATED, userToken.Serialized());
+    // }
+    //
+    // [HttpPost("token")]
+    // public BaseResponse Token(RequestToken requestToken)
+    // {
+    //     if (!SdmString.IsValid(requestToken.UserTokenId, 64, 64))
+    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+    //
+    //     var userTokenId = SdmString.cleanAndTrim(requestToken.UserTokenId);
+    //
+    //     // Verify token
+    //     var userToken = userTokenService.Get(userTokenId);
+    //     if (userToken == null)
+    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
+    //
+    //     return new BaseResponse(EnumResponseCode.OK, userToken.Serialized());
+    // }
+
+    public class SignUpDto
     {
-        if (!SdmString.IsValid(requestToken.UserTokenId, 64, 64))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-
-        var userTokenId = SdmString.cleanAndTrim(requestToken.UserTokenId);
-
-        // Verify token
-        var userToken = userTokenService.Get(userTokenId);
-        if (userToken == null)
-            return new BaseResponse(EnumResponseCode.NOT_FOUND);
-        
-        return new BaseResponse(EnumResponseCode.OK, userToken.Serialized());
+        public required string id { get; set; }
+        public required string password { get; set; }
+        public required string passwordConfirm { get; set; }
+        public required string gender { get; set; }
+        public required string nameNick { get; set; }
+        public required string nameFirst { get; set; }
+        public required string nameLast { get; set; }
     }
 }

@@ -1,33 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Controllers.Core;
-using studymate_backend.Enums;
-using studymate_backend.Helper;
-using studymate_backend.Models.Core;
-using studymate_backend.Models.StudyMate.Raw.Request;
-using studymate_backend.Services;
+using studymate_backend.Libraries.Methods;
+using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Controllers;
 
 [ApiController]
 [Route("api/user")]
-public class UserController(UserTokenService userTokenService) : IController
+public class UserController : ControllerBase
 {
-    [HttpPost]
-    public BaseResponse Get(RequestUser requestUser)
+    [HttpGet("get")]
+    public ActionResult<IEnumerable<User>> Get()
     {
-        if (!SdmString.IsValid(requestUser.UserTokenId, 64, 64))
-            return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
+        var users = SdmUser.getAll();
 
-        var userTokenId = SdmString.cleanAndTrim(requestUser.UserTokenId);
+        if (users.Count == 0)
+            return NotFound("User not found.");
+        return Ok(users);
+    }
+    [HttpGet("get/{id}")]
+    public ActionResult<User> Get(string id)
+    {
+        var user = SdmUser.getById(id);
 
-        // Verify token
-        var userToken = userTokenService.Get(userTokenId);
-        if (userToken == null)
-            return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
-        
-        // Remove password
-        userToken.User.Password = "";
-        
-        return new BaseResponse(EnumResponseCode.OK, userToken.User.Serialized());
+        if (user == null)
+            return NotFound("User not found.");
+        return Ok(user);
     }
 }
