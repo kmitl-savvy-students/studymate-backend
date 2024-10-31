@@ -1,5 +1,5 @@
 ﻿namespace studymate_backend.Libraries.Models;
-// Add Curriculum Group
+
 public class CurriculumGroup(
     int c_cat_id,
     int c_group_id,
