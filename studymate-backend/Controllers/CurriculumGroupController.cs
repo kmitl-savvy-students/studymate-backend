@@ -3,6 +3,7 @@ using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Controllers;
+// AddController
 
 [ApiController]
 [Route("api/curriculumgroup/get")]

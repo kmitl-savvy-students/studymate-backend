@@ -52,6 +52,7 @@ public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return result;
     }
     
+    // change to list
     public static List<CurriculumGroup> getByCatIdAndGroupId(int c_cat_id, int c_group_id)
     {
         var select = getSelectObj();
