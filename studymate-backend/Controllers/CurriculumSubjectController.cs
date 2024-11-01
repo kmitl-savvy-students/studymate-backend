@@ -18,7 +18,7 @@ public class CurriculumSubjectController : ControllerBase
         return Ok(curriculumSubjects);
     }
 
-    [HttpGet("{subject_id:string}")]
+    [HttpGet("{subject_id}")]
     public ActionResult<CurriculumSubject> Get(string subject_id)
     {
         var curriculumSubjects = SdmCurriculumSubject.getById(subject_id);
