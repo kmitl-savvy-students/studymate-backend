@@ -71,4 +71,15 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
             return null;
         return result[0];
     }
+
+    public static List<Curriculum> getAllByYear(string year)
+    {
+        var select = getSelectObj();
+        select.whereEqual("year", year);
+
+        var result = processQuery(new SdmPgsqlQuery(select), true);
+        if (result.Count == 0)
+            return [];
+        return result;
+    }
 }

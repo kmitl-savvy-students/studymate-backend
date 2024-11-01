@@ -5,7 +5,7 @@ using studymate_backend.Libraries.Models;
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/curriculumgroup/get")]
+[Route("api/curriculum-group/get")]
 public class CurriculumGroupController : ControllerBase
 {
     [HttpGet]
@@ -23,7 +23,7 @@ public class CurriculumGroupController : ControllerBase
     {
         var curriculumGroup = SdmCurriculumGroup.getByCatIdAndGroupId(c_cat_id, c_group_id);
 
-        if (curriculumGroup == null)
+        if (curriculumGroup.Count == 0)
             return NotFound("Curriculum group not found.");
         return Ok(curriculumGroup);
     }

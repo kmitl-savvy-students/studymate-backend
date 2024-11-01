@@ -32,7 +32,7 @@ public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 reader.GetInt32(6),
                 reader.GetString(7),
                 reader.GetString(8),
-                reader.GetString(8)
+                reader.GetString(9)
             );
 
             result.Add(curriculumGroup);
@@ -51,7 +51,7 @@ public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var result = processQuery(new SdmPgsqlQuery(select), true);
         return result;
     }
-    
+
     public static List<CurriculumGroup> getByCatIdAndGroupId(int c_cat_id, int c_group_id)
     {
         var select = getSelectObj();
@@ -60,8 +60,7 @@ public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 
         var result = processQuery(new SdmPgsqlQuery(select), true);
         if (result.Count == 0)
-            return null;
+            return [];
         return result;
     }
-    
 }

@@ -51,7 +51,7 @@ public class SdmCurriculumSubgroup : ISdmBaseMethod<CurriculumSubgroup>
         var result = processQuery(new SdmPgsqlQuery(select), true);
         return result;
     }
-    
+
     public static List<CurriculumSubgroup> getByCatIdAndGroupIdAndSubgroupId(int c_cat_id, int c_group_id, int c_subgroup_id)
     {
         var select = getSelectObj();
@@ -61,8 +61,7 @@ public class SdmCurriculumSubgroup : ISdmBaseMethod<CurriculumSubgroup>
 
         var result = processQuery(new SdmPgsqlQuery(select), true);
         if (result.Count == 0)
-            return null;
+            return [];
         return result;
     }
-    
 }

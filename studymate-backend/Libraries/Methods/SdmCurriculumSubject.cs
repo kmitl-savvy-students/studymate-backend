@@ -1,5 +1,4 @@
-﻿using System.Data;
-using studymate_backend.Libraries.Database;
+﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
@@ -50,16 +49,15 @@ public class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
         var result = processQuery(new SdmPgsqlQuery(select), true);
         return result;
     }
-    
+
     public static CurriculumSubject? getById(string subject_id)
     {
         var select = getSelectObj();
-        select.whereEqual("subject_id", subject_id.ToString());
+        select.whereEqual("subject_id", subject_id);
 
         var result = processQuery(new SdmPgsqlQuery(select), true);
         if (result.Count == 0)
             return null;
         return result[0];
     }
-    
 }
