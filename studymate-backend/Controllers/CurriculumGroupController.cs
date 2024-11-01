@@ -19,7 +19,7 @@ public class CurriculumGroupController : ControllerBase
     }
 
     [HttpGet("{c_cat_id:int}/{c_group_id:int}")]
-    public ActionResult<CurriculumGroup> GetByCatIdAndGroupId(int c_cat_id, int c_group_id)
+    public ActionResult<CurriculumGroup> Get(int c_cat_id, int c_group_id)
     {
         var curriculumGroup = SdmCurriculumGroup.getByCatIdAndGroupId(c_cat_id, c_group_id);
 
