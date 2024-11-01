@@ -32,7 +32,7 @@ public class SdmCurriculumSubgroup : ISdmBaseMethod<CurriculumSubgroup>
                 reader.GetInt32(6),
                 reader.GetInt32(7),
                 reader.GetString(8),
-                reader.GetString(8)
+                reader.GetString(9)
             );
 
             result.Add(curriculumSubgroup);
