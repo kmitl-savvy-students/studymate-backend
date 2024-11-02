@@ -55,18 +55,24 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
             return null;
         return result[0];
     }
-    public static TranscriptData? GetBy(User? user)
+    public static List<TranscriptData> GetAllBy(User? user)
     {
         if (user == null)
-            return null;
+            return [];
 
-        var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        var result = new List<TranscriptData>();
 
-        var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        var transcripts = SdmTranscript.GetAllBy(user);
+        foreach (var transcript in transcripts)
+        {
+            var select = GetQueryObj();
+            select.WhereEqual("transcript_id", transcript.id.ToString());
+
+            var transcriptDatas = ProcessQuery(select, true);
+            result.AddRange(transcriptDatas);
+        }
+
+        return result;
     }
 
     public static void Insert(TranscriptData transcriptData)

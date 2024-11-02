@@ -10,15 +10,15 @@ namespace studymate_backend.Controllers;
 public class TranscriptDataController : ControllerBase
 {
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPost("get-by-user")]
-    public ActionResult<IEnumerable<TranscriptData>> Get(DtoUser dtoUser)
+    [HttpPost("get/{userId}")]
+    public ActionResult<IEnumerable<TranscriptData>> Get(string userId)
     {
         // Verify user
-        var user = SdmUser.GetBy(dtoUser.userId);
+        var user = SdmUser.GetBy(userId);
         if (user == null)
             return Unauthorized(new { message = "User not found." });
 
-        var transcriptDatas = SdmTranscriptData.GetBy(user);
+        var transcriptDatas = SdmTranscriptData.GetAllBy(user);
 
         return Ok(transcriptDatas);
     }
@@ -39,10 +39,5 @@ public class TranscriptDataController : ControllerBase
         SdmTranscript.DeleteByUser(user);
 
         return Ok(new { message = "Transcript data deleted." });
-    }
-
-    public class DtoUser
-    {
-        public required string userId { get; set; }
     }
 }
