@@ -30,15 +30,15 @@ public class AuthController : ControllerBase
             !SdmString.IsValid(nameNick, 256) ||
             !SdmString.IsValid(nameFirst, 256) ||
             !SdmString.IsValid(nameLast, 256))
-            return BadRequest("Invalid request data.");
+            return BadRequest(new { message = "Invalid request data." });
 
         if (SdmUser.GetBy(id) != null)
-            return Conflict("User with the given ID already exists.");
+            return Conflict(new { message = "User with the given ID already exists." });
 
         if (password != passwordConfirm)
             return BadRequest("Password mismatch.");
         if (!SdmAuthentication.IsPasswordStrong(password))
-            return BadRequest("Password does not meet strength requirements.");
+            return BadRequest(new { message = "Password does not meet strength requirements." });
 
         SdmUser.Insert(new User(
             id,
@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
             "",
             null
         ));
-        return Ok("User created.");
+        return Ok(new { message = "User created." });
     }
 
     [AllowAnonymous]
