@@ -24,7 +24,8 @@ public class SdmPgsqlQuery(
         {
             _command = _source.CreateCommand(queryBase.Build());
             var result = _command.ExecuteScalar();
-            insertedId = result != null ? Convert.ToInt32(result) : 0;
+            if (result?.GetType() == typeof(int))
+                insertedId = Convert.ToInt32(result);
         }
         catch (NpgsqlException ex)
         {
