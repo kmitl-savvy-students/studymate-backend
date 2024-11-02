@@ -22,16 +22,16 @@ public class GoogleOAuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("link/sign-up")]
-    public ActionResult<string> GetLinkSignUp()
+    public ActionResult<DtoGoogleLink> GetLinkSignUp()
     {
-        return Ok(GetLink(_oAuthRedirectUri + "/sign-up"));
+        return Ok(new DtoGoogleLink { href = GetLink(_oAuthRedirectUri + "/sign-up") });
     }
 
     [AllowAnonymous]
     [HttpGet("link/sign-in")]
-    public ActionResult<string> GetLinkSignIn()
+    public ActionResult<DtoGoogleLink> GetLinkSignIn()
     {
-        return Ok(GetLink(_oAuthRedirectUri + "/sign-in"));
+        return Ok(new DtoGoogleLink { href = GetLink(_oAuthRedirectUri + "/sign-in") });
     }
 
     private string GetLink(string redirectUri)
@@ -176,5 +176,10 @@ public class GoogleOAuthController : ControllerBase
         public required string familyName { get; set; }
         public required string picture { get; set; }
         public required string hd { get; set; }
+    }
+
+    public class DtoGoogleLink
+    {
+        public required string href { get; set; }
     }
 }
