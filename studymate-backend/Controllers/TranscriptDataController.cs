@@ -10,7 +10,7 @@ namespace studymate_backend.Controllers;
 public class TranscriptDataController : ControllerBase
 {
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPost("get/{userId}")]
+    [HttpGet("get/{userId}")]
     public ActionResult<IEnumerable<TranscriptData>> Get(string userId)
     {
         // Verify user
