@@ -13,7 +13,7 @@ namespace studymate_backend.Controllers;
 public class AuthController : ControllerBase
 {
     [HttpPost("sign-up")]
-    public IActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
+    public ActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
     {
         if (!SdmNumber.IsValid(dtoSignUp.id) ||
             !SdmString.IsValid(dtoSignUp.id, 8, 8) ||
@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
         if (!SdmAuthentication.IsPasswordStrong(password))
             return BadRequest("Password does not meet strength requirements.");
 
-        var user = new User(
+        SdmUser.Insert(new User(
             id,
             SdmAuthentication.PasswordHash(password),
             gender,
@@ -50,9 +50,7 @@ public class AuthController : ControllerBase
             nameLast,
             "",
             null
-        );
-
-        SdmUser.Insert(user);
+        ));
         return Ok("User created.");
     }
 

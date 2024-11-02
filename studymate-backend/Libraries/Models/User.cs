@@ -21,4 +21,9 @@ public class User(
     public string nameLast { get; set; } = nameLast;
     public string profile { get; set; } = profile;
     public Curriculum? curriculum { get; set; } = curriculum;
+
+    public string GetFullName()
+    {
+        return nameFirst + " " + nameLast;
+    }
 }

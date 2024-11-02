@@ -1,9 +1,15 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication;
+using studymate_backend.Libraries.Core;
 using studymate_backend.Libraries.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers().AddJsonOptions(option => { option.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower; });
+builder.Services.AddControllers()
+    .AddJsonOptions(option => { option.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower; });
+
+builder.Services.AddAuthentication("StudyMateToken")
+    .AddScheme<AuthenticationSchemeOptions, SdmTokenHandler>("StudyMateToken", _ => { });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -26,8 +32,10 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseAuthorization();
+app.UseAuthentication();
+
 app.MapControllers();
 
-app.Lifetime.ApplicationStopping.Register(() => SdmDataSource.Dispose());
+app.Lifetime.ApplicationStopping.Register(SdmDataSource.Dispose);
 
 await app.RunAsync();
