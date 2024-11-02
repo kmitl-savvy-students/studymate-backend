@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
@@ -8,6 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-group/get")]
 public class CurriculumGroupController : ControllerBase
 {
+    [AllowAnonymous]
     [HttpGet("{categoryId:int}/{groupId:int}/{uniqueId}/{year}")]
     public ActionResult<CurriculumGroup> GetBy(int categoryId, int groupId, string uniqueId, string year)
     {

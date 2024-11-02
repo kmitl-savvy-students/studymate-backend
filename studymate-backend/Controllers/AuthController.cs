@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
@@ -11,6 +12,7 @@ namespace studymate_backend.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
+    [AllowAnonymous]
     [HttpPost("sign-up")]
     public ActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
     {
@@ -50,6 +52,7 @@ public class AuthController : ControllerBase
         return Ok("User created.");
     }
 
+    [AllowAnonymous]
     [HttpPost("sign-in")]
     public ActionResult<UserToken> SignIn(DtoSignIn dtoSignIn)
     {
@@ -92,6 +95,7 @@ public class AuthController : ControllerBase
         return Ok(userToken);
     }
 
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("sign-out")]
     public ActionResult SignOut(DtoSignOut dtoSignOut)
     {
@@ -106,7 +110,7 @@ public class AuthController : ControllerBase
             return NotFound("Incorrect user token.");
 
         SdmUserToken.Delete(userToken);
-        return Ok();
+        return Ok("Sign out successfully.");
     }
 
     public class DtoSignUp

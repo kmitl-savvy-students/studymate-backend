@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
@@ -8,6 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculumsubject/get")]
 public class CurriculumSubjectController : ControllerBase
 {
+    [AllowAnonymous]
     [HttpGet]
     public ActionResult<IEnumerable<CurriculumSubject>> Get()
     {
@@ -18,6 +20,7 @@ public class CurriculumSubjectController : ControllerBase
         return Ok(curriculumSubjects);
     }
 
+    [AllowAnonymous]
     [HttpGet("{subject_id}")]
     public ActionResult<CurriculumSubject> Get(string subject_id)
     {

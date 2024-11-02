@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
@@ -14,10 +13,6 @@ public class UserController : ControllerBase
     [HttpPatch("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
-        var userAuthorized = SdmUser.GetBy(ClaimTypes.NameIdentifier);
-        if (userAuthorized == null)
-            return Unauthorized();
-
         var existingUser = SdmUser.GetBy(user.id);
         if (existingUser == null)
             return NotFound("User not found.");
