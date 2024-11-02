@@ -15,16 +15,6 @@ public class AuthController : ControllerBase
     [HttpPost("sign-up")]
     public ActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
     {
-        if (!SdmNumber.IsValid(dtoSignUp.id) ||
-            !SdmString.IsValid(dtoSignUp.id, 8, 8) ||
-            !SdmString.IsValid(dtoSignUp.password, 64) ||
-            !SdmString.IsValid(dtoSignUp.passwordConfirm, 64) ||
-            !SdmString.IsValid(dtoSignUp.gender, 6) ||
-            !SdmString.IsValid(dtoSignUp.nameNick, 256) ||
-            !SdmString.IsValid(dtoSignUp.nameFirst, 256) ||
-            !SdmString.IsValid(dtoSignUp.nameLast, 256))
-            return BadRequest("Invalid request data.");
-
         var id = SdmString.CleanAndTrim(dtoSignUp.id);
         var password = SdmString.CleanAndTrim(dtoSignUp.password);
         var passwordConfirm = SdmString.CleanAndTrim(dtoSignUp.passwordConfirm);
@@ -32,6 +22,15 @@ public class AuthController : ControllerBase
         var nameNick = SdmString.CleanAndTrim(dtoSignUp.nameNick);
         var nameFirst = SdmString.CleanAndTrim(dtoSignUp.nameFirst);
         var nameLast = SdmString.CleanAndTrim(dtoSignUp.nameLast);
+
+        if (!SdmNumber.IsValid(id) ||
+            !SdmString.IsValid(id, 8, 8) ||
+            !SdmString.IsValid(password, 64) ||
+            !SdmString.IsValid(passwordConfirm, 64) ||
+            !SdmString.IsValid(nameNick, 256) ||
+            !SdmString.IsValid(nameFirst, 256) ||
+            !SdmString.IsValid(nameLast, 256))
+            return BadRequest("Invalid request data.");
 
         if (SdmUser.GetById(id) != null)
             return Conflict("User with the given ID already exists.");
@@ -54,80 +53,64 @@ public class AuthController : ControllerBase
         return Ok("User created.");
     }
 
-    // [HttpPost("sign-out")]
-    // public BaseResponse SignOut(RequestSignOut requestSignOut)
-    // {
-    //     if (!SdmString.IsValid(requestSignOut.UserTokenId, 64, 64))
-    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-    //
-    //     var userTokenId = SdmString.cleanAndTrim(requestSignOut.UserTokenId);
-    //
-    //     // Find token to remove
-    //     var userToken = userTokenService.Get(userTokenId);
-    //     if (userToken == null)
-    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
-    //
-    //     userTokenService.Remove(userToken);
-    //     return new BaseResponse(EnumResponseCode.OK);
-    // }
-    //
-    // [HttpPost("sign-in")]
-    // public BaseResponse SignIn(RequestSignIn requestSignIn)
-    // {
-    //     if (!SdmNumber.IsValid(requestSignIn.Id) ||
-    //         !SdmString.IsValid(requestSignIn.Id, 8, 8) ||
-    //         !SdmString.IsValid(requestSignIn.Password, 64))
-    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-    //
-    //     var id = SdmString.cleanAndTrim(requestSignIn.Id);
-    //     var password = SdmString.cleanAndTrim(requestSignIn.Password);
-    //
-    //     // Find user to authenticate
-    //     var user = userService.Get(id);
-    //     if (user == null)
-    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
-    //
-    //     // Verify password
-    //     if (!SdmAuthentication.passwordVerify(password, user.Password))
-    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
-    //
-    //     // Generate token string
-    //     var randomizeToken = SdmString.generateRandomToken();
-    //     while (userTokenService.Get(randomizeToken) != null)
-    //         randomizeToken = SdmString.generateRandomToken();
-    //
-    //     // Verify if token is already exists
-    //     var userToken = userTokenService.GetByUser(user);
-    //     if (userToken != null)
-    //         userTokenService.Remove(userToken);
-    //
-    //     // Create new token
-    //     userToken = new UserToken(
-    //         randomizeToken,
-    //         user,
-    //         SdmDateTime.Now(),
-    //         SdmDateTime.Now().AddHours(12)
-    //     );
-    //     userTokenService.Add(userToken);
-    //
-    //     return new BaseResponse(EnumResponseCode.CREATED, userToken.Serialized());
-    // }
-    //
-    // [HttpPost("token")]
-    // public BaseResponse Token(RequestToken requestToken)
-    // {
-    //     if (!SdmString.IsValid(requestToken.UserTokenId, 64, 64))
-    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-    //
-    //     var userTokenId = SdmString.cleanAndTrim(requestToken.UserTokenId);
-    //
-    //     // Verify token
-    //     var userToken = userTokenService.Get(userTokenId);
-    //     if (userToken == null)
-    //         return new BaseResponse(EnumResponseCode.NOT_FOUND);
-    //
-    //     return new BaseResponse(EnumResponseCode.OK, userToken.Serialized());
-    // }
+    [HttpPost("sign-in")]
+    public ActionResult<UserToken> SignIn(DtoSignIn dtoSignIn)
+    {
+        var id = SdmString.CleanAndTrim(dtoSignIn.id);
+        var password = SdmString.CleanAndTrim(dtoSignIn.password);
+
+        if (!SdmNumber.IsValid(id) ||
+            !SdmString.IsValid(id, 8, 8) ||
+            !SdmString.IsValid(password, 64))
+            return BadRequest("Invalid request data.");
+
+        // Find user to authenticate
+        var user = SdmUser.GetById(id);
+        if (user == null)
+            return NotFound("Incorrect username or password.");
+
+        // Verify password
+        if (!SdmAuthentication.PasswordVerify(password, user.password))
+            return NotFound("Incorrect username or password.");
+
+        // Generate token string
+        var randomizeToken = SdmString.GenerateRandomToken();
+        while (SdmUserToken.GetById(randomizeToken) != null)
+            randomizeToken = SdmString.GenerateRandomToken();
+
+        // Verify if token is already exists
+        var userToken = SdmUserToken.GetByUser(user);
+        if (userToken != null)
+            SdmUserToken.Delete(userToken);
+
+        // Create token
+        userToken = new UserToken(
+            randomizeToken,
+            user,
+            SdmDateTime.Now(),
+            SdmDateTime.Now().AddHours(12)
+        );
+        SdmUserToken.Insert(userToken);
+
+        return Ok(userToken);
+    }
+
+    [HttpPost("sign-out")]
+    public ActionResult SignOut(DtoSignOut dtoSignOut)
+    {
+        var userTokenId = SdmString.CleanAndTrim(dtoSignOut.userTokenId);
+
+        if (!SdmString.IsValid(userTokenId, 64, 64))
+            return BadRequest("Invalid request data.");
+
+        // Find token to remove
+        var userToken = SdmUserToken.GetById(userTokenId);
+        if (userToken == null)
+            return NotFound("Incorrect user token.");
+
+        SdmUserToken.Delete(userToken);
+        return Ok();
+    }
 
     public class DtoSignUp
     {
@@ -138,5 +121,16 @@ public class AuthController : ControllerBase
         public required string nameNick { get; set; }
         public required string nameFirst { get; set; }
         public required string nameLast { get; set; }
+    }
+
+    public class DtoSignIn
+    {
+        public required string id { get; set; }
+        public required string password { get; set; }
+    }
+
+    public class DtoSignOut
+    {
+        public required string userTokenId { get; set; }
     }
 }
