@@ -83,4 +83,14 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
         var query = SdmPgsqlQuery.Execute(insert);
         query.CleanUp();
     }
+
+    public static void DeleteByTranscript(Transcript transcript)
+    {
+        var delete = new SdmPgsqlQueryDelete(TableName);
+
+        delete.WhereEqual("transcript_id", transcript.id.ToString());
+
+        var query = SdmPgsqlQuery.Execute(delete);
+        query.CleanUp();
+    }
 }

@@ -26,7 +26,7 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
                 query.ToInt(0),
                 SdmUser.GetBy(query.ToString(1)),
                 SdmCurriculum.GetBy(query.ToInt(2)),
-                new SdmDateTime(query.ToString(3))
+                new SdmDateTime(query.ToDateTime(3))
             ));
             if (!isArray) break;
         }
@@ -53,15 +53,13 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
             return null;
         return result[0];
     }
-    public static Transcript? GetBy(User user)
+    public static List<Transcript> GetAllBy(User user)
     {
         var select = GetQueryObj();
         select.WhereEqual("user_id", user.id);
 
-        var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        var result = ProcessQuery(select, true);
+        return result;
     }
 
     public static Transcript Insert(Transcript transcript)
@@ -77,5 +75,15 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
         query.CleanUp();
 
         return transcript;
+    }
+
+    public static void DeleteByUser(User user)
+    {
+        var delete = new SdmPgsqlQueryDelete(TableName);
+
+        delete.WhereEqual("user_id", user.id);
+
+        var query = SdmPgsqlQuery.Execute(delete);
+        query.CleanUp();
     }
 }

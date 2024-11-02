@@ -23,6 +23,24 @@ public class TranscriptDataController : ControllerBase
         return Ok(transcriptDatas);
     }
 
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete/{userId}")]
+    public ActionResult Delete(string userId)
+    {
+        // Verify user
+        var user = SdmUser.GetBy(userId);
+        if (user == null)
+            return Unauthorized(new { message = "User not found." });
+
+        // Get All Transcripts
+        var transcripts = SdmTranscript.GetAllBy(user);
+        foreach (var transcript in transcripts)
+            SdmTranscriptData.DeleteByTranscript(transcript);
+        SdmTranscript.DeleteByUser(user);
+
+        return Ok(new { message = "Transcript data deleted." });
+    }
+
     public class DtoUser
     {
         public required string userId { get; set; }
