@@ -40,14 +40,11 @@ public partial class TranscriptController : ControllerBase
     {
         var file = dtoUploadTranscript.file;
 
-        var userTokenId = SdmString.CleanAndTrim(dtoUploadTranscript.userTokenId);
+        var userId = SdmString.CleanAndTrim(dtoUploadTranscript.id);
 
-        if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest(new { message = "Invalid user token." });
-
-        // Verify token
-        var userToken = SdmUserToken.GetBy(userTokenId);
-        if (userToken?.user?.curriculum == null)
+        // Verify user
+        var user = SdmUser.GetBy(userId);
+        if (user?.curriculum == null)
             return NotFound(new { message = "User is not allow to upload transcript." });
 
         // Verify Files
@@ -95,12 +92,12 @@ public partial class TranscriptController : ControllerBase
             return NotFound(new { message = "Not a valid transcript." });
 
         // Check for user in transcript
-        var user = SdmUser.GetBy(data.Id);
-        if (user == null)
+        var userTranscript = SdmUser.GetBy(data.Id);
+        if (userTranscript == null)
             return NotFound(new { message = "User doesn't exist." });
 
         // Check if user matches
-        if (user.id != userToken.user.id)
+        if (userTranscript.id != user.id)
             return Unauthorized(new { message = "Unauthorized." });
 
         Console.WriteLine("Start extract data using AI...");
@@ -171,8 +168,8 @@ public partial class TranscriptController : ControllerBase
             // Create a new Transcript entry
             var transcript = new Transcript(
                 0,
-                userToken.user,
-                userToken.user.curriculum,
+                user,
+                user.curriculum,
                 new SdmDateTime(DateTime.UtcNow)
             );
             transcript = SdmTranscript.Insert(transcript);
@@ -460,7 +457,7 @@ public partial class TranscriptController : ControllerBase
 
     public class DtoUploadTranscript
     {
-        public required string userTokenId { get; set; }
+        public required string id { get; set; }
         public required IFormFile file { get; set; }
     }
 }

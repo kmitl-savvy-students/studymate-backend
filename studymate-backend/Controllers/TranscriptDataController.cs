@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
@@ -14,23 +13,18 @@ public class TranscriptDataController : ControllerBase
     [HttpPost("get-by-user")]
     public ActionResult<IEnumerable<TranscriptData>> Get(DtoUser dtoUser)
     {
-        var userTokenId = SdmString.CleanAndTrim(dtoUser.userTokenId);
-
-        if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest(new { message = "Invalid user token." });
-
-        // Verify token
-        var userToken = SdmUserToken.GetBy(userTokenId);
-        if (userToken == null)
+        // Verify user
+        var user = SdmUser.GetBy(dtoUser.userId);
+        if (user == null)
             return Unauthorized(new { message = "User not found." });
 
-        var transcriptDatas = SdmTranscriptData.GetBy(userToken.user);
+        var transcriptDatas = SdmTranscriptData.GetBy(user);
 
         return Ok(transcriptDatas);
     }
 
     public class DtoUser
     {
-        public required string userTokenId { get; set; }
+        public required string userId { get; set; }
     }
 }
