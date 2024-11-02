@@ -64,26 +64,26 @@ public class GoogleOAuthController : ControllerBase
 
         var response = await client.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
-            return Unauthorized("Cannot get user info.");
+            return Unauthorized(new { message = "Cannot get user info." });
 
         var responseContent = await response.Content.ReadAsStringAsync();
         var userInfo = JsonSerializer.Deserialize<DtoUserInfo>(responseContent);
 
         if (userInfo == null)
-            return Unauthorized("Cannot get user info");
+            return Unauthorized(new { message = "Cannot get user info" });
 
         var id = (userInfo.email ?? "00000000@kmitl.ac.th").Split('@')[0];
         var domain = userInfo.hd;
 
         // Verify KMITL user
         if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
-            return Unauthorized("Must use KMITL Account.");
+            return Unauthorized(new { message = "Must use KMITL Account." });
 
         var user = SdmUser.GetBy(id);
         if (user == null)
         {
             if (callback.redirectUri == "sign-in")
-                return NotFound("User not found, please sign up.");
+                return NotFound(new { message = "User not found, please sign up." });
 
             // Create user if user doesn't exist
             user = new User(
@@ -100,7 +100,7 @@ public class GoogleOAuthController : ControllerBase
         else
         {
             if (callback.redirectUri == "sign-up")
-                return Conflict("You already sign up, please sign in.");
+                return Conflict(new { message = "You already sign up, please sign in." });
 
             user.nameFirst = userInfo.given_name;
             user.nameLast = userInfo.family_name;
