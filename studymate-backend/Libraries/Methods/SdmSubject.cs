@@ -82,7 +82,7 @@ public class SdmSubject : ISdmBaseMethod<Subject>
                 ));
             if (!isArray) break;
         }
-        
+        // edit
         query.CleanUp();
         return result;
     }
