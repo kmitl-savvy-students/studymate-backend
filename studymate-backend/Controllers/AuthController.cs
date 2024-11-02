@@ -113,6 +113,23 @@ public class AuthController : ControllerBase
         return Ok("Sign out successfully.");
     }
 
+    [AllowAnonymous]
+    [HttpPost("token")]
+    public ActionResult<UserToken> Token(DtoToken dtoToken)
+    {
+        var userTokenId = SdmString.CleanAndTrim(dtoToken.userTokenId);
+
+        if (!SdmString.IsValid(userTokenId, 64, 64))
+            return BadRequest("Invalid request data.");
+
+        // Find token to remove
+        var userToken = SdmUserToken.GetBy(userTokenId);
+        if (userToken == null)
+            return NotFound("Incorrect user token.");
+
+        return Ok(userToken);
+    }
+
     public class DtoSignUp
     {
         public required string id { get; set; }
@@ -130,6 +147,11 @@ public class AuthController : ControllerBase
     }
 
     public class DtoSignOut
+    {
+        public required string userTokenId { get; set; }
+    }
+
+    public class DtoToken
     {
         public required string userTokenId { get; set; }
     }
