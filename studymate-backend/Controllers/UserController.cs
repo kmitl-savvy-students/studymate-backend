@@ -43,7 +43,7 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
-    [HttpPut("update")]
+    [HttpPatch("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
         var existingUser = SdmUser.GetById(user.id);
