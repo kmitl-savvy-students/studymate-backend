@@ -1,4 +1,6 @@
-﻿namespace studymate_backend.Libraries.Models;
+﻿using studymate_backend.Libraries.Helper;
+
+namespace studymate_backend.Libraries.Models;
 
 public class Subject(
     string subject_id,
@@ -18,7 +20,7 @@ public class Subject(
     string prerequisite3,
     string prerequisite4,
     string prerequisite5,
-    DateTime last_modified
+    SdmDateTime last_modified
 ) : IBaseModel
 {
     public string subject_id { get; set; } = subject_id;
@@ -38,5 +40,5 @@ public class Subject(
     public string prerequisite3 { get; set; } = prerequisite3;
     public string prerequisite4 { get; set; } = prerequisite4;
     public string prerequisite5 { get; set; } = prerequisite5;
-    public DateTime last_modified { get; set; } = last_modified;
+    public SdmDateTime last_modified { get; set; } = last_modified;
 }
