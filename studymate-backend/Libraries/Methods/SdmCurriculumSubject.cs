@@ -1,4 +1,5 @@
-﻿using studymate_backend.Libraries.Database.QueryBuilders;
+﻿using studymate_backend.Libraries.Database;
+using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
@@ -14,34 +15,27 @@ public class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
 
     public static List<CurriculumSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
-        // var query = SdmPgsqlQuery.Execute(queryBuilder);
-        // var reader = query.GetReader();
-        // if (reader == null)
-        //     return [];
-        //
-        // var result = new List<CurriculumSubject>();
-        //
-        // while (reader.Read())
-        // {
-        //     var curriculumSubject = new CurriculumSubject(
-        //         reader.GetString(0),
-        //         reader.GetInt32(1),
-        //         reader.GetInt32(2),
-        //         reader.GetInt32(3),
-        //         reader.GetString(4),
-        //         reader.GetString(5),
-        //         reader.GetString(6),
-        //         reader.GetString(7)
-        //     );
-        //
-        //     result.Add(curriculumSubject);
-        //
-        //     if (!isArray)
-        //         return result;
-        // }
-        //
-        // return result;
-        return [];
+        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        
+        var result = new List<CurriculumSubject>();
+        
+        while (query.Next())
+        {
+            result.Add(new CurriculumSubject(
+                query.ToString(0),
+                query.ToInt(1),
+                query.ToInt(2),
+                query.ToInt(3),
+                query.ToString(4),
+                query.ToString(5),
+                query.ToString(6),
+                query.ToString(7)
+            ));
+            if (!isArray) break;
+        }
+        
+        query.CleanUp();
+        return result;
     }
 
     public static List<CurriculumSubject> GetAll()
