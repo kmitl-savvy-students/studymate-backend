@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Libraries.Enums;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
@@ -18,7 +17,6 @@ public class AuthController : ControllerBase
         var id = SdmString.CleanAndTrim(dtoSignUp.id);
         var password = SdmString.CleanAndTrim(dtoSignUp.password);
         var passwordConfirm = SdmString.CleanAndTrim(dtoSignUp.passwordConfirm);
-        var gender = EnumBase.Get<EnumGender>(SdmString.CleanAndTrim(dtoSignUp.gender)) ?? EnumGender.OTHER;
         var nameNick = SdmString.CleanAndTrim(dtoSignUp.nameNick);
         var nameFirst = SdmString.CleanAndTrim(dtoSignUp.nameFirst);
         var nameLast = SdmString.CleanAndTrim(dtoSignUp.nameLast);
@@ -32,7 +30,7 @@ public class AuthController : ControllerBase
             !SdmString.IsValid(nameLast, 256))
             return BadRequest("Invalid request data.");
 
-        if (SdmUser.GetById(id) != null)
+        if (SdmUser.GetBy(id) != null)
             return Conflict("User with the given ID already exists.");
 
         if (password != passwordConfirm)
@@ -43,7 +41,6 @@ public class AuthController : ControllerBase
         SdmUser.Insert(new User(
             id,
             SdmAuthentication.PasswordHash(password),
-            gender,
             nameNick,
             nameFirst,
             nameLast,
@@ -65,7 +62,7 @@ public class AuthController : ControllerBase
             return BadRequest("Invalid request data.");
 
         // Find user to authenticate
-        var user = SdmUser.GetById(id);
+        var user = SdmUser.GetBy(id);
         if (user == null)
             return NotFound("Incorrect username or password.");
 
@@ -75,11 +72,11 @@ public class AuthController : ControllerBase
 
         // Generate token string
         var randomizeToken = SdmString.GenerateRandomToken();
-        while (SdmUserToken.GetById(randomizeToken) != null)
+        while (SdmUserToken.GetBy(randomizeToken) != null)
             randomizeToken = SdmString.GenerateRandomToken();
 
         // Verify if token is already exists
-        var userToken = SdmUserToken.GetByUser(user);
+        var userToken = SdmUserToken.GetBy(user);
         if (userToken != null)
             SdmUserToken.Delete(userToken);
 
@@ -104,7 +101,7 @@ public class AuthController : ControllerBase
             return BadRequest("Invalid request data.");
 
         // Find token to remove
-        var userToken = SdmUserToken.GetById(userTokenId);
+        var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
             return NotFound("Incorrect user token.");
 
@@ -117,7 +114,6 @@ public class AuthController : ControllerBase
         public required string id { get; set; }
         public required string password { get; set; }
         public required string passwordConfirm { get; set; }
-        public required string gender { get; set; }
         public required string nameNick { get; set; }
         public required string nameFirst { get; set; }
         public required string nameLast { get; set; }

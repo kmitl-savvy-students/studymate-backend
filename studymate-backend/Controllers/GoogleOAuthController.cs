@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Libraries.Enums;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
@@ -76,7 +75,7 @@ public class GoogleOAuthController : ControllerBase
         if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
             return Unauthorized("Must use KMITL Account.");
 
-        var user = SdmUser.GetById(id);
+        var user = SdmUser.GetBy(id);
         if (user == null)
         {
             if (callback.redirectUri == "sign-in")
@@ -86,7 +85,6 @@ public class GoogleOAuthController : ControllerBase
             user = new User(
                 id,
                 SdmAuthentication.PasswordHash(SdmString.GenerateRandomToken()),
-                EnumGender.OTHER,
                 userInfo.givenName,
                 userInfo.givenName,
                 userInfo.familyName,
@@ -108,11 +106,11 @@ public class GoogleOAuthController : ControllerBase
 
         // Generate token string
         var randomizeToken = SdmString.GenerateRandomToken();
-        while (SdmUserToken.GetById(randomizeToken) != null)
+        while (SdmUserToken.GetBy(randomizeToken) != null)
             randomizeToken = SdmString.GenerateRandomToken();
 
         // Verify if token is already exists
-        var userToken = SdmUserToken.GetByUser(user);
+        var userToken = SdmUserToken.GetBy(user);
         if (userToken != null)
             SdmUserToken.Delete(userToken);
 

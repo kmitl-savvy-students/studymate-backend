@@ -1,6 +1,5 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
-using studymate_backend.Libraries.Enums;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
@@ -25,12 +24,11 @@ public class SdmUser : ISdmBaseMethod<User>
             result.Add(new User(
                 query.ToString(0),
                 query.ToString(1),
-                EnumBase.Get<EnumGender>(query.ToString(2)) ?? EnumGender.OTHER,
+                query.ToString(2),
                 query.ToString(3),
                 query.ToString(4),
                 query.ToString(5),
-                query.ToString(6),
-                SdmCurriculum.GetById(query.ToInt(7))
+                SdmCurriculum.GetBy(query.ToInt(6))
             ));
             if (!isArray) break;
         }
@@ -47,7 +45,7 @@ public class SdmUser : ISdmBaseMethod<User>
         return result;
     }
 
-    public static User? GetById(string id)
+    public static User? GetBy(string id)
     {
         var select = GetQueryObj();
         select.WhereEqual("id", id);
@@ -64,7 +62,6 @@ public class SdmUser : ISdmBaseMethod<User>
 
         insert.Insert("id", user.id);
         insert.Insert("password", user.password);
-        insert.Insert("gender", user.gender.GetName());
         insert.Insert("name_nick", user.nameNick);
         insert.Insert("name_first", user.nameFirst);
         insert.Insert("name_last", user.nameLast);

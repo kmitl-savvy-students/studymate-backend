@@ -8,22 +8,12 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-group/get")]
 public class CurriculumGroupController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<IEnumerable<CurriculumGroup>> Get()
+    [HttpGet("{categoryId:int}/{groupId:int}/{uniqueId}/{year}")]
+    public ActionResult<CurriculumGroup> GetBy(int categoryId, int groupId, string uniqueId, string year)
     {
-        var curriculumGroups = SdmCurriculumGroup.GetAll();
+        var curriculumGroup = SdmCurriculumGroup.GetBy(categoryId, groupId, uniqueId, year);
 
-        if (curriculumGroups.Count == 0)
-            return NotFound("Curriculum group not found.");
-        return Ok(curriculumGroups);
-    }
-
-    [HttpGet("{c_cat_id:int}/{c_group_id:int}")]
-    public ActionResult<CurriculumGroup> Get(int c_cat_id, int c_group_id)
-    {
-        var curriculumGroup = SdmCurriculumGroup.GetByCatIdAndGroupId(c_cat_id, c_group_id);
-
-        if (curriculumGroup.Count == 0)
+        if (curriculumGroup == null)
             return NotFound("Curriculum group not found.");
         return Ok(curriculumGroup);
     }

@@ -24,7 +24,7 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
         {
             result.Add(new UserToken(
                 query.ToString(0),
-                SdmUser.GetById(query.ToString(1)),
+                SdmUser.GetBy(query.ToString(1)),
                 new SdmDateTime(query.ToString(2)),
                 new SdmDateTime(query.ToString(3))
             ));
@@ -43,7 +43,7 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
         return result;
     }
 
-    public static UserToken? GetById(string id)
+    public static UserToken? GetBy(string id)
     {
         var select = GetQueryObj();
         select.WhereEqual("id", id);
@@ -53,7 +53,7 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
             return null;
         return result[0];
     }
-    public static UserToken? GetByUser(User user)
+    public static UserToken? GetBy(User user)
     {
         var select = GetQueryObj();
         select.WhereEqual("user_id", user.id);

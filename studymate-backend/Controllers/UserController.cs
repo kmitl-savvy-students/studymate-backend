@@ -14,17 +14,17 @@ public class UserController : ControllerBase
     [HttpPatch("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
-        var userAuthorized = SdmUser.GetById(ClaimTypes.NameIdentifier);
+        var userAuthorized = SdmUser.GetBy(ClaimTypes.NameIdentifier);
         if (userAuthorized == null)
             return Unauthorized();
 
-        var existingUser = SdmUser.GetById(user.id);
+        var existingUser = SdmUser.GetBy(user.id);
         if (existingUser == null)
             return NotFound("User not found.");
 
         if (user.curriculumId != null)
         {
-            var newCurriculum = SdmCurriculum.GetById(user.curriculumId ?? -1);
+            var newCurriculum = SdmCurriculum.GetBy(user.curriculumId ?? -1);
             if (newCurriculum == null)
                 return NotFound("Curriculum not found.");
             existingUser.curriculum = newCurriculum;

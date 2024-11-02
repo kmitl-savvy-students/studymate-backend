@@ -1,26 +1,26 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class CurriculumGroup(
-    int c_cat_id,
-    int c_group_id,
-    string curri_id,
+    int categoryId,
+    int groupId,
+    string curriculumId,
     string year,
-    string c_group_name,
+    string groupName,
     int credit1,
     int credit2,
-    string subgroup_flag,
+    string subgroupFlag,
     string condition,
     string link
 ) : IBaseModel
 {
-    public int c_cat_id { get; set; } = c_cat_id;
-    public int c_group_id { get; set; } = c_group_id;
-    public string curri_id { get; set; } = curri_id;
+    public int categoryId { get; set; } = categoryId;
+    public int groupId { get; set; } = groupId;
+    public string curriculumId { get; set; } = curriculumId;
     public string year { get; set; } = year;
-    public string c_group_name { get; set; } = c_group_name;
+    public string groupName { get; set; } = groupName;
     public int credit1 { get; set; } = credit1;
     public int credit2 { get; set; } = credit2;
-    public string subgroup_flag { get; set; } = subgroup_flag;
+    public string subgroupFlag { get; set; } = subgroupFlag;
     public string condition { get; set; } = condition;
     public string link { get; set; } = link;
 }

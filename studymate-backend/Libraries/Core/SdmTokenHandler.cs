@@ -20,7 +20,7 @@ public class SdmTokenHandler(
 
         var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
 
-        var userToken = SdmUserToken.GetById(token);
+        var userToken = SdmUserToken.GetBy(token);
         if (userToken == null)
             return Task.FromResult(AuthenticateResult.Fail("Invalid or expired token"));
 

@@ -47,7 +47,7 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
         return result;
     }
 
-    public static Curriculum? GetById(int id)
+    public static Curriculum? GetBy(int id)
     {
         var select = GetQueryObj();
         select.WhereEqual("id", id.ToString());
@@ -57,7 +57,7 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
             return null;
         return result[0];
     }
-    public static Curriculum? GetByUniqueIdYear(string uniqueId, string year)
+    public static Curriculum? GetBy(string uniqueId, string year)
     {
         var select = GetQueryObj();
         select.WhereEqual("unique_id", uniqueId);
