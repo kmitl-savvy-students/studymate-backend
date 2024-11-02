@@ -110,7 +110,7 @@ public class AuthController : ControllerBase
             return NotFound("Incorrect user token.");
 
         SdmUserToken.Delete(userToken);
-        return Ok("Sign out successfully.");
+        return Ok();
     }
 
     [AllowAnonymous]
