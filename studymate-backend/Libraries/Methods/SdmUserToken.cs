@@ -73,7 +73,8 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
         insert.Insert("created", userToken.created.ToString());
         insert.Insert("expired", userToken.expired.ToString());
 
-        SdmPgsqlQuery.Execute(insert);
+        var query = SdmPgsqlQuery.Execute(insert);
+        query.CleanUp();
     }
 
     public static void Delete(UserToken userToken)
@@ -81,6 +82,7 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
         var delete = new SdmPgsqlQueryDelete(TableName);
         delete.WhereEqual("id", userToken.id);
 
-        SdmPgsqlQuery.Execute(delete);
+        var query = SdmPgsqlQuery.Execute(delete);
+        query.CleanUp();
     }
 }

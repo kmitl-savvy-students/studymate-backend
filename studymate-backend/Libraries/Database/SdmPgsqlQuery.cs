@@ -11,10 +11,36 @@ public class SdmPgsqlQuery(
     private NpgsqlDataReader? _reader;
     private NpgsqlDataSource? _source;
 
+    public int insertedId;
+
+    private void ExecuteScalar()
+    {
+        var dataSource = SdmDataSource.Get();
+        if (dataSource == null)
+            return;
+
+        _source = dataSource;
+        try
+        {
+            _command = _source.CreateCommand(queryBase.Build());
+            var result = _command.ExecuteScalar();
+            insertedId = result != null ? Convert.ToInt32(result) : 0;
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("ERROR: SdmPgsqlQuery.ExecuteScalar(): " + ex.Message);
+        }
+    }
+
     public static SdmPgsqlQuery Execute(ISdmPgsqlQueryBase queryBase)
     {
         var query = new SdmPgsqlQuery(queryBase);
-        query.GetReader();
+
+        if (queryBase is SdmPgsqlQueryInsert)
+            query.ExecuteScalar();
+        else
+            query.GetReader();
+
         return query;
     }
 
@@ -39,6 +65,17 @@ public class SdmPgsqlQuery(
         }
 
         return _reader;
+    }
+
+    public bool Next()
+    {
+        return GetReader()?.Read() ?? false;
+    }
+
+    public void CleanUp()
+    {
+        _reader?.Dispose();
+        _command?.Dispose();
     }
 
     public string ToString(int columnIndex)
@@ -67,33 +104,5 @@ public class SdmPgsqlQuery(
             return string.Empty;
 
         return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetDateTime(columnIndex).ToString("yyyy-MM-dd HH:mm:ss zzz");
-    }
-
-    public int? GetInsertedId()
-    {
-        if (_command == null || _reader != null)
-            return null;
-
-        try
-        {
-            var result = _command.ExecuteScalar();
-            return result != null ? Convert.ToInt32(result) : null;
-        }
-        catch (NpgsqlException ex)
-        {
-            Console.WriteLine("ERROR: SdmPgsqlQuery.GetInsertedId(): " + ex.Message);
-            return null;
-        }
-    }
-
-    public bool Next()
-    {
-        return GetReader()?.Read() ?? false;
-    }
-
-    public void CleanUp()
-    {
-        _reader?.Dispose();
-        _command?.Dispose();
     }
 }

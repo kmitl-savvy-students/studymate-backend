@@ -80,6 +80,7 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
         insert.Insert("grade", transcriptData.grade);
         insert.Insert("credit", transcriptData.credit.ToString());
 
-        SdmPgsqlQuery.Execute(insert);
+        var query = SdmPgsqlQuery.Execute(insert);
+        query.CleanUp();
     }
 }

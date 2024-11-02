@@ -73,7 +73,8 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
         insert.Insert("created", transcript.created.ToString());
 
         var query = SdmPgsqlQuery.Execute(insert);
-        transcript.id = query.GetInsertedId() ?? -1;
+        transcript.id = query.insertedId;
+        query.CleanUp();
 
         return transcript;
     }

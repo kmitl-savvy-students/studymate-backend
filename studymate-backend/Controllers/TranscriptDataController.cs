@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
@@ -9,6 +10,7 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public class TranscriptDataController : ControllerBase
 {
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("get-by-user")]
     public ActionResult<IEnumerable<TranscriptData>> Get(DtoUser dtoUser)
     {

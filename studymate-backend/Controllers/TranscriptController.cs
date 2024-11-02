@@ -170,7 +170,7 @@ public partial class TranscriptController : ControllerBase
         {
             // Create a new Transcript entry
             var transcript = new Transcript(
-                -1,
+                0,
                 userToken.user,
                 userToken.user.curriculum,
                 new SdmDateTime(DateTime.UtcNow)

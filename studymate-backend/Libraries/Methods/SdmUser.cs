@@ -68,7 +68,8 @@ public class SdmUser : ISdmBaseMethod<User>
         insert.Insert("profile", user.profile);
         insert.Insert("curriculum_id", user.curriculum?.id.ToString());
 
-        SdmPgsqlQuery.Execute(insert);
+        var query = SdmPgsqlQuery.Execute(insert);
+        query.CleanUp();
     }
 
     public static void Update(User user)
@@ -83,6 +84,7 @@ public class SdmUser : ISdmBaseMethod<User>
 
         update.WhereEqual("id", user.id);
 
-        SdmPgsqlQuery.Execute(update);
+        var query = SdmPgsqlQuery.Execute(update);
+        query.CleanUp();
     }
 }
