@@ -11,7 +11,7 @@ public class CurriculumController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Curriculum>> GetAll()
     {
-        var curriculums = SdmCurriculum.getAll();
+        var curriculums = SdmCurriculum.GetAll();
 
         if (curriculums.Count == 0)
             return NotFound("Curriculum not found.");
@@ -21,7 +21,7 @@ public class CurriculumController : ControllerBase
     [HttpGet("{id:int}")]
     public ActionResult<Curriculum> GetBy(int id)
     {
-        var curriculum = SdmCurriculum.getById(id);
+        var curriculum = SdmCurriculum.GetById(id);
 
         if (curriculum == null)
             return NotFound("Curriculum not found.");
@@ -30,7 +30,7 @@ public class CurriculumController : ControllerBase
     [HttpGet("{uniqueId}/{year}")]
     public ActionResult<Curriculum> GetBy(string uniqueId, string year)
     {
-        var curriculum = SdmCurriculum.getByUniqueIdYear(uniqueId, year);
+        var curriculum = SdmCurriculum.GetByUniqueIdYear(uniqueId, year);
 
         if (curriculum == null)
             return NotFound("Curriculum not found.");

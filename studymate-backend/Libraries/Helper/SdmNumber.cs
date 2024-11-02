@@ -1,4 +1,4 @@
-﻿namespace studymate_backend.Helper;
+﻿namespace studymate_backend.Libraries.Helper;
 
 public static class SdmNumber
 {

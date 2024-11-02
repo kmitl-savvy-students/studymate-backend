@@ -11,7 +11,7 @@ public class CurriculumGroupController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<CurriculumGroup>> Get()
     {
-        var curriculumGroups = SdmCurriculumGroup.getAll();
+        var curriculumGroups = SdmCurriculumGroup.GetAll();
 
         if (curriculumGroups.Count == 0)
             return NotFound("Curriculum group not found.");
@@ -21,7 +21,7 @@ public class CurriculumGroupController : ControllerBase
     [HttpGet("{c_cat_id:int}/{c_group_id:int}")]
     public ActionResult<CurriculumGroup> Get(int c_cat_id, int c_group_id)
     {
-        var curriculumGroup = SdmCurriculumGroup.getByCatIdAndGroupId(c_cat_id, c_group_id);
+        var curriculumGroup = SdmCurriculumGroup.GetByCatIdAndGroupId(c_cat_id, c_group_id);
 
         if (curriculumGroup.Count == 0)
             return NotFound("Curriculum group not found.");

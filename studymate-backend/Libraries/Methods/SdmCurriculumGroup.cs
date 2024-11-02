@@ -1,64 +1,66 @@
-﻿using studymate_backend.Libraries.Database;
+﻿using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
 public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 {
-    public static string tableName => "cu_curri_group";
+    public static string TableName => "cu_curri_group";
 
-    public static SdmPgsqlSelect getSelectObj()
+    public static SdmPgsqlQuerySelect GetQueryObj()
     {
-        var builderSelect = new SdmPgsqlSelect(tableName);
-        return builderSelect;
+        return new SdmPgsqlQuerySelect(TableName);
     }
-    public static List<CurriculumGroup> processQuery(SdmPgsqlQuery query, bool isArray = false)
+
+    public static List<CurriculumGroup> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
-        var result = new List<CurriculumGroup>();
+        // var query = SdmPgsqlQuery.Execute(queryBuilder);
+        // var reader = query.GetReader();
+        // if (reader == null)
+        //     return [];
+        //
+        // var result = new List<CurriculumGroup>();
+        //
+        // while (reader.Read())
+        // {
+        //     var curriculumGroup = new CurriculumGroup(
+        //         reader.GetInt32(0),
+        //         reader.GetInt32(1),
+        //         reader.GetString(2),
+        //         reader.GetString(3),
+        //         reader.GetString(4),
+        //         reader.GetInt32(5),
+        //         reader.GetInt32(6),
+        //         reader.GetString(7),
+        //         reader.GetString(8),
+        //         reader.GetString(9)
+        //     );
+        //
+        //     result.Add(curriculumGroup);
+        //
+        //     if (!isArray)
+        //         return result;
+        // }
+        //
+        // return result;
+        return [];
+    }
 
-        var reader = query.getReader();
-        if (reader == null)
-            return result;
+    public static List<CurriculumGroup> GetAll()
+    {
+        var select = GetQueryObj();
 
-        while (reader.Read())
-        {
-            var curriculumGroup = new CurriculumGroup(
-                reader.GetInt32(0),
-                reader.GetInt32(1),
-                reader.GetString(2),
-                reader.GetString(3),
-                reader.GetString(4),
-                reader.GetInt32(5),
-                reader.GetInt32(6),
-                reader.GetString(7),
-                reader.GetString(8),
-                reader.GetString(9)
-            );
-
-            result.Add(curriculumGroup);
-
-            if (!isArray)
-                return result;
-        }
-
+        var result = ProcessQuery(select, true);
         return result;
     }
 
-    public static List<CurriculumGroup> getAll()
+    public static List<CurriculumGroup> GetByCatIdAndGroupId(int cCatId, int cGroupId)
     {
-        var select = getSelectObj();
+        var select = GetQueryObj();
+        select.WhereEqual("c_cat_id", cCatId.ToString());
+        select.WhereEqual("c_group_id", cGroupId.ToString());
 
-        var result = processQuery(new SdmPgsqlQuery(select), true);
-        return result;
-    }
-
-    public static List<CurriculumGroup> getByCatIdAndGroupId(int c_cat_id, int c_group_id)
-    {
-        var select = getSelectObj();
-        select.whereEqual("c_cat_id", c_cat_id.ToString());
-        select.whereEqual("c_group_id", c_group_id.ToString());
-
-        var result = processQuery(new SdmPgsqlQuery(select), true);
+        var result = ProcessQuery(select, true);
         if (result.Count == 0)
             return [];
         return result;

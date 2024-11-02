@@ -4,12 +4,12 @@ namespace studymate_backend.Libraries.Database;
 
 public class SdmDataSource
 {
-    private static NpgsqlDataSource? dataSource { get; set; }
+    private static NpgsqlDataSource? DataSource { get; set; }
 
-    public static NpgsqlDataSource? get()
+    public static NpgsqlDataSource? Get()
     {
-        if (dataSource != null)
-            return dataSource;
+        if (DataSource != null)
+            return DataSource;
 
         try
         {
@@ -20,13 +20,19 @@ public class SdmDataSource
 
             var connectionString = $"Host={server};Database={database};Username={userId};Password={password};";
 
-            dataSource = NpgsqlDataSource.Create(connectionString);
+            DataSource = NpgsqlDataSource.Create(connectionString);
         }
         catch (NpgsqlException ex)
         {
             Console.WriteLine("ERROR: SdmDataSource.get(): " + ex.Message);
         }
 
-        return dataSource;
+        return DataSource;
+    }
+
+    public static void Dispose()
+    {
+        DataSource?.Dispose();
+        DataSource = null;
     }
 }

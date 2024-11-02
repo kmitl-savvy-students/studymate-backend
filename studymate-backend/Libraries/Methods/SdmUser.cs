@@ -1,4 +1,5 @@
 ﻿using studymate_backend.Libraries.Database;
+using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Enums;
 using studymate_backend.Libraries.Models;
 
@@ -6,62 +7,85 @@ namespace studymate_backend.Libraries.Methods;
 
 public class SdmUser : ISdmBaseMethod<User>
 {
-    public static string tableName => "user";
+    public static string TableName => "user";
 
-    public static SdmPgsqlSelect getSelectObj()
+    public static SdmPgsqlQuerySelect GetQueryObj()
     {
-        var select = new SdmPgsqlSelect(tableName);
-        return select;
+        return new SdmPgsqlQuerySelect(TableName);
     }
-    public static List<User> processQuery(SdmPgsqlQuery query, bool isArray = false)
+
+    public static List<User> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
+        var query = SdmPgsqlQuery.Execute(queryBuilder);
+
         var result = new List<User>();
 
-        var reader = query.getReader();
-        if (reader == null)
-            return result;
-
-        while (reader.Read())
+        while (query.Next())
         {
-            var user = new User(
-                reader.GetString(0),
-                reader.GetString(1),
-                EnumBase.Get<EnumGender>(reader.GetString(2)) ?? EnumGender.OTHER,
-                reader.GetString(3),
-                reader.GetString(4),
-                reader.GetString(5),
-                reader.GetString(6),
-                SdmCurriculum.getById(reader.GetInt32(7))
-            );
-
-            result.Add(user);
-
-            if (!isArray)
-                return result;
+            result.Add(new User(
+                query.ToString(0),
+                query.ToString(1),
+                EnumBase.Get<EnumGender>(query.ToString(2)) ?? EnumGender.OTHER,
+                query.ToString(3),
+                query.ToString(4),
+                query.ToString(5),
+                query.ToString(6),
+                SdmCurriculum.GetById(query.ToInt(7))
+            ));
+            if (!isArray) break;
         }
 
+        query.CleanUp();
         return result;
     }
 
-    public static List<User> getAll()
+    public static List<User> GetAll()
     {
-        var select = getSelectObj();
+        var select = GetQueryObj();
 
-        var result = processQuery(new SdmPgsqlQuery(select), true);
+        var result = ProcessQuery(select, true);
         return result;
     }
-    public static User? getById(string id)
-    {
-        var select = getSelectObj();
-        select.whereEqual("id", id);
 
-        var result = processQuery(new SdmPgsqlQuery(select));
+    public static User? GetById(string id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("id", id);
+
+        var result = ProcessQuery(select);
         if (result.Count == 0)
             return null;
         return result[0];
     }
 
-    public static void insert(User user)
+    public static void Insert(User user)
     {
+        var insert = new SdmPgsqlQueryInsert(TableName);
+
+        insert.Insert("id", user.id);
+        insert.Insert("password", user.password);
+        insert.Insert("gender", user.gender.GetName());
+        insert.Insert("name_nick", user.nameNick);
+        insert.Insert("name_first", user.nameFirst);
+        insert.Insert("name_last", user.nameLast);
+        insert.Insert("profile", user.profile);
+        insert.Insert("curriculum_id", user.curriculum?.id.ToString());
+
+        SdmPgsqlQuery.Execute(insert);
+    }
+
+    public static void Update(User user)
+    {
+        var update = new SdmPgsqlQueryUpdate(TableName);
+
+        update.Set("name_nick", user.nameNick);
+        update.Set("name_first", user.nameNick);
+        update.Set("name_last", user.nameNick);
+        update.Set("profile", user.nameNick);
+        update.Set("curriculum_id", user.curriculum?.id.ToString());
+
+        update.WhereEqual("id", user.id);
+
+        SdmPgsqlQuery.Execute(update);
     }
 }

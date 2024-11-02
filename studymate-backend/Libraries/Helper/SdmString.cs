@@ -2,11 +2,11 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace studymate_backend.Helper;
+namespace studymate_backend.Libraries.Helper;
 
 public static partial class SdmString
 {
-    public static string generateRandomToken(int length = 64)
+    public static string GenerateRandomToken(int length = 64)
     {
         var tokenBytes = new byte[length / 2];
         using (var rng = RandomNumberGenerator.Create())
@@ -28,11 +28,11 @@ public static partial class SdmString
         if (maxLength != -1 && input.Length > maxLength)
             return false;
 
-        input = cleanAndTrim(input);
+        input = CleanAndTrim(input);
         return minLength == -1 || input.Length >= minLength;
     }
 
-    public static string cleanAndTrim(string? input, int limit = -1)
+    public static string CleanAndTrim(string? input, int limit = -1)
     {
         if (string.IsNullOrWhiteSpace(input))
             return "";

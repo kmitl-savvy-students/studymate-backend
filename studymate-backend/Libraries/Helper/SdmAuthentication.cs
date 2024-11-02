@@ -1,21 +1,21 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace studymate_backend.Helper;
+namespace studymate_backend.Libraries.Helper;
 
 public static partial class SdmAuthentication
 {
     [GeneratedRegex(@"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$")]
     private static partial Regex RegexPasswordStrong();
 
-    public static bool isPasswordStrong(string password)
+    public static bool IsPasswordStrong(string password)
     {
         return RegexPasswordStrong().IsMatch(password);
     }
-    public static string passwordHash(string password)
+    public static string PasswordHash(string password)
     {
         return BCrypt.Net.BCrypt.EnhancedHashPassword(password, 13);
     }
-    public static bool passwordVerify(string password, string hash)
+    public static bool PasswordVerify(string password, string hash)
     {
         return BCrypt.Net.BCrypt.EnhancedVerify(password, hash);
     }

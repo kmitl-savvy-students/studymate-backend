@@ -1,4 +1,6 @@
-﻿namespace studymate_backend.Helper;
+﻿using System.Globalization;
+
+namespace studymate_backend.Libraries.Helper;
 
 public class SdmDateTime
 {
@@ -14,6 +16,22 @@ public class SdmDateTime
         _dateTimeOffset = dateTimeOffset;
     }
 
+    public SdmDateTime(string dateTimeString)
+    {
+        try
+        {
+            _dateTimeOffset = DateTimeOffset.ParseExact(
+                dateTimeString,
+                "yyyy-MM-dd HH:mm:ss zzz",
+                CultureInfo.InvariantCulture
+            );
+        }
+        catch (FormatException)
+        {
+            throw new ArgumentException("Invalid date format. Expected format: yyyy-MM-dd HH:mm:ss zzz");
+        }
+    }
+
     public static SdmDateTime Now()
     {
         return new SdmDateTime(DateTime.Now);
@@ -26,7 +44,7 @@ public class SdmDateTime
         return new SdmDateTime(thailandTime);
     }
 
-    public DateTime ToUTCDateTime()
+    public DateTime ToUtcDateTime()
     {
         return _dateTimeOffset.UtcDateTime;
     }

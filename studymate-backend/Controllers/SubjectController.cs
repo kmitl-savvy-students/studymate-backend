@@ -11,7 +11,7 @@ public class SubjectController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Subject>> Get()
     {
-        var subjects = SdmSubject.getAll();
+        var subjects = SdmSubject.GetAll();
 
         if (subjects.Count == 0)
             return NotFound("Subject not found.");
@@ -21,8 +21,8 @@ public class SubjectController : ControllerBase
     [HttpGet("{subject_id}")]
     public ActionResult<Subject> Get(string subject_id)
     {
-        var subjects = SdmSubject.getById(subject_id);
-    
+        var subjects = SdmSubject.GetById(subject_id);
+
         if (subjects == null)
             return NotFound("Subject not found.");
         return Ok(subjects);

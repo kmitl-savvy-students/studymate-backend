@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Helper;
 using studymate_backend.Libraries.Enums;
+using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
+using SdmAuthentication = studymate_backend.Libraries.Helper.SdmAuthentication;
+using SdmString = studymate_backend.Libraries.Helper.SdmString;
 
 namespace studymate_backend.Controllers;
 
@@ -11,37 +13,37 @@ namespace studymate_backend.Controllers;
 public class AuthController : ControllerBase
 {
     [HttpPost("sign-up")]
-    public IActionResult SignUp([FromBody] SignUpDto signUpDto)
+    public IActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
     {
-        if (!SdmNumber.IsValid(signUpDto.id) ||
-            !SdmString.IsValid(signUpDto.id, 8, 8) ||
-            !SdmString.IsValid(signUpDto.password, 64) ||
-            !SdmString.IsValid(signUpDto.passwordConfirm, 64) ||
-            !SdmString.IsValid(signUpDto.gender, 6) ||
-            !SdmString.IsValid(signUpDto.nameNick, 256) ||
-            !SdmString.IsValid(signUpDto.nameFirst, 256) ||
-            !SdmString.IsValid(signUpDto.nameLast, 256))
+        if (!SdmNumber.IsValid(dtoSignUp.id) ||
+            !SdmString.IsValid(dtoSignUp.id, 8, 8) ||
+            !SdmString.IsValid(dtoSignUp.password, 64) ||
+            !SdmString.IsValid(dtoSignUp.passwordConfirm, 64) ||
+            !SdmString.IsValid(dtoSignUp.gender, 6) ||
+            !SdmString.IsValid(dtoSignUp.nameNick, 256) ||
+            !SdmString.IsValid(dtoSignUp.nameFirst, 256) ||
+            !SdmString.IsValid(dtoSignUp.nameLast, 256))
             return BadRequest("Invalid request data.");
 
-        var id = SdmString.cleanAndTrim(signUpDto.id);
-        var password = SdmString.cleanAndTrim(signUpDto.password);
-        var passwordConfirm = SdmString.cleanAndTrim(signUpDto.passwordConfirm);
-        var gender = EnumBase.Get<EnumGender>(SdmString.cleanAndTrim(signUpDto.gender)) ?? EnumGender.OTHER;
-        var nameNick = SdmString.cleanAndTrim(signUpDto.nameNick);
-        var nameFirst = SdmString.cleanAndTrim(signUpDto.nameFirst);
-        var nameLast = SdmString.cleanAndTrim(signUpDto.nameLast);
+        var id = SdmString.CleanAndTrim(dtoSignUp.id);
+        var password = SdmString.CleanAndTrim(dtoSignUp.password);
+        var passwordConfirm = SdmString.CleanAndTrim(dtoSignUp.passwordConfirm);
+        var gender = EnumBase.Get<EnumGender>(SdmString.CleanAndTrim(dtoSignUp.gender)) ?? EnumGender.OTHER;
+        var nameNick = SdmString.CleanAndTrim(dtoSignUp.nameNick);
+        var nameFirst = SdmString.CleanAndTrim(dtoSignUp.nameFirst);
+        var nameLast = SdmString.CleanAndTrim(dtoSignUp.nameLast);
 
-        if (SdmUser.getById(id) != null)
+        if (SdmUser.GetById(id) != null)
             return Conflict("User with the given ID already exists.");
 
         if (password != passwordConfirm)
             return BadRequest("Password mismatch.");
-        if (!SdmAuthentication.isPasswordStrong(password))
+        if (!SdmAuthentication.IsPasswordStrong(password))
             return BadRequest("Password does not meet strength requirements.");
 
         var user = new User(
             id,
-            SdmAuthentication.passwordHash(password),
+            SdmAuthentication.PasswordHash(password),
             gender,
             nameNick,
             nameFirst,
@@ -50,7 +52,7 @@ public class AuthController : ControllerBase
             null
         );
 
-        SdmUser.insert(user);
+        SdmUser.Insert(user);
         return Ok("User created.");
     }
 
@@ -129,7 +131,7 @@ public class AuthController : ControllerBase
     //     return new BaseResponse(EnumResponseCode.OK, userToken.Serialized());
     // }
 
-    public class SignUpDto
+    public class DtoSignUp
     {
         public required string id { get; set; }
         public required string password { get; set; }

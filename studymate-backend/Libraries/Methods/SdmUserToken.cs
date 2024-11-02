@@ -1,36 +1,32 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
+using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmCurriculum : ISdmBaseMethod<Curriculum>
+public class SdmUserToken : ISdmBaseMethod<UserToken>
 {
-    public static string TableName => "curriculum";
+    public static string TableName => "user_token";
 
     public static SdmPgsqlQuerySelect GetQueryObj()
     {
         return new SdmPgsqlQuerySelect(TableName);
     }
 
-    public static List<Curriculum> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<UserToken> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
 
-        var result = new List<Curriculum>();
+        var result = new List<UserToken>();
 
         while (query.Next())
         {
-            result.Add(new Curriculum(
-                query.ToInt(0),
-                query.ToString(1),
-                query.ToString(2),
-                query.ToString(3),
-                query.ToString(4),
-                query.ToString(5),
-                query.ToString(6),
-                query.ToString(7),
-                query.ToString(8)
+            result.Add(new UserToken(
+                query.ToString(0),
+                SdmUser.GetById(query.ToString(1)),
+                new SdmDateTime(query.ToString(2)),
+                new SdmDateTime(query.ToString(3))
             ));
             if (!isArray) break;
         }
@@ -39,7 +35,7 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
         return result;
     }
 
-    public static List<Curriculum> GetAll()
+    public static List<UserToken> GetAll()
     {
         var select = GetQueryObj();
 
@@ -47,21 +43,20 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
         return result;
     }
 
-    public static Curriculum? GetById(int id)
+    public static UserToken? GetById(string id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
+        select.WhereEqual("id", id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
             return null;
         return result[0];
     }
-    public static Curriculum? GetByUniqueIdYear(string uniqueId, string year)
+    public static UserToken? GetByUser(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("unique_id", uniqueId);
-        select.WhereEqual("year", year);
+        select.WhereEqual("user_id", user.id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)

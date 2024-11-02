@@ -2,9 +2,9 @@
 using Google.Api.Gax.Grpc;
 using Google.Cloud.AIPlatform.V1;
 
-namespace studymate_backend.Helper;
+namespace studymate_backend.Libraries.Helper;
 
-public class SdmVertexAI
+public class SdmVertexAi
 {
     public async Task<string> GenerateContent(
         string projectId = "savvy-studymate",

@@ -1,11 +1,11 @@
-﻿using studymate_backend.Libraries.Database;
+﻿using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
 public interface ISdmBaseMethod<T> where T : IBaseModel
 {
-    protected static abstract string tableName { get; }
-    protected static abstract List<T> processQuery(SdmPgsqlQuery query, bool isArray = false);
-    protected static abstract SdmPgsqlSelect getSelectObj();
+    protected static abstract string TableName { get; }
+    protected static abstract List<T> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false);
+    public static abstract SdmPgsqlQuerySelect GetQueryObj();
 }
