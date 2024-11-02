@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
@@ -55,13 +54,13 @@ public class GoogleOAuthController : ControllerBase
 
         // Get Access Token
         var googleAccessToken = await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.redirectUri);
-        if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.accessToken))
+        if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
             return Unauthorized("Cannot get Google access token.");
 
         // Get User Info from Access Token
         var client = new HttpClient();
         var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, _oAuth2EndpointUserInfo);
-        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.accessToken);
+        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
 
         var response = await client.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
@@ -90,9 +89,9 @@ public class GoogleOAuthController : ControllerBase
             user = new User(
                 id,
                 SdmAuthentication.PasswordHash(SdmString.GenerateRandomToken()),
-                userInfo.givenName,
-                userInfo.givenName,
-                userInfo.familyName,
+                userInfo.given_name,
+                userInfo.given_name,
+                userInfo.family_name,
                 userInfo.picture,
                 null
             );
@@ -103,8 +102,8 @@ public class GoogleOAuthController : ControllerBase
             if (callback.redirectUri == "sign-up")
                 return Conflict("You already sign up, please sign in.");
 
-            user.nameFirst = userInfo.givenName;
-            user.nameLast = userInfo.familyName;
+            user.nameFirst = userInfo.given_name;
+            user.nameLast = userInfo.family_name;
             user.profile = userInfo.picture;
             SdmUser.Update(user);
         }
@@ -159,24 +158,24 @@ public class GoogleOAuthController : ControllerBase
 
     public class DtoGoogleAccessToken
     {
-        [JsonPropertyName("access_token")] public required string accessToken { get; set; }
-        [JsonPropertyName("expires_in")] public required int expiresIn { get; set; }
-        [JsonPropertyName("refresh_token")] public required string refreshToken { get; set; }
-        [JsonPropertyName("scope")] public required string scope { get; set; }
-        [JsonPropertyName("token_type")] public required string tokenType { get; set; }
-        [JsonPropertyName("id_token")] public required string idToken { get; set; }
+        public required string access_token { get; set; }
+        public required int expires_in { get; set; }
+        public required string refresh_token { get; set; }
+        public required string scope { get; set; }
+        public required string token_type { get; set; }
+        public required string id_token { get; set; }
     }
 
     public class DtoUserInfo
     {
-        [JsonPropertyName("id")] public required string id { get; set; }
-        [JsonPropertyName("email")] public required string email { get; set; }
-        [JsonPropertyName("verified_email")] public required bool verifiedEmail { get; set; }
-        [JsonPropertyName("name")] public required string name { get; set; }
-        [JsonPropertyName("given_name")] public required string givenName { get; set; }
-        [JsonPropertyName("family_name")] public required string familyName { get; set; }
-        [JsonPropertyName("picture")] public required string picture { get; set; }
-        [JsonPropertyName("hd")] public required string hd { get; set; }
+        public required string id { get; set; }
+        public required string email { get; set; }
+        public required bool verified_email { get; set; }
+        public required string name { get; set; }
+        public required string given_name { get; set; }
+        public required string family_name { get; set; }
+        public required string picture { get; set; }
+        public required string hd { get; set; }
     }
 
     public class DtoGoogleLink
