@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
@@ -19,12 +20,14 @@ public class GoogleOAuthController : ControllerBase
     private readonly string _oAuthEndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH_ENDPOINT_USER_INFO") ?? "";
     private readonly string _oAuthRedirectUri = Environment.GetEnvironmentVariable("OAUTH_REDIRECT_URI") ?? "";
 
+    [AllowAnonymous]
     [HttpGet("link/sign-up")]
     public ActionResult<string> GetLinkSignUp()
     {
         return Ok(GetLink(_oAuthRedirectUri + "/sign-up"));
     }
 
+    [AllowAnonymous]
     [HttpGet("link/sign-in")]
     public ActionResult<string> GetLinkSignIn()
     {
@@ -43,6 +46,7 @@ public class GoogleOAuthController : ControllerBase
                "&prompt=consent";
     }
 
+    [AllowAnonymous]
     [HttpPost("callback")]
     public async Task<ActionResult<UserToken>> Callback(DtoGoogleCallback callback)
     {

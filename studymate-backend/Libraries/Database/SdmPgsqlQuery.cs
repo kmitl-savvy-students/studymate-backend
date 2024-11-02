@@ -59,6 +59,15 @@ public class SdmPgsqlQuery(
 
         return reader.IsDBNull(columnIndex) ? -1 : reader.GetInt32(columnIndex);
     }
+    public string ToDateTime(int columnIndex)
+    {
+        var reader = GetReader();
+
+        if (reader == null)
+            return string.Empty;
+
+        return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetDateTime(columnIndex).ToString("yyyy-MM-dd HH:mm:ss zzz");
+    }
 
     public bool Next()
     {

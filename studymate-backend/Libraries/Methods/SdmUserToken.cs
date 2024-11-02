@@ -25,8 +25,8 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
             result.Add(new UserToken(
                 query.ToString(0),
                 SdmUser.GetBy(query.ToString(1)),
-                new SdmDateTime(query.ToString(2)),
-                new SdmDateTime(query.ToString(3))
+                new SdmDateTime(query.ToDateTime(2)),
+                new SdmDateTime(query.ToDateTime(3))
             ));
             if (!isArray) break;
         }
