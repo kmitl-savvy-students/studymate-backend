@@ -3,7 +3,7 @@
 namespace studymate_backend.Libraries.Models;
 
 public class Subject(
-    string subject_id,
+    string id,
     string subject_tname,
     string subject_ename,
     int credit,
@@ -23,7 +23,7 @@ public class Subject(
     SdmDateTime last_modified
 ) : IBaseModel
 {
-    public string subject_id { get; set; } = subject_id;
+    public string id { get; set; } = id;
     public string subject_tname { get; set; } = subject_tname;
     public string subject_ename { get; set; } = subject_ename;
     public int credit { get; set; } = credit;

@@ -17,7 +17,7 @@ public class SdmPgsqlQueryInsert(
         var columns = string.Join(", ", _columns);
         var values = string.Join(", ", _values);
 
-        return $"INSERT INTO \"{TableName}\" ({columns}) VALUES ({values})";
+        return $"INSERT INTO \"{TableName}\" ({columns}) VALUES ({values}) RETURNING id;";
     }
 
     public void Insert(string field, string? value)

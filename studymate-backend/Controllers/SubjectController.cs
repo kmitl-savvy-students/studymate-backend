@@ -24,7 +24,7 @@ public class SubjectController : ControllerBase
     [HttpGet("{subject_id}")]
     public ActionResult<Subject> Get(string subject_id)
     {
-        var subjects = SdmSubject.GetById(subject_id);
+        var subjects = SdmSubject.GetBy(subject_id);
 
         if (subjects == null)
             return NotFound(new { message = "Subject not found." });

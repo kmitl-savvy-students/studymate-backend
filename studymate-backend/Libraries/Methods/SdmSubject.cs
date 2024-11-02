@@ -16,9 +16,8 @@ public class SdmSubject : ISdmBaseMethod<Subject>
 
     public static List<Subject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
-        
         var query = SdmPgsqlQuery.Execute(queryBuilder);
-        
+
         var result = new List<Subject>();
 
         while (query.Next())
@@ -42,10 +41,10 @@ public class SdmSubject : ISdmBaseMethod<Subject>
                 query.ToString(15),
                 query.ToString(16),
                 new SdmDateTime(query.ToDateTime(17))
-                ));
+            ));
             if (!isArray) break;
         }
-     
+
         query.CleanUp();
         return result;
     }
@@ -58,7 +57,7 @@ public class SdmSubject : ISdmBaseMethod<Subject>
         return result;
     }
 
-    public static Subject? GetById(string subjectId)
+    public static Subject? GetBy(string subjectId)
     {
         var select = GetQueryObj();
         select.WhereEqual("subject_id", subjectId);

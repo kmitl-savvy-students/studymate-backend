@@ -69,6 +69,23 @@ public class SdmPgsqlQuery(
         return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetDateTime(columnIndex).ToString("yyyy-MM-dd HH:mm:ss zzz");
     }
 
+    public int? GetInsertedId()
+    {
+        if (_command == null || _reader != null)
+            return null;
+
+        try
+        {
+            var result = _command.ExecuteScalar();
+            return result != null ? Convert.ToInt32(result) : null;
+        }
+        catch (NpgsqlException ex)
+        {
+            Console.WriteLine("ERROR: SdmPgsqlQuery.GetInsertedId(): " + ex.Message);
+            return null;
+        }
+    }
+
     public bool Next()
     {
         return GetReader()?.Read() ?? false;

@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using studymate_backend.Libraries.Helper;
+using studymate_backend.Libraries.Methods;
+using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Controllers;
 
@@ -6,21 +9,26 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public class TranscriptDataController : ControllerBase
 {
-    // [HttpPost("get-by-user")]
-    // public BaseResponse Get(RequestUser requestUser)
-    // {
-    //     if (!SdmString.IsValid(requestUser.UserTokenId, 64, 64))
-    //         return new BaseResponse(EnumResponseCode.FIELDS_INVALID);
-    //
-    //     var userTokenId = SdmString.cleanAndTrim(requestUser.UserTokenId);
-    //
-    //     // Verify token
-    //     var userToken = userTokenService.Get(userTokenId);
-    //     if (userToken == null)
-    //         return new BaseResponse(EnumResponseCode.UNAUTHORIZED);
-    //
-    //     var transcriptDatas = transcriptDataService.GetByUser(userToken.User);
-    //
-    //     return new BaseResponse(EnumResponseCode.OK, transcriptDatas);
-    // }
+    [HttpPost("get-by-user")]
+    public ActionResult<IEnumerable<TranscriptData>> Get(DtoUser dtoUser)
+    {
+        var userTokenId = SdmString.CleanAndTrim(dtoUser.userTokenId);
+
+        if (!SdmString.IsValid(userTokenId, 64, 64))
+            return BadRequest(new { message = "Invalid user token." });
+
+        // Verify token
+        var userToken = SdmUserToken.GetBy(userTokenId);
+        if (userToken == null)
+            return Unauthorized(new { message = "User not found." });
+
+        var transcriptDatas = SdmTranscriptData.GetBy(userToken.user);
+
+        return Ok(transcriptDatas);
+    }
+
+    public class DtoUser
+    {
+        public required string userTokenId { get; set; }
+    }
 }
