@@ -16,7 +16,7 @@ public class CurriculumController : ControllerBase
         var curriculums = SdmCurriculum.GetAll();
 
         if (curriculums.Count == 0)
-            return NotFound("Curriculum not found.");
+            return NotFound(new { message = "Curriculum not found." });
         return Ok(curriculums);
     }
 
@@ -27,7 +27,7 @@ public class CurriculumController : ControllerBase
         var curriculum = SdmCurriculum.GetBy(id);
 
         if (curriculum == null)
-            return NotFound("Curriculum not found.");
+            return NotFound(new { message = "Curriculum not found." });
         return Ok(curriculum);
     }
     [AllowAnonymous]
@@ -37,7 +37,7 @@ public class CurriculumController : ControllerBase
         var curriculum = SdmCurriculum.GetBy(uniqueId, year);
 
         if (curriculum == null)
-            return NotFound("Curriculum not found.");
+            return NotFound(new { message = "Curriculum not found." });
         return Ok(curriculum);
     }
 }

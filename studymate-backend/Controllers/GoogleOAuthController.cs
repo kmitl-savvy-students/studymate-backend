@@ -55,7 +55,7 @@ public class GoogleOAuthController : ControllerBase
         // Get Access Token
         var googleAccessToken = await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.redirectUri);
         if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
-            return Unauthorized("Cannot get Google access token.");
+            return Unauthorized(new { message = "Cannot get Google access token." });
 
         // Get User Info from Access Token
         var client = new HttpClient();

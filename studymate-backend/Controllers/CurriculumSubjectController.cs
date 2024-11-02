@@ -16,7 +16,7 @@ public class CurriculumSubjectController : ControllerBase
         var curriculumSubjects = SdmCurriculumSubject.GetAll();
 
         if (curriculumSubjects.Count == 0)
-            return NotFound("Curriculum subject not found.");
+            return NotFound(new { message = "Curriculum subject not found." });
         return Ok(curriculumSubjects);
     }
 
@@ -27,7 +27,7 @@ public class CurriculumSubjectController : ControllerBase
         var curriculumSubjects = SdmCurriculumSubject.GetById(subject_id);
 
         if (curriculumSubjects == null)
-            return NotFound("Curriculum subject not found.");
+            return NotFound(new { message = "Curriculum subject not found." });
         return Ok(curriculumSubjects);
     }
 }

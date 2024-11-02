@@ -62,16 +62,16 @@ public class AuthController : ControllerBase
         if (!SdmNumber.IsValid(id) ||
             !SdmString.IsValid(id, 8, 8) ||
             !SdmString.IsValid(password, 64))
-            return BadRequest("Invalid request data.");
+            return BadRequest(new { message = "Invalid request data." });
 
         // Find user to authenticate
         var user = SdmUser.GetBy(id);
         if (user == null)
-            return NotFound("Incorrect username or password.");
+            return NotFound(new { message = "Incorrect username or password." });
 
         // Verify password
         if (!SdmAuthentication.PasswordVerify(password, user.password))
-            return NotFound("Incorrect username or password.");
+            return NotFound(new { message = "Incorrect username or password." });
 
         // Generate token string
         var randomizeToken = SdmString.GenerateRandomToken();
@@ -102,15 +102,15 @@ public class AuthController : ControllerBase
         var userTokenId = SdmString.CleanAndTrim(dtoSignOut.userTokenId);
 
         if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest("Invalid request data.");
+            return BadRequest(new { message = "Invalid request data." });
 
         // Find token to remove
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
-            return NotFound("Incorrect user token.");
+            return NotFound(new { message = "Incorrect user token." });
 
         SdmUserToken.Delete(userToken);
-        return Ok();
+        return Ok(new { message = "Sign out successfully." });
     }
 
     [AllowAnonymous]
@@ -120,12 +120,12 @@ public class AuthController : ControllerBase
         var userTokenId = SdmString.CleanAndTrim(dtoToken.userTokenId);
 
         if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest("Invalid request data.");
+            return BadRequest(new { message = "Invalid request data." });
 
         // Find token to remove
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
-            return NotFound("Incorrect user token.");
+            return NotFound(new { message = "Incorrect user token." });
 
         return Ok(userToken);
     }

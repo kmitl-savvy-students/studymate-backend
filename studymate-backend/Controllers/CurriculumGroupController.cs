@@ -16,7 +16,7 @@ public class CurriculumGroupController : ControllerBase
         var curriculumGroup = SdmCurriculumGroup.GetBy(categoryId, groupId, uniqueId, year);
 
         if (curriculumGroup == null)
-            return NotFound("Curriculum group not found.");
+            return NotFound(new { message = "Curriculum group not found." });
         return Ok(curriculumGroup);
     }
 }

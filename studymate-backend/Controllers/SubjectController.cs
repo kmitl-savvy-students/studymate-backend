@@ -16,7 +16,7 @@ public class SubjectController : ControllerBase
         var subjects = SdmSubject.GetAll();
 
         if (subjects.Count == 0)
-            return NotFound("Subject not found.");
+            return NotFound(new { message = "Subject not found." });
         return Ok(subjects);
     }
 
@@ -27,7 +27,7 @@ public class SubjectController : ControllerBase
         var subjects = SdmSubject.GetById(subject_id);
 
         if (subjects == null)
-            return NotFound("Subject not found.");
+            return NotFound(new { message = "Subject not found." });
         return Ok(subjects);
     }
 }

@@ -15,13 +15,13 @@ public class UserController : ControllerBase
     {
         var existingUser = SdmUser.GetBy(user.id);
         if (existingUser == null)
-            return NotFound("User not found.");
+            return NotFound(new { message = "User not found" });
 
         if (user.curriculumId != null)
         {
             var newCurriculum = SdmCurriculum.GetBy(user.curriculumId ?? -1);
             if (newCurriculum == null)
-                return NotFound("Curriculum not found.");
+                return NotFound(new { message = "Curriculum not found" });
             existingUser.curriculum = newCurriculum;
         }
 
