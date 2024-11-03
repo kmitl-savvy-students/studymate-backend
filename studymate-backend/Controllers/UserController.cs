@@ -25,10 +25,10 @@ public class UserController : ControllerBase
             existingUser.curriculum = newCurriculum;
         }
 
-        existingUser.nameNick = user.nameFirst ?? existingUser.nameNick;
+        existingUser.nameNick = user.nameNick ?? existingUser.nameNick;
         existingUser.nameFirst = user.nameFirst ?? existingUser.nameFirst;
-        existingUser.nameLast = user.nameFirst ?? existingUser.nameLast;
-        existingUser.profile = user.nameFirst ?? existingUser.profile;
+        existingUser.nameLast = user.nameLast ?? existingUser.nameLast;
+        existingUser.profile = user.profile ?? existingUser.profile;
 
         SdmUser.Update(existingUser);
 

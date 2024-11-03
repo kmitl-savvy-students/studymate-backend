@@ -77,9 +77,9 @@ public class SdmUser : ISdmBaseMethod<User>
         var update = new SdmPgsqlQueryUpdate(TableName);
 
         update.Set("name_nick", user.nameNick);
-        update.Set("name_first", user.nameNick);
-        update.Set("name_last", user.nameNick);
-        update.Set("profile", user.nameNick);
+        update.Set("name_first", user.nameFirst);
+        update.Set("name_last", user.nameLast);
+        update.Set("profile", user.profile);
         update.Set("curriculum_id", user.curriculum?.id.ToString());
 
         update.WhereEqual("id", user.id);
