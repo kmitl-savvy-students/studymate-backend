@@ -122,7 +122,7 @@ public class AuthController : ControllerBase
         if (!SdmString.IsValid(userTokenId, 64, 64))
             return BadRequest(new { message = "Invalid request data." });
 
-        // Find token to remove
+        // Find the token to remove
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
             return NotFound(new { message = "Incorrect user token." });
