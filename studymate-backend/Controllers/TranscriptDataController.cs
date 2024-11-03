@@ -18,7 +18,8 @@ public class TranscriptDataController : ControllerBase
         if (user == null)
             return Unauthorized(new { message = "User not found." });
 
-        var transcriptDatas = SdmTranscriptData.GetAllBy(user);
+        var transcript = SdmTranscript.GetBy(user);
+        var transcriptDatas = SdmTranscriptData.GetAllBy(transcript);
 
         return Ok(transcriptDatas);
     }

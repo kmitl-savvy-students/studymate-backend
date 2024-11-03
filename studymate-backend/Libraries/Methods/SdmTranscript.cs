@@ -53,6 +53,16 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
             return null;
         return result[0];
     }
+    public static Transcript? GetBy(User user)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("user_id", user.id);
+
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
     public static List<Transcript> GetAllBy(User user)
     {
         var select = GetQueryObj();

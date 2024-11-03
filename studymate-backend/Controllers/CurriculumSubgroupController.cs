@@ -19,4 +19,15 @@ public class CurriculumSubgroupController : ControllerBase
             return NotFound(new { message = "Curriculum subgroup not found." });
         return Ok(curriculumSubgroup);
     }
+
+    [AllowAnonymous]
+    [HttpGet("{uniqueId}/{year}")]
+    public ActionResult<IEnumerable<CurriculumSubgroup>> GetAllBy(string uniqueId, string year)
+    {
+        var curriculumSubgroups = SdmCurriculumSubgroup.GetAllBy(uniqueId, year);
+
+        if (curriculumSubgroups.Count == 0)
+            return NotFound(new { message = "Curriculum subgroup not found." });
+        return Ok(curriculumSubgroups);
+    }
 }

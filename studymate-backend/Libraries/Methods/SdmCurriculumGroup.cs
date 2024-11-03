@@ -47,6 +47,15 @@ public class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var result = ProcessQuery(select, true);
         return result;
     }
+    public static List<CurriculumGroup> GetAllBy(string uniqueId, string year)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("unique_id", uniqueId);
+        select.WhereEqual("year", year);
+
+        var result = ProcessQuery(select, true);
+        return result;
+    }
 
     public static CurriculumGroup? GetBy(int categoryId, int groupId, string uniqueId, string year)
     {

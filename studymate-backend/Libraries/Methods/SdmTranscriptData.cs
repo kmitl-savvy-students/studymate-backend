@@ -55,6 +55,17 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
             return null;
         return result[0];
     }
+    public static List<TranscriptData> GetAllBy(Transcript? transcript)
+    {
+        if (transcript == null)
+            return [];
+
+        var select = GetQueryObj();
+        select.WhereEqual("transcript_id", transcript.id.ToString());
+
+        var result = ProcessQuery(select, true);
+        return result;
+    }
     public static List<TranscriptData> GetAllBy(User? user)
     {
         if (user == null)

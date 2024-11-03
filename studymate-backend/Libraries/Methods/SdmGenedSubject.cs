@@ -16,18 +16,18 @@ public class SdmGenedSubject : ISdmBaseMethod<GenedSubject>
     public static List<GenedSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
-        
+
         var result = new List<GenedSubject>();
-        
+
         while (query.Next())
         {
             result.Add(new GenedSubject(
                 query.ToString(0),
-                query.ToString(1)
+                SdmGenedGroup.GetBy(query.ToString(1))
             ));
             if (!isArray) break;
         }
-        
+
         query.CleanUp();
         return result;
     }
@@ -39,5 +39,15 @@ public class SdmGenedSubject : ISdmBaseMethod<GenedSubject>
         var result = ProcessQuery(select, true);
         return result;
     }
-    
+
+    public static GenedSubject? GetBy(string subjectId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("subject_id", subjectId);
+
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
 }

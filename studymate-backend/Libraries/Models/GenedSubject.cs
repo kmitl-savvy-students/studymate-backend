@@ -1,10 +1,10 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class GenedSubject(
-    string subject_id,
-    string group_id
+    string subjectId,
+    GenedGroup? group
 ) : IBaseModel
 {
-    public string subject_id { get; set; } = subject_id;
-    public string group_id { get; set; } = group_id;
+    public string subjectId { get; set; } = subjectId;
+    public GenedGroup? group { get; set; } = group;
 }

@@ -19,4 +19,15 @@ public class CurriculumGroupController : ControllerBase
             return NotFound(new { message = "Curriculum group not found." });
         return Ok(curriculumGroup);
     }
+
+    [AllowAnonymous]
+    [HttpGet("{uniqueId}/{year}")]
+    public ActionResult<IEnumerable<CurriculumGroup>> GetAllBy(string uniqueId, string year)
+    {
+        var curriculumGroups = SdmCurriculumGroup.GetAllBy(uniqueId, year);
+
+        if (curriculumGroups.Count == 0)
+            return NotFound(new { message = "Curriculum group not found." });
+        return Ok(curriculumGroups);
+    }
 }
