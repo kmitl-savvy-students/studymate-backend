@@ -16,6 +16,11 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public partial class TranscriptController : ControllerBase
 {
+    private const string AI_MODEL = "gemini-1.5-flash-002";
+
+    // private const string AI_MODEL = "gemini-flash-experimental";
+    private const float AI_TEMPERATURE = 1.0f;
+
     [GeneratedRegex(@"Checked by\s+[\w\s\(\)]+")]
     private static partial Regex RemoveCheckedByRegex();
 
@@ -106,9 +111,9 @@ public partial class TranscriptController : ControllerBase
         const string projectId = "savvy-studymate";
         const string location = "us-central1";
         const string publisher = "google";
-        const string model = "gemini-1.5-flash-002";
 
         var prompt = """
+                     Hello
                      - Example: {"transfer_credits":[{"subject_id":"str","grade":"str","credit":"int"}],"grades":[{"semester":"int","year":"int","courses":[{"subject_id":"str","grade":"str","credit":"int"}]}]}
                      - Use 0 for empty values; if no transfer_credits, use []
                      - Grade is "0" if "X" or empty
@@ -125,7 +130,7 @@ public partial class TranscriptController : ControllerBase
 
         try
         {
-            generateResult = await GenerateContentInternal(projectId, location, publisher, model, prompt);
+            generateResult = await GenerateContentInternal(projectId, location, publisher, AI_MODEL, prompt);
         }
         catch (Exception ex)
         {
@@ -334,9 +339,8 @@ public partial class TranscriptController : ControllerBase
                 Model = $"projects/{projectId}/locations/{location}/publishers/{publisher}/models/{model}",
                 GenerationConfig = new GenerationConfig
                 {
-                    Temperature = 0.1f,
-                    TopP = 0.5f,
-                    TopK = 40,
+                    Temperature = AI_TEMPERATURE,
+                    TopP = 0.95f,
                     MaxOutputTokens = 8192
                 },
                 Contents =
