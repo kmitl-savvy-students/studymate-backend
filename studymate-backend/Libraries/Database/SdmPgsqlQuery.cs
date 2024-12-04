@@ -106,4 +106,15 @@ public class SdmPgsqlQuery(
 
         return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetDateTime(columnIndex).ToString("yyyy-MM-dd HH:mm:ss zzz");
     }
+    
+    public float ToFloat(int columnIndex)
+    {
+        var reader = GetReader();
+
+        if (reader == null)
+            return 0.0f; // คืนค่าเริ่มต้นหาก reader เป็น null
+
+        return reader.IsDBNull(columnIndex) ? 0.0f : Convert.ToSingle(reader.GetValue(columnIndex));
+    }
+
 }
