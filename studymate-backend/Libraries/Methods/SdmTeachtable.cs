@@ -41,19 +41,19 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         return result;
     }
 
-    public static Teachtable GetById(int id)
-    {
-        if (id == null)
-            return null;
-        
-        var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
-        
-        var  result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
-    }
+    // public static Teachtable GetByIdOld(int id)
+    // {
+    //     if (id == null)
+    //         return null;
+    //     
+    //     var select = GetQueryObj();
+    //     select.WhereEqual("id", id.ToString());
+    //     
+    //     var  result = ProcessQuery(select);
+    //     if (result.Count == 0)
+    //         return null;
+    //     return result[0];
+    // }
 
     public static void Insert(Teachtable teachtable)
     {
@@ -64,6 +64,53 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         
         var query = SdmPgsqlQuery.Execute(insert);
         query.CleanUp();
+    }
+    
+    public static Teachtable? GetById(int id)
+    {
+        var query = new SdmPgsqlQuerySelect("teachtable");
+        query.WhereEqual("id", id.ToString());
+
+        var queryResult = SdmPgsqlQuery.Execute(query);
+
+        if (!queryResult.Next())
+        {
+            queryResult.CleanUp();
+            return null;
+        }
+
+        var teachtable = new Teachtable(
+            queryResult.ToInt(0),
+            queryResult.ToInt(1),
+            queryResult.ToInt(2)
+        );
+
+        queryResult.CleanUp();
+        return teachtable;
+    }
+
+    public static Teachtable? GetBy(int academicYear, int academicTerm)
+    {
+        var query = new SdmPgsqlQuerySelect("teachtable");
+        query.WhereEqual("academic_year", academicYear.ToString());
+        query.WhereEqual("academic_term", academicTerm.ToString());
+
+        var queryResult = SdmPgsqlQuery.Execute(query);
+
+        if (!queryResult.Next())
+        {
+            queryResult.CleanUp();
+            return null;
+        }
+
+        var teachtable = new Teachtable(
+            queryResult.ToInt(0),
+            queryResult.ToInt(1),
+            queryResult.ToInt(2)
+        );
+
+        queryResult.CleanUp();
+        return teachtable;
     }
     
 }
