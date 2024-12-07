@@ -7,22 +7,19 @@ public static class SdmNumber
         return input != null && int.TryParse(input, out _);
     }
     
-    public static bool IsAcademicYear(string? input)
+    public static bool IsAcademicYear(int? year)
     {
-        if (input != null && int.TryParse(input, out int year))
-        {
-            return year >= 2000 && year <= 9999;
-        }
-        return false;
+        return year >= 2000 && year <= 9999;
     }
     
-    public static bool IsAcademicTerm(string? input)
+    public static bool IsAcademicTerm(int? term)
     {
-        if (input != null && int.TryParse(input, out int term))
-        {
-            return term >= 1 && term <= 3;
-        }
-        return false;
+        return term >= 1 && term <= 3;
+    }
+
+    public static bool IsClassYear(int input)
+    {
+        return input >= 1 && input <= 6;
     }
     
 }
