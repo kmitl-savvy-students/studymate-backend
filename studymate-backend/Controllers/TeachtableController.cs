@@ -43,8 +43,8 @@ public class TeachtableController : ControllerBase
 
         if (!SdmNumber.IsValid(dtoTeachtable.academic_term.ToString()) ||
             !SdmNumber.IsValid(dtoTeachtable.academic_year.ToString()) ||
-            !SdmNumber.IsAcademicTerm(dtoTeachtable.academic_term.ToString()) ||
-            !SdmNumber.IsAcademicYear(dtoTeachtable.academic_year.ToString()))
+            !SdmNumber.IsAcademicTerm(dtoTeachtable.academic_term) ||
+            !SdmNumber.IsAcademicYear(dtoTeachtable.academic_year))
             return BadRequest(new { message = "Invalid request data." });
 
         // สร้าง Teachtable object
