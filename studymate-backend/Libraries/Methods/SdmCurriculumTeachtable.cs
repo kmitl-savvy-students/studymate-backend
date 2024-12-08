@@ -5,13 +5,6 @@ using System.Text.Json;
 public class SdmCurriculumTeachtable
 {
     private static readonly HttpClient HttpClient = new HttpClient();
-    
-    public static string TableName => "teachtable_subject";
-    
-    public static SdmPgsqlQuerySelect GetQueryObj()
-    {
-        return new SdmPgsqlQuerySelect(TableName);
-    }
 
     public static async Task<JsonElement> FetchFilteredTeachTableData(
         int selectedYear,
