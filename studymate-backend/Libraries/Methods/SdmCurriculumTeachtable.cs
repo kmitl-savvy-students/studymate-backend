@@ -118,8 +118,6 @@ public class SdmCurriculumTeachtable
                                 }
                                 writer.WriteEndArray();
                                 
-                                // writer.WriteString("teacher_list_th", entry.GetProperty("teacher_list_th").GetString());
-                                // writer.WriteString("teacher_list_en", entry.GetProperty("teacher_list_en").GetString());
                                 var teacherListTh = TransformTeacherList(entry.GetProperty("teacher_list_th").GetString());
                                 var teacherListEn = TransformTeacherList(entry.GetProperty("teacher_list_en").GetString());
 
@@ -138,6 +136,13 @@ public class SdmCurriculumTeachtable
                                     writer.WriteStringValue(teacher);
                                 }
                                 writer.WriteEndArray();
+                                
+                                // แปลงค่า lect_or_prac
+                                var lectOrPrac = entry.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
+                                    entry.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : entry.GetProperty("lect_or_prac").GetString();
+
+                                // เขียนค่า lect_or_prac
+                                writer.WriteString("lect_or_prac", lectOrPrac);
 
                                 
                                 writer.WriteEndObject();
