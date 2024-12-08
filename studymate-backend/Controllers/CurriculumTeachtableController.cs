@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
+using studymate_backend.Libraries.Helper;
 
 namespace studymate_backend.Controllers;
 
@@ -18,11 +19,18 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string curriculum,
         [FromRoute] int classYear)
     {
+        // ตรวจสอบค่าของ semester และ classYear
+        if (!SdmNumber.IsAcademicYear(year) || !SdmNumber.IsAcademicTerm(
+                semester) && !SdmNumber.IsClassYear(classYear))
+        {
+            return BadRequest(new { message = "Invalid request data." });
+        }
+
         try
         {
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableData(
                 year, semester, faculty, department, curriculum, classYear);
-    
+
             return Ok(filteredData);
         }
         catch (Exception ex)
