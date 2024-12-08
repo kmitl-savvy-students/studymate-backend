@@ -15,127 +15,61 @@ public class SdmSubjectGroupAndSubgroup
         return new SdmPgsqlQuerySelect(tableName);
     }
 
-//     public static (string groupName, string subgroupName)? GetSubjectGroupAndSubgroupBySubjectId(string subjectId, string uniqueId, string year)
-// {
-//     // Query curriculum_subject
-//     var subjectQuery = GetQueryObj(TableNameSubject);
-//     subjectQuery
-//         .AddWhereCondition("subject_id", subjectId)
-//         .AddWhereCondition("unique_id", uniqueId)
-//         .AddWhereCondition("year", year);
-//
-//     var subjectResult = SdmPgsqlQuery.Execute(subjectQuery);
-//
-//     if (!subjectResult.Next())
-//     {
-//         subjectResult.CleanUp();
-//         return null;
-//     }
-//
-//     // อ่านค่าที่เป็น smallint หรือ integer ด้วย ToInt()
-//     var categoryId = subjectResult.ToInt(1); // smallint -> int
-//     var groupId = subjectResult.ToInt(2); // smallint -> int
-//     var subgroupId = subjectResult.ToInt(3); // smallint -> int
-//
-//     var groupQuery = GetQueryObj(TableNameGroup);
-//     groupQuery
-//         .AddWhereCondition("category_id", categoryId.ToString())
-//         .AddWhereCondition("group_id", groupId.ToString())
-//         .AddWhereCondition("unique_id", uniqueId)
-//         .AddWhereCondition("year", year);
-//
-//     var groupResult = SdmPgsqlQuery.Execute(groupQuery);
-//     string? groupName = null;
-//     if (groupResult.Next())
-//     {
-//         groupName = groupResult.ToString(5); // VARCHAR -> string
-//     }
-//     groupResult.CleanUp();
-//
-//     var subgroupQuery = GetQueryObj(TableNameSubgroup);
-//     subgroupQuery
-//         .AddWhereCondition("category_id", categoryId.ToString())
-//         .AddWhereCondition("group_id", groupId.ToString())
-//         .AddWhereCondition("subgroup_id", subgroupId.ToString())
-//         .AddWhereCondition("unique_id", uniqueId)
-//         .AddWhereCondition("year", year);
-//
-//     var subgroupResult = SdmPgsqlQuery.Execute(subgroupQuery);
-//     string? subgroupName = null;
-//     if (subgroupResult.Next())
-//     {
-//         subgroupName = subgroupResult.ToString(5); // VARCHAR -> string
-//     }
-//     subgroupResult.CleanUp();
-//
-//     if (groupName == null || subgroupName == null)
-//     {
-//         return null;
-//     }
-//
-//     return (groupName, subgroupName);
-// }
-
     public static (string groupName, string subgroupName)? GetSubjectGroupAndSubgroupBySubjectId(string subjectId, string uniqueId, string year)
-{
+    {
     // Query curriculum_subject
-    var subjectQuery = new SdmPgsqlQuerySelect("curriculum_subject")
-        .AddWhereCondition("subject_id", subjectId)
-        .AddWhereCondition("unique_id", uniqueId)
-        .AddWhereCondition("year", year);
+        var subjectQuery = new SdmPgsqlQuerySelect("curriculum_subject")
+            .AddWhereCondition("subject_id", subjectId)
+            .AddWhereCondition("unique_id", uniqueId)
+            .AddWhereCondition("year", year);
 
-    var subjectResult = SdmPgsqlQuery.Execute(subjectQuery);
-    if (!subjectResult.Next())
-    {
-        subjectResult.CleanUp();
-        return null;
-    }
+        var subjectResult = SdmPgsqlQuery.Execute(subjectQuery);
+        if (!subjectResult.Next())
+        {
+            subjectResult.CleanUp();
+            return null;
+        }
 
-    var categoryId = subjectResult.ToInt(1); // category_id เป็น smallint
-    var groupId = subjectResult.ToInt(2);    // group_id เป็น smallint
-    var subgroupId = subjectResult.ToInt(3); // subgroup_id เป็น smallint
+        var categoryId = subjectResult.ToInt(1); // category_id เป็น smallint
+        var groupId = subjectResult.ToInt(2);    // group_id เป็น smallint
+        var subgroupId = subjectResult.ToInt(3); // subgroup_id เป็น smallint
 
-    // Query curriculum_group
-    var groupQuery = new SdmPgsqlQuerySelect("curriculum_group")
-        .AddWhereCondition("category_id", categoryId.ToString())
-        .AddWhereCondition("group_id", groupId.ToString())
-        .AddWhereCondition("unique_id", uniqueId)
-        .AddWhereCondition("year", year);
+        // Query curriculum_group
+        var groupQuery = new SdmPgsqlQuerySelect("curriculum_group")
+            .AddWhereCondition("category_id", categoryId.ToString())
+            .AddWhereCondition("group_id", groupId.ToString())
+            .AddWhereCondition("unique_id", uniqueId)
+            .AddWhereCondition("year", year);
 
-    var groupResult = SdmPgsqlQuery.Execute(groupQuery);
-    string? groupName = null;
-    if (groupResult.Next())
-    {
-        groupName = groupResult.ToString(4); // group_name เป็น varchar
-    }
-    groupResult.CleanUp();
+        var groupResult = SdmPgsqlQuery.Execute(groupQuery);
+        string? groupName = null;
+        if (groupResult.Next())
+        {
+            groupName = groupResult.ToString(4); // group_name เป็น varchar
+        }
+        groupResult.CleanUp();
 
-    // Query curriculum_subgroup
-    var subgroupQuery = new SdmPgsqlQuerySelect("curriculum_subgroup")
-        .AddWhereCondition("category_id", categoryId.ToString())
-        .AddWhereCondition("group_id", groupId.ToString())
-        .AddWhereCondition("subgroup_id", subgroupId.ToString())
-        .AddWhereCondition("unique_id", uniqueId)
-        .AddWhereCondition("year", year);
+        // Query curriculum_subgroup
+        var subgroupQuery = new SdmPgsqlQuerySelect("curriculum_subgroup")
+            .AddWhereCondition("category_id", categoryId.ToString())
+            .AddWhereCondition("group_id", groupId.ToString())
+            .AddWhereCondition("subgroup_id", subgroupId.ToString())
+            .AddWhereCondition("unique_id", uniqueId)
+            .AddWhereCondition("year", year);
 
-    var subgroupResult = SdmPgsqlQuery.Execute(subgroupQuery);
-    string? subgroupName = null;
-    if (subgroupResult.Next())
-    {
-        subgroupName = subgroupResult.ToString(5); // subgroup_name เป็น varchar
-    }
-    subgroupResult.CleanUp();
+        var subgroupResult = SdmPgsqlQuery.Execute(subgroupQuery);
+        string? subgroupName = null;
+        if (subgroupResult.Next())
+        {
+            subgroupName = subgroupResult.ToString(5); // subgroup_name เป็น varchar
+        }
+        subgroupResult.CleanUp();
 
-    if (groupName == null || subgroupName == null)
-    {
-        return null;
-    }
+        if (groupName == null || subgroupName == null)
+        {
+            return null;
+        }
 
-    return (groupName, subgroupName);
-}
-
-
-
-
-
+        return (groupName, subgroupName);
+        } 
 }
