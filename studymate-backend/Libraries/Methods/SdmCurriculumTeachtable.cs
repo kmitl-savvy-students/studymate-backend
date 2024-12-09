@@ -85,8 +85,8 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
                                 writer.WriteNumber("credit", int.Parse(entry.GetProperty("credit").GetString()));
                                 writer.WriteNumber("section", int.Parse(entry.GetProperty("section").GetString()));
                                 
-                                writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString());
-                                writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString());
+                                writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString()?.Replace("\t", "").Trim());
+                                writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString()?.Replace("\t", "").Trim());
 
                                 // Fetch subject_type_name และ subject_subtype_name
                                 var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subjectId, uniqueId, curriculumYear);
@@ -147,10 +147,28 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
                                 writer.WriteString("lect_or_prac", lectOrPrac);
                                 
                                 // เขียนค่า midterm_start_date_time และ midterm_end_date_time
-                                writer.WriteString("midterm_start_date_time", entry.GetProperty("midterm_start_date_time").GetString());
-                                writer.WriteString("midterm_end_date_time", entry.GetProperty("midterm_end_date_time").GetString());
-                                writer.WriteString("final_start_date_time", entry.GetProperty("final_start_date_time").GetString());
-                                writer.WriteString("final_end_date_time", entry.GetProperty("final_end_date_time").GetString());
+                                var midtermStart = entry.GetProperty("midterm_start_date_time").GetString();
+                                var midtermEnd = entry.GetProperty("midterm_end_date_time").GetString();
+                                var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
+                                writer.WritePropertyName("midterm_date_time");
+                                writer.WriteStartArray();
+                                foreach (var value in midtermDateTime)
+                                {
+                                    writer.WriteStringValue(value);
+                                }
+                                writer.WriteEndArray();
+
+                                var finalStart = entry.GetProperty("final_start_date_time").GetString();
+                                var finalEnd = entry.GetProperty("final_end_date_time").GetString();
+                                var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
+                                writer.WritePropertyName("final_date_time");
+                                writer.WriteStartArray();
+                                foreach (var value in finalDateTime)
+                                {
+                                    writer.WriteStringValue(value);
+                                }
+                                writer.WriteEndArray();
+                                
 
                                 writer.WriteEndObject();
                             }
@@ -184,7 +202,6 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
     return filteredJson.RootElement.Clone();
 }
 
-    
     private static async Task<(string? subjectTypeName, string? subjectSubTypeName)> FetchSubjectDetails(
         string subjectId,
         string uniqueId,
@@ -313,4 +330,23 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
         var splitRules = System.Text.RegularExpressions.Regex.Split(cleanRule, @"(?=เฉพาะ นศ\.)");
         return splitRules.Select(r => r.Trim()).Where(r => !string.IsNullOrWhiteSpace(r)).ToList();
     }
+    
+    private static List<string> TransformDateTime(string startDateTime, string endDateTime, string phase)
+    {
+        if (string.IsNullOrWhiteSpace(startDateTime) || string.IsNullOrWhiteSpace(endDateTime))
+        {
+            return new List<string> { phase, "ไม่ระบุ", "ไม่ระบุ" };
+        }
+
+        var start = DateTime.Parse(startDateTime);
+        var end = DateTime.Parse(endDateTime);
+
+        // แปลงชื่อวันและลบคำว่า "วัน" ออก
+        var dayOfWeek = start.ToString("dddd", new System.Globalization.CultureInfo("th-TH")).Replace("วัน", "");
+        var date = start.ToString("d MMMM yyyy", new System.Globalization.CultureInfo("th-TH"));
+        var timeRange = $"{start:HH:mm}-{end:HH:mm}";
+
+        return new List<string> { phase, $"{dayOfWeek} {date}", timeRange };
+    }
+
 }
