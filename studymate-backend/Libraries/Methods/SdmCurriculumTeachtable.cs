@@ -147,6 +147,12 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
 
                                 // เขียนค่า lect_or_prac
                                 writer.WriteString("lect_or_prac", lectOrPrac);
+                                
+                                // เขียนค่า midterm_start_date_time และ midterm_end_date_time
+                                writer.WriteString("midterm_start_date_time", entry.GetProperty("midterm_start_date_time").GetString());
+                                writer.WriteString("midterm_end_date_time", entry.GetProperty("midterm_end_date_time").GetString());
+                                writer.WriteString("final_start_date_time", entry.GetProperty("final_start_date_time").GetString());
+                                writer.WriteString("final_end_date_time", entry.GetProperty("final_end_date_time").GetString());
 
                                 writer.WriteEndObject();
                             }
