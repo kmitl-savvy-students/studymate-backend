@@ -1,25 +1,59 @@
+# FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# ENV ASPNETCORE_ENVIRONMENT=preprod
+
+# WORKDIR /app
+
+# EXPOSE 8080
+
+# COPY ["studymate-backend.sln", "./"]
+# COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
+# COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
+
+# RUN dotnet restore
+# RUN dotnet clean
+
+# COPY . .
+
+# RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore
+
+# FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+# WORKDIR /app
+# COPY --from=build /app/publish .
+
+# ENTRYPOINT ["dotnet", "studymate-backend.dll"]
+# Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 ENV ASPNETCORE_ENVIRONMENT=preprod
 
 WORKDIR /app
 
-EXPOSE 8080
+# Copy the solution and project files
+COPY studymate-backend.sln ./
+COPY studymate-backend/studymate-backend.csproj studymate-backend/
+COPY studymate-backend-tests/studymate-backend-tests.csproj studymate-backend-tests/
 
-COPY ["studymate-backend.sln", "./"]
-COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
-COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
-
+# Restore dependencies
 RUN dotnet restore
-RUN dotnet clean
 
+# Copy all source code
 COPY . .
 
+# Publish the application
 RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore
 
+# Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 WORKDIR /app
+
+# Copy published output from the build stage
 COPY --from=build /app/publish .
 
+# Set the entry point for the application
 ENTRYPOINT ["dotnet", "studymate-backend.dll"]
+
+# Expose port for application
+EXPOSE 8080
