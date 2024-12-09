@@ -108,17 +108,7 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
                                 
                                 writer.WriteString("classbuilding", entry.GetProperty("classbuilding").GetString());
                                 writer.WriteString("room_no", entry.GetProperty("room_no").GetString());
-
-                                // Transform rule
-                                var rawRule = entry.GetProperty("rule").GetString();
-                                var transformedRule = TransformRule(rawRule);
-                                writer.WritePropertyName("rule");
-                                writer.WriteStartArray();
-                                foreach (var rule in transformedRule)
-                                {
-                                    writer.WriteStringValue(rule);
-                                }
-                                writer.WriteEndArray();
+                                writer.WriteString("rule", entry.GetProperty("rule").GetString());
                                 
                                 var teacherListTh = TransformTeacherList(entry.GetProperty("teacher_list_th").GetString());
                                 var teacherListEn = TransformTeacherList(entry.GetProperty("teacher_list_en").GetString());
