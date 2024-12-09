@@ -65,7 +65,7 @@ public class SdmSubjectGroupAndSubgroup
         }
         subgroupResult.CleanUp();
 
-        if (groupName == null || subgroupName == null)
+        if (groupName == null && subgroupName == null)
         {
             return null;
         }
