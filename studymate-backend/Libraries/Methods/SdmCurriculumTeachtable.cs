@@ -105,9 +105,7 @@ private static async Task<JsonElement> TransformData(JsonElement root, string cu
                                     writer.WriteStringValue(dt);
                                 }
                                 writer.WriteEndArray();
-
-                                writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString());
-                                writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString());
+                                
                                 writer.WriteString("classbuilding", entry.GetProperty("classbuilding").GetString());
                                 writer.WriteString("room_no", entry.GetProperty("room_no").GetString());
 
