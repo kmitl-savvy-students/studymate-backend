@@ -19,7 +19,7 @@ public static class SdmNumber
 
     public static bool IsClassYear(int input)
     {
-        return input >= 1 && input <= 6;
+        return input >= 0 && input <= 6;
     }
     
 }

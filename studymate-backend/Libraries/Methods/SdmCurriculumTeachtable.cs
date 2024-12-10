@@ -27,7 +27,7 @@ public class SdmCurriculumTeachtable
                         $"&search_all_faculty=false" +
                         $"&search_all_department=false" +
                         $"&search_all_curriculum=false" +
-                        $"&search_all_class_year=false";
+                        $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}";
 
         try
         {
