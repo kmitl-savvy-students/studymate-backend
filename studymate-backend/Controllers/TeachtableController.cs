@@ -12,7 +12,6 @@ public class TeachtableController : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet]
-
     public ActionResult<Teachtable> GetAll()
     {
         var teachTable = SdmTeachtable.GetAll();
@@ -36,27 +35,56 @@ public class TeachtableController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost]
-    public ActionResult Teachtable([FromBody] DtoTeachtable dtoTeachtable)
+    public ActionResult Teachtable([FromBody] DtoCreateTeachtable teachtable)
     {
-        if (!dtoTeachtable.academic_year.HasValue || !dtoTeachtable.academic_term.HasValue)
+        if (!teachtable.academic_year.HasValue || !teachtable.academic_term.HasValue)
             return BadRequest(new { message = "Academic year and term are required." });
 
-        if (!SdmNumber.IsValid(dtoTeachtable.academic_term.ToString()) ||
-            !SdmNumber.IsValid(dtoTeachtable.academic_year.ToString()) ||
-            !SdmNumber.IsAcademicTerm(dtoTeachtable.academic_term) ||
-            !SdmNumber.IsAcademicYear(dtoTeachtable.academic_year))
+        if (!SdmNumber.IsValid(teachtable.academic_term.ToString()) ||
+            !SdmNumber.IsValid(teachtable.academic_year.ToString()) ||
+            !SdmNumber.IsAcademicTerm(teachtable.academic_term) ||
+            !SdmNumber.IsAcademicYear(teachtable.academic_year))
             return BadRequest(new { message = "Invalid request data." });
 
         // สร้าง Teachtable object
         SdmTeachtable.Insert(new Teachtable(
-            dtoTeachtable.academic_year.Value, // ใช้ 0 หรือ default เพราะ id จะถูกสร้างโดย Database
-            dtoTeachtable.academic_term.Value
+            teachtable.academic_year.Value, // ใช้ 0 หรือ default เพราะ id จะถูกสร้างโดย Database
+            teachtable.academic_term.Value
         ));
         return Ok(new { message = "Teachtable created." });
     }
-
-    public class DtoTeachtable
+    
+    [AllowAnonymous]
+    [HttpPatch("update")]
+    public ActionResult<Teachtable> Update([FromBody] DtoUpdateTeachtable teachtable)
     {
+        if (!teachtable.id.HasValue)
+            return BadRequest(new { message = "Id is required for update." });
+        
+        if (!SdmNumber.IsAcademicTerm(teachtable.academic_term) ||
+            !SdmNumber.IsAcademicYear(teachtable.academic_year))
+            return BadRequest(new { message = "Invalid request data." });
+        
+        var existingTeachtable = SdmTeachtable.GetById(teachtable.id.Value);
+        if (existingTeachtable == null)
+            return NotFound(new { message = "Teachtable not found." });
+
+        existingTeachtable.academic_term = teachtable.academic_term ?? existingTeachtable.academic_term;
+        existingTeachtable.academic_year = teachtable.academic_year ?? existingTeachtable.academic_year;
+        
+        SdmTeachtable.Update(existingTeachtable);
+
+        return Ok(teachtable);
+    }
+    public class DtoCreateTeachtable
+    {
+        public int? academic_year { get; set; }
+        public int? academic_term { get; set; }
+    }
+    
+    public class DtoUpdateTeachtable
+    {
+        public int? id { get; set; }
         public int? academic_year { get; set; }
         public int? academic_term { get; set; }
     }
