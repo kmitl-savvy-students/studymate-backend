@@ -44,157 +44,140 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table: {ex.Message}");
         }
     }
-
+    
     private static async Task<JsonElement> TransformData(JsonElement root, string curriculumYear, string curriculum, string uniqueId)
-    {
-        using var stream = new MemoryStream();
-        using var writer = new Utf8JsonWriter(stream);
+{
+    using var stream = new MemoryStream();
+    using var writer = new Utf8JsonWriter(stream);
 
+    writer.WriteStartArray();
+
+    foreach (var item in root.EnumerateArray())
+    {
+        writer.WriteStartObject();
+
+        // ตัวแปรสะสม Array data
+        var allData = new List<JsonElement>();
+
+        foreach (var property in item.EnumerateObject())
+        {
+            if (property.Name == "teachtable")
+            {
+                foreach (var teachTable in property.Value.EnumerateArray())
+                {
+                    foreach (var teachProperty in teachTable.EnumerateObject())
+                    {
+                        if (teachProperty.Name == "data")
+                        {
+                            foreach (var entry in teachProperty.Value.EnumerateArray())
+                            {
+                                allData.Add(entry); // สะสมข้อมูล
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                property.WriteTo(writer); // เขียน Property อื่นที่ไม่ใช่ teachtable
+            }
+        }
+
+        // รวม Array data ที่สะสมไว้
+        writer.WritePropertyName("data");
         writer.WriteStartArray();
 
-        foreach (var item in root.EnumerateArray())
+        foreach (var entry in allData)
         {
             writer.WriteStartObject();
 
-            foreach (var property in item.EnumerateObject())
+            var subjectId = entry.GetProperty("subject_id").GetString();
+
+            writer.WriteString("subject_id", subjectId);
+            writer.WriteNumber("credit", int.Parse(entry.GetProperty("credit").GetString()));
+            writer.WriteNumber("section", int.Parse(entry.GetProperty("section").GetString()));
+
+            writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString()?.Replace("\t", "").Trim());
+            writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString()?.Replace("\t", "").Trim());
+
+            var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subjectId, uniqueId, curriculumYear);
+            writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
+            writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
+
+            var classdatetime = entry.GetProperty("classdatetime").GetString();
+            var transformedDatetime = TransformClassDatetime(classdatetime);
+            writer.WritePropertyName("classdatetime");
+            writer.WriteStartArray();
+            foreach (var dt in transformedDatetime)
             {
-                if (property.Name == "teachtable")
-                {
-                    writer.WritePropertyName("teachtable");
-                    writer.WriteStartArray();
-
-                    foreach (var teachTable in property.Value.EnumerateArray())
-                    {
-                        writer.WriteStartObject();
-
-                        foreach (var teachProperty in teachTable.EnumerateObject())
-                        {
-                            if (teachProperty.Name == "data")
-                            {
-                                writer.WritePropertyName("data");
-                                writer.WriteStartArray();
-
-                                foreach (var entry in teachProperty.Value.EnumerateArray())
-                                {
-                                    writer.WriteStartObject();
-
-                                    var subjectId = entry.GetProperty("subject_id").GetString();
-
-                                    writer.WriteString("subject_id", subjectId);
-                                    // แปลง String เป็น Number สำหรับ credit และ section
-                                    writer.WriteNumber("credit", int.Parse(entry.GetProperty("credit").GetString()));
-                                    writer.WriteNumber("section", int.Parse(entry.GetProperty("section").GetString()));
-                                
-                                    writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString()?.Replace("\t", "").Trim());
-                                    writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString()?.Replace("\t", "").Trim());
-
-                                    // Fetch subject_type_name และ subject_subtype_name
-                                    var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subjectId, uniqueId, curriculumYear);
-
-                                    // เพิ่ม subject_type_name และ subject_subtype_name
-                                    writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
-                                    writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
-                                
-                                    // Transform classdatetime
-                                    var classdatetime = entry.GetProperty("classdatetime").GetString();
-                                    var transformedDatetime = TransformClassDatetime(classdatetime);
-                                    writer.WritePropertyName("classdatetime");
-                                    writer.WriteStartArray();
-                                    
-                                    foreach (var dt in transformedDatetime)
-                                    {
-                                        writer.WriteStringValue(dt);
-                                    }
-                                    writer.WriteEndArray();
-                                
-                                    writer.WriteString("classbuilding", entry.GetProperty("classbuilding").GetString());
-                                    writer.WriteString("room_no", entry.GetProperty("room_no").GetString());
-                                    writer.WriteString("rule", entry.GetProperty("rule").GetString());
-                                
-                                    var teacherListTh = TransformTeacherList(entry.GetProperty("teacher_list_th").GetString());
-                                    var teacherListEn = TransformTeacherList(entry.GetProperty("teacher_list_en").GetString());
-
-                                    writer.WritePropertyName("teacher_list_th");
-                                    writer.WriteStartArray();
-                                    foreach (var teacher in teacherListTh)
-                                    {
-                                        writer.WriteStringValue(teacher);
-                                    }
-                                    writer.WriteEndArray();
-
-                                    writer.WritePropertyName("teacher_list_en");
-                                    writer.WriteStartArray(); 
-                                    foreach (var teacher in teacherListEn)
-                                    {
-                                        writer.WriteStringValue(teacher);
-                                    }
-                                    writer.WriteEndArray();
-                                
-                                    // แปลงค่า lect_or_prac
-                                    var lectOrPrac = entry.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
-                                        entry.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : entry.GetProperty("lect_or_prac").GetString();
-
-                                    // เขียนค่า lect_or_prac
-                                    writer.WriteString("lect_or_prac", lectOrPrac);
-                                
-                                    // เขียนค่า midterm_start_date_time และ midterm_end_date_time
-                                    var midtermStart = entry.GetProperty("midterm_start_date_time").GetString();
-                                    var midtermEnd = entry.GetProperty("midterm_end_date_time").GetString();
-                                    var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
-                                    writer.WritePropertyName("midterm_date_time");
-                                
-                                    writer.WriteStartArray();
-                                    foreach (var value in midtermDateTime)
-                                    {
-                                        writer.WriteStringValue(value);
-                                    }
-                                    writer.WriteEndArray();
-
-                                    var finalStart = entry.GetProperty("final_start_date_time").GetString();
-                                    var finalEnd = entry.GetProperty("final_end_date_time").GetString();
-                                    var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
-                                    writer.WritePropertyName("final_date_time");
-                                
-                                    writer.WriteStartArray();
-                                    foreach (var value in finalDateTime)
-                                    {
-                                        writer.WriteStringValue(value);
-                                    }
-                                    writer.WriteEndArray();
-                                
-
-                                    writer.WriteEndObject();
-                                }
-
-                                writer.WriteEndArray();
-                            }
-                            else if (teachProperty.Name != "subject_type_name_th" && teachProperty.Name != "subject_type_name_en")
-                            { 
-                                // คัดกรอง subject_type_name_th และ subject_type_name_en ไม่ให้เขียนลง JSON
-                                teachProperty.WriteTo(writer);
-                            }
-                        }
-
-                        writer.WriteEndObject();
-                    }
-
-                    writer.WriteEndArray();
-                }
-                else
-                { 
-                    property.WriteTo(writer);
-                }
+                writer.WriteStringValue(dt);
             }
+            writer.WriteEndArray();
+
+            writer.WriteString("classbuilding", entry.GetProperty("classbuilding").GetString());
+            writer.WriteString("room_no", entry.GetProperty("room_no").GetString());
+            writer.WriteString("rule", entry.GetProperty("rule").GetString());
+
+            var teacherListTh = TransformTeacherList(entry.GetProperty("teacher_list_th").GetString());
+            var teacherListEn = TransformTeacherList(entry.GetProperty("teacher_list_en").GetString());
+
+            writer.WritePropertyName("teacher_list_th");
+            writer.WriteStartArray();
+            foreach (var teacher in teacherListTh)
+            {
+                writer.WriteStringValue(teacher);
+            }
+            writer.WriteEndArray();
+
+            writer.WritePropertyName("teacher_list_en");
+            writer.WriteStartArray();
+            foreach (var teacher in teacherListEn)
+            {
+                writer.WriteStringValue(teacher);
+            }
+            writer.WriteEndArray();
+
+            var lectOrPrac = entry.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
+                entry.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : entry.GetProperty("lect_or_prac").GetString();
+            writer.WriteString("lect_or_prac", lectOrPrac);
+
+            var midtermStart = entry.GetProperty("midterm_start_date_time").GetString();
+            var midtermEnd = entry.GetProperty("midterm_end_date_time").GetString();
+            var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
+            writer.WritePropertyName("midterm_date_time");
+            writer.WriteStartArray();
+            foreach (var value in midtermDateTime)
+            {
+                writer.WriteStringValue(value);
+            }
+            writer.WriteEndArray();
+
+            var finalStart = entry.GetProperty("final_start_date_time").GetString();
+            var finalEnd = entry.GetProperty("final_end_date_time").GetString();
+            var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
+            writer.WritePropertyName("final_date_time");
+            writer.WriteStartArray();
+            foreach (var value in finalDateTime)
+            {
+                writer.WriteStringValue(value);
+            }
+            writer.WriteEndArray();
+
             writer.WriteEndObject();
         }
 
         writer.WriteEndArray();
-        writer.Flush();
-        var filteredJson = JsonDocument.Parse(stream.ToArray());
-        
-        return filteredJson.RootElement.Clone();
-        
+
+        writer.WriteEndObject();
     }
+
+    writer.WriteEndArray();
+    writer.Flush();
+    var filteredJson = JsonDocument.Parse(stream.ToArray());
+
+    return filteredJson.RootElement.Clone();
+}
+
 
     private static async Task<(string? subjectTypeName, string? subjectSubTypeName)> FetchSubjectDetails(
         string subjectId,
