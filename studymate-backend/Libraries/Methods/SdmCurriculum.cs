@@ -30,7 +30,8 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
                 query.ToString(5),
                 query.ToString(6),
                 query.ToString(7),
-                query.ToString(8)
+                query.ToString(8),
+                query.ToString(9)
             ));
             if (!isArray) break;
         }
