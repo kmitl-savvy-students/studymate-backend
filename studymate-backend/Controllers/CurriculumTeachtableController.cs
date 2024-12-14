@@ -9,8 +9,9 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-teachtable-subject")]
 public class CurriculumTeachtableController : ControllerBase
 {
+    
     [AllowAnonymous]
-    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear}/{uniqueId}")]
+    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> Get(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -18,14 +19,16 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string department,
         [FromRoute] string curriculum,
         [FromRoute] int classYear,
-        [FromRoute] string curriculumYear,
-        [FromRoute] string uniqueId) // เพิ่ม uniqueId)
+        string? curriculumYear,
+        string? uniqueId) // เพิ่ม uniqueId)
     {
-        if (curriculumYear != "2560" && curriculumYear != "2564")
+
+        // ตรวจสอบค่า curriculumYear และ uniqueId ถ้ามีการกำหนด
+        if (!string.IsNullOrEmpty(curriculumYear) && (curriculumYear != "2560" && curriculumYear != "2564"))
         {
             return BadRequest(new { message = "curriculumYear must be either 2560 or 2564." });
         }
-
+        
         if (!SdmNumber.IsAcademicYear(year) || !SdmNumber.IsAcademicTerm(semester) || !SdmNumber.IsClassYear(classYear))
         {
             return BadRequest(new { message = "Invalid request data." });
@@ -33,8 +36,13 @@ public class CurriculumTeachtableController : ControllerBase
 
         try
         {
+            // var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableData(
+            //     year, semester, faculty, department, curriculum, classYear, curriculumYear, uniqueId);
+            // Pass ค่า null ไปให้ service layer ถ้า parameter ไม่ถูกส่งมา
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableData(
-                year, semester, faculty, department, curriculum, classYear, curriculumYear, uniqueId);
+                year, semester, faculty, department, curriculum, classYear, 
+                curriculumYear ?? string.Empty, 
+                uniqueId ?? string.Empty);
 
             return Ok(filteredData);
         }
