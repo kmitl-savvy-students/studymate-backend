@@ -23,9 +23,9 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
         {
             result.Add(new TeachtableSubject(
                 SdmTeachtable.GetById(query.ToInt(1)),
-                query.ToString(1),
                 query.ToString(2),
                 query.ToInt(3),
+                query.ToFloat(4),
                 query.ToInt(0)
                 
             ));
