@@ -9,7 +9,8 @@ public class Curriculum(
     string degreeNameTh,
     string degreeNameThShort,
     string degreeNameEn,
-    string degreeNameEnShort
+    string degreeNameEnShort,
+    string pid
 ) : IBaseModel
 {
     public int id { get; set; } = id;
@@ -21,4 +22,5 @@ public class Curriculum(
     public string degreeNameThShort { get; set; } = degreeNameThShort;
     public string degreeNameEn { get; set; } = degreeNameEn;
     public string degreeNameEnShort { get; set; } = degreeNameEnShort;
+    public string pid { get; set; } = pid;
 }
