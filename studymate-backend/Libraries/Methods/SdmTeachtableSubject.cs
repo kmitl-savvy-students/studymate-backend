@@ -22,16 +22,15 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
         while (query.Next())
         {
             result.Add(new TeachtableSubject(
-                query.ToInt(0), // id
-                SdmTeachtable.GetById(query.ToInt(1)), // teachtable
-                query.ToString(2), // public_id
-                query.ToString(3), // subject_id
-                query.ToInt(4), // interested
-                query.ToFloat(5) // rating
+                SdmTeachtable.GetById(query.ToInt(1)),
+                query.ToString(1),
+                query.ToString(2),
+                query.ToInt(3),
+                query.ToInt(0)
+                
             ));
             if (!isArray) break;
         }
-
         query.CleanUp();
         return result;
     }
@@ -39,8 +38,8 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     public static void Insert(TeachtableSubject teachtableSubject)
     {
         var insert = new SdmPgsqlQueryInsert(TableName);
+        
         insert.Insert("teachtable_id", teachtableSubject.teachtable?.id.ToString());
-        insert.Insert("public_id", teachtableSubject.public_id);
         insert.Insert("subject_id", teachtableSubject.subject_id);
         insert.Insert("interested", teachtableSubject.interested.ToString());
         insert.Insert("rating", teachtableSubject.rating.ToString());

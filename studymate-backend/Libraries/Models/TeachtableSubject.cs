@@ -1,12 +1,12 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class TeachtableSubject(
-    int id,
     Teachtable? teachtable,
     string public_id,
     string subject_id,
     int interested,
-    float rating
+    float rating,
+    int id = 0
 ) : IBaseModel
 {
     public int id { get; set; } = id;
