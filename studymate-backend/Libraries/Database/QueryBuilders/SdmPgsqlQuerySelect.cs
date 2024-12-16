@@ -52,4 +52,6 @@ public class SdmPgsqlQuerySelect(
             query += " WHERE " + string.Join(" AND ", _whereConditions);
         return query;
     }
+    
+    
 }
