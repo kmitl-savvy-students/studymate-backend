@@ -7,14 +7,14 @@ public class SdmCurriculumTeachtable
     private static readonly HttpClient HttpClient = new HttpClient();
 
     public static async Task<JsonElement> FetchFilteredTeachTableData(
-    int selectedYear,
-    int selectedSemester,
-    string selectedFaculty,
-    string selectedDepartment,
-    string selectedCurriculum,
-    int selectedClassYear,
-    string curriculumYear,
-    string uniqueId) // เพิ่ม parameter uniqueId
+        int selectedYear,
+        int selectedSemester,
+        string selectedFaculty,
+        string selectedDepartment,
+        string selectedCurriculum,
+        int selectedClassYear,
+        string curriculumYear,
+        string uniqueId)
     {
         string apiUrl = $"https://k8s.reg.kmitl.ac.th/reg/api/?" +
                         $"function=get-teach-table-show&mode=by_class" +
@@ -22,7 +22,7 @@ public class SdmCurriculumTeachtable
                         $"&selected_semester={selectedSemester}" +
                         $"&selected_faculty={selectedFaculty}" +
                         $"&selected_department={selectedDepartment}" +
-                        $"&selected_curriculum={selectedCurriculum}" + 
+                        $"&selected_curriculum={selectedCurriculum}" +
                         $"&selected_class_year={selectedClassYear}" +
                         $"&search_all_faculty=false" +
                         $"&search_all_department=false" +
@@ -31,21 +31,36 @@ public class SdmCurriculumTeachtable
 
         try
         {
+            Console.WriteLine($"Calling Public API: {apiUrl}");
             var response = await HttpClient.GetAsync(apiUrl);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Public API Error: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new Exception($"Public API Error: {response.StatusCode}");
+            }
 
             var data = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                Console.WriteLine("Public API returned empty response.");
+                throw new Exception("Public API returned empty response.");
+            }
+
+            Console.WriteLine($"Public API Response: {data}");
             var jsonDoc = JsonDocument.Parse(data);
 
-            return await TransformData(jsonDoc.RootElement, curriculumYear, uniqueId);
+            return await TransformData(jsonDoc.RootElement, curriculumYear, selectedCurriculum, uniqueId);
         }
         catch (Exception ex)
         {
-            throw new Exception($"Error fetching Teach Table: {ex.Message}");
+            Console.WriteLine($"Error in FetchFilteredTeachTableData: {ex.Message}");
+            throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
 
-    private static async Task<JsonElement> TransformData(JsonElement root, string curriculumYear, string uniqueId)
+    private static async Task<JsonElement> TransformData(JsonElement root, string curriculumYear, string curriculum, string uniqueId)
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -54,128 +69,113 @@ public class SdmCurriculumTeachtable
 
         foreach (var item in root.EnumerateArray())
         {
-            writer.WriteStartObject();
+            Console.WriteLine($"Processing item: {item}");
 
-            // เขียน property อื่นๆ ที่ไม่ใช่ teachtable
-            foreach (var property in item.EnumerateObject())
+            if (!item.TryGetProperty("class", out var classValue))
             {
-                if (property.Name != "teachtable")
-                {
-                    property.WriteTo(writer);
-                }
+                Console.WriteLine("Skipping item: Missing 'class' field.");
+                continue;
             }
 
-            // ตัวแปรสะสม Array data
-            var allData = new List<JsonElement>();
-
-            // รวบรวมข้อมูลทั้งหมดจาก teachtable
-            if (item.TryGetProperty("teachtable", out JsonElement teachTable))
+            foreach (var teachTable in item.GetProperty("teachtable").EnumerateArray())
             {
-                foreach (var teachEntry in teachTable.EnumerateArray())
+                Console.WriteLine($"Processing teachTable: {teachTable}");
+
+                if (!teachTable.TryGetProperty("data", out var dataArray) || dataArray.GetArrayLength() == 0)
                 {
-                    foreach (var teachProperty in teachEntry.EnumerateObject())
+                    Console.WriteLine("Skipping teachTable: Missing or empty 'data' field.");
+                    continue;
+                }
+
+                var subjectTypeNameTh = teachTable.GetProperty("subject_type_name_th").GetString();
+                var subjectTypeNameEn = teachTable.GetProperty("subject_type_name_en").GetString();
+
+                foreach (var subject in dataArray.EnumerateArray())
+                {
+                    writer.WriteStartObject();
+
+                    writer.WriteString("class", classValue.GetString());
+                    writer.WriteString("subject_type_name_th", subjectTypeNameTh ?? "ไม่มีข้อมูล");
+                    writer.WriteString("subject_type_name_en", subjectTypeNameEn ?? "ไม่มีข้อมูล");
+
+                    writer.WriteString("subject_id", subject.GetProperty("subject_id").GetString() ?? "ไม่มีข้อมูล");
+                    writer.WriteNumber("credit", int.Parse(subject.GetProperty("credit").GetString() ?? "0"));
+                    writer.WriteNumber("section", int.Parse(subject.GetProperty("section").GetString() ?? "0"));
+
+                    writer.WriteString("subject_name_th", subject.GetProperty("subject_name_th").GetString()?.Trim() ?? "ไม่มีข้อมูล");
+                    writer.WriteString("subject_name_en", subject.GetProperty("subject_name_en").GetString()?.Trim() ?? "ไม่มีข้อมูล");
+
+                    var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subject.GetProperty("subject_id").GetString(), uniqueId, curriculumYear);
+                    writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
+                    writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
+                    
+                    // Transform classdatetime (เพิ่มแล้วมีปัญหา)
+                    var classDatetime = subject.GetProperty("classdatetime").GetString();
+                    var transformedDatetime = TransformClassDatetime(classDatetime);
+                    writer.WritePropertyName("classdatetime");
+                    writer.WriteStartArray();
+                    foreach (var dt in transformedDatetime)
                     {
-                        if (teachProperty.Name == "data")
-                        {
-                            foreach (var entry in teachProperty.Value.EnumerateArray())
-                            {
-                                allData.Add(entry); // สะสมข้อมูลทั้งหมดใน allData
-                            }
-                        }
+                        writer.WriteStringValue(dt);
                     }
+                    writer.WriteEndArray();
+                    //
+                    writer.WriteString("classbuilding", subject.GetProperty("classbuilding").GetString());
+                    writer.WriteString("room_no", subject.GetProperty("room_no").GetString());
+                    
+                    writer.WriteString("rule", subject.GetProperty("rule").GetString());
+                    
+                    var teacherListTh = TransformTeacherList(subject.GetProperty("teacher_list_th").GetString());
+                    var teacherListEn = TransformTeacherList(subject.GetProperty("teacher_list_en").GetString());
+                    
+                    writer.WritePropertyName("teacher_list_th");
+                    writer.WriteStartArray();
+                    foreach (var teacher in teacherListTh)
+                    {
+                        writer.WriteStringValue(teacher);
+                    }
+                    writer.WriteEndArray();
+                    
+                    writer.WritePropertyName("teacher_list_en");
+                    writer.WriteStartArray();
+                    foreach (var teacher in teacherListEn)
+                    {
+                        writer.WriteStringValue(teacher);
+                    }
+                    writer.WriteEndArray();
+                    //
+                    var lectOrPrac = subject.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
+                        subject.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : subject.GetProperty("lect_or_prac").GetString();
+                    writer.WriteString("lect_or_prac", lectOrPrac);
+                    
+                    var midtermStart = subject.GetProperty("midterm_start_date_time").GetString();
+                    var midtermEnd = subject.GetProperty("midterm_end_date_time").GetString();
+                    var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
+                    writer.WritePropertyName("midterm_date_time");
+                    writer.WriteStartArray();
+                    foreach (var value in midtermDateTime)
+                    {
+                        writer.WriteStringValue(value);
+                    }
+                    writer.WriteEndArray();
+                    
+                    var finalStart = subject.GetProperty("final_start_date_time").GetString();
+                    var finalEnd = subject.GetProperty("final_end_date_time").GetString();
+                    var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
+                    writer.WritePropertyName("final_date_time");
+                    writer.WriteStartArray();
+                    foreach (var value in finalDateTime)
+                    {
+                        writer.WriteStringValue(value);
+                    }
+                    writer.WriteEndArray();
+
+
+                    
+                    
+                    writer.WriteEndObject(); 
                 }
             }
-
-            // เขียน teachtable ใหม่โดยรวมข้อมูลทั้งหมดใน data ก้อนเดียว
-            writer.WritePropertyName("teachtable");
-            writer.WriteStartArray();
-            writer.WriteStartObject();
-            writer.WritePropertyName("data");
-            writer.WriteStartArray();
-
-            foreach (var entry in allData)
-            {
-                writer.WriteStartObject();
-
-                var subjectId = entry.GetProperty("subject_id").GetString();
-                writer.WriteString("subject_id", subjectId);
-                writer.WriteNumber("credit", int.Parse(entry.GetProperty("credit").GetString()));
-                writer.WriteNumber("section", int.Parse(entry.GetProperty("section").GetString()));
-
-                writer.WriteString("subject_name_th", entry.GetProperty("subject_name_th").GetString()?.Replace("\t", "").Trim());
-                writer.WriteString("subject_name_en", entry.GetProperty("subject_name_en").GetString()?.Replace("\t", "").Trim());
-
-                var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subjectId, uniqueId, curriculumYear);
-                writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
-                writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
-
-                var classdatetime = entry.GetProperty("classdatetime").GetString();
-                var transformedDatetime = TransformClassDatetime(classdatetime);
-                writer.WritePropertyName("classdatetime");
-                writer.WriteStartArray();
-                foreach (var dt in transformedDatetime)
-                {
-                    writer.WriteStringValue(dt);
-                }
-                writer.WriteEndArray();
-
-                writer.WriteString("classbuilding", entry.GetProperty("classbuilding").GetString());
-                writer.WriteString("room_no", entry.GetProperty("room_no").GetString());
-                writer.WriteString("rule", entry.GetProperty("rule").GetString());
-
-                var teacherListTh = TransformTeacherList(entry.GetProperty("teacher_list_th").GetString());
-                var teacherListEn = TransformTeacherList(entry.GetProperty("teacher_list_en").GetString());
-
-                writer.WritePropertyName("teacher_list_th");
-                writer.WriteStartArray();
-                foreach (var teacher in teacherListTh)
-                {
-                    writer.WriteStringValue(teacher);
-                }
-                writer.WriteEndArray();
-
-                writer.WritePropertyName("teacher_list_en");
-                writer.WriteStartArray();
-                foreach (var teacher in teacherListEn)
-                {
-                    writer.WriteStringValue(teacher);
-                }
-                writer.WriteEndArray();
-
-                var lectOrPrac = entry.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
-                    entry.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : entry.GetProperty("lect_or_prac").GetString();
-                writer.WriteString("lect_or_prac", lectOrPrac);
-
-                var midtermStart = entry.GetProperty("midterm_start_date_time").GetString();
-                var midtermEnd = entry.GetProperty("midterm_end_date_time").GetString();
-                var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
-                writer.WritePropertyName("midterm_date_time");
-                writer.WriteStartArray();
-                foreach (var value in midtermDateTime)
-                {
-                    writer.WriteStringValue(value);
-                }
-                writer.WriteEndArray();
-
-                var finalStart = entry.GetProperty("final_start_date_time").GetString();
-                var finalEnd = entry.GetProperty("final_end_date_time").GetString();
-                var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
-                writer.WritePropertyName("final_date_time");
-                writer.WriteStartArray();
-                foreach (var value in finalDateTime)
-                {
-                    writer.WriteStringValue(value);
-                }
-                writer.WriteEndArray();
-
-                writer.WriteEndObject();
-            }
-
-            writer.WriteEndArray();
-            writer.WriteEndObject();
-            writer.WriteEndArray();
-
-            writer.WriteEndObject();
         }
 
         writer.WriteEndArray();
@@ -208,7 +208,7 @@ public class SdmCurriculumTeachtable
                     .GetProperty("group")
                     .GetProperty("group_name")
                     .GetString();
-                
+
                 Console.WriteLine($"Calling API: {genEdApiUrl}");
                 Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
                 return (groupName, null);
@@ -237,7 +237,7 @@ public class SdmCurriculumTeachtable
         // คืนค่า "ไม่ระบุ" ถ้าไม่พบข้อมูลในทั้งสอง API
         return (null, null);
     }
-    
+
     private static List<string> TransformTeacherList(string rawTeacherList)
     {
         if (string.IsNullOrWhiteSpace(rawTeacherList))
@@ -249,9 +249,16 @@ public class SdmCurriculumTeachtable
         var teachers = cleanTeacherList.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
         return teachers.Select(t => t.Trim()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
     }
-
+    
+    // แก้ไข: ฟังก์ชัน TransformClassDatetime ให้รองรับ null และรูปแบบผิดปกติ
     private static List<string> TransformClassDatetime(string rawDatetime)
     {
+        if (string.IsNullOrWhiteSpace(rawDatetime))
+        {
+            Console.WriteLine("Warning: Received empty or null 'classdatetime'.");
+            return new List<string> { "ไม่ระบุ" };
+        }
+
         var dayMapping = new Dictionary<string, string>
         {
             { "จ.", "จันทร์" },
@@ -264,39 +271,51 @@ public class SdmCurriculumTeachtable
         };
 
         var result = new List<string>();
-        var parts = rawDatetime.Split(new[] { "<div>", "</div>", "+" }, StringSplitOptions.RemoveEmptyEntries);
 
-        string? currentDay = null;
-        foreach (var part in parts)
+        try
         {
-            var dayMatch = dayMapping.FirstOrDefault(m => part.StartsWith(m.Key));
-            if (dayMatch.Key != null)
-            {
-                currentDay = dayMatch.Value;
-                if (!result.Contains(currentDay))
-                {
-                    result.Add(currentDay);
-                }
+            var parts = rawDatetime.Split(new[] { "<div>", "</div>", "+" }, StringSplitOptions.RemoveEmptyEntries);
 
-                var timePart = part.Replace(dayMatch.Key, "").Trim();
-                if (!string.IsNullOrWhiteSpace(timePart))
-                {
-                    result.Add(timePart);
-                }
-            }
-            else if (currentDay != null)
+            string? currentDay = null;
+            foreach (var part in parts)
             {
-                var cleanedPart = part.Trim();
-                foreach (var dayKey in dayMapping.Keys)
+                var dayMatch = dayMapping.FirstOrDefault(m => part.StartsWith(m.Key));
+                if (dayMatch.Key != null)
                 {
-                    if (cleanedPart.StartsWith(dayKey))
+                    currentDay = dayMatch.Value;
+                    // result.Add(currentDay);
+                    if (!result.Contains(currentDay))
                     {
-                        cleanedPart = cleanedPart.Replace(dayKey, "").Trim();
-                        break;
+                        result.Add(currentDay);
+                    }
+
+
+                    var timePart = part.Replace(dayMatch.Key, "").Trim();
+                    if (!string.IsNullOrWhiteSpace(timePart))
+                    {
+                        result.Add(timePart);
                     }
                 }
-                result.Add(cleanedPart);
+                else if (currentDay != null)
+                {
+                    // result.Add(part.Trim());
+                    var cleanedPart = part.Trim();
+                    foreach (var dayKey in dayMapping.Keys)
+                    {
+                        if (cleanedPart.StartsWith(dayKey))
+                        {
+                            cleanedPart = cleanedPart.Replace(dayKey, "").Trim();
+                            break;
+                        }
+                    }
+                    result.Add(cleanedPart);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error transforming 'classdatetime': {ex.Message}");
+            result.Add("ข้อมูลเวลาไม่ถูกต้อง");
         }
 
         return result;
