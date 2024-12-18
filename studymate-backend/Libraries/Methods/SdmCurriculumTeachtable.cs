@@ -109,7 +109,7 @@ public class SdmCurriculumTeachtable
                     writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
                     writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
                     
-                    // Transform classdatetime (เพิ่มแล้วมีปัญหา)
+                    // Transform classdatetime
                     var classDatetime = subject.GetProperty("classdatetime").GetString();
                     var transformedDatetime = TransformClassDatetime(classDatetime);
                     writer.WritePropertyName("classdatetime");
@@ -143,7 +143,7 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(teacher);
                     }
                     writer.WriteEndArray();
-                    //
+                  
                     var lectOrPrac = subject.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
                         subject.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : subject.GetProperty("lect_or_prac").GetString();
                     writer.WriteString("lect_or_prac", lectOrPrac);
@@ -169,9 +169,10 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(value);
                     }
                     writer.WriteEndArray();
-
-
-                    
+                    var interested = 0;
+                    var rating = 0.0f;
+                    writer.WriteNumber("interested", interested);
+                    writer.WriteNumber("rating", rating);
                     
                     writer.WriteEndObject(); 
                 }
@@ -283,12 +284,10 @@ public class SdmCurriculumTeachtable
                 if (dayMatch.Key != null)
                 {
                     currentDay = dayMatch.Value;
-                    // result.Add(currentDay);
                     if (!result.Contains(currentDay))
                     {
                         result.Add(currentDay);
                     }
-
 
                     var timePart = part.Replace(dayMatch.Key, "").Trim();
                     if (!string.IsNullOrWhiteSpace(timePart))
@@ -298,7 +297,6 @@ public class SdmCurriculumTeachtable
                 }
                 else if (currentDay != null)
                 {
-                    // result.Add(part.Trim());
                     var cleanedPart = part.Trim();
                     foreach (var dayKey in dayMapping.Keys)
                     {
