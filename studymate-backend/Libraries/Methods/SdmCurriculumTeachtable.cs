@@ -210,7 +210,6 @@ public class SdmCurriculumTeachtable
                     .GetProperty("group")
                     .GetProperty("group_name")
                     .GetString();
-
                 // Console.WriteLine($"Calling API: {genEdApiUrl}");
                 // Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
                 return (groupName, null);
