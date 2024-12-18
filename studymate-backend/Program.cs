@@ -49,7 +49,8 @@ app.UseCors(policyBuilder =>
         "http://localhost:4200",
         "https://preprod.savvystudymate.com",
         "https://test.savvystudymate.com",
-        "https://savvystudymate.com"
+        "https://savvystudymate.com",
+        "http://macbook.tntdverse.com:4200"
     ).AllowAnyHeader().AllowAnyMethod();
 });
 
