@@ -119,7 +119,7 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(dt);
                     }
                     writer.WriteEndArray();
-                    //
+                 
                     writer.WriteString("classbuilding", subject.GetProperty("classbuilding").GetString());
                     writer.WriteString("room_no", subject.GetProperty("room_no").GetString());
                     
@@ -210,8 +210,8 @@ public class SdmCurriculumTeachtable
                     .GetProperty("group_name")
                     .GetString();
 
-                Console.WriteLine($"Calling API: {genEdApiUrl}");
-                Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
+                // Console.WriteLine($"Calling API: {genEdApiUrl}");
+                // Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
                 return (groupName, null);
             }
 
@@ -225,8 +225,8 @@ public class SdmCurriculumTeachtable
                 // ดึงค่า group_name และ subgroup_name
                 var groupName = subjectGroupJson.RootElement.GetProperty("group_name").GetString();
                 var subGroupName = subjectGroupJson.RootElement.GetProperty("subgroup_name").GetString();
-                Console.WriteLine($"Calling API: {subjectGroupApiUrl}");
-                Console.WriteLine($"Response from API: {await subjectGroupResponse.Content.ReadAsStringAsync()}");
+                // Console.WriteLine($"Calling API: {subjectGroupApiUrl}");
+                // Console.WriteLine($"Response from API: {await subjectGroupResponse.Content.ReadAsStringAsync()}");
                 return (groupName, subGroupName);
             }
         }
