@@ -101,7 +101,8 @@ public class SdmCurriculumTeachtable
                     writer.WriteString("subject_id", subject.GetProperty("subject_id").GetString() ?? "ไม่มีข้อมูล");
                     writer.WriteNumber("credit", int.Parse(subject.GetProperty("credit").GetString() ?? "0"));
                     writer.WriteNumber("section", int.Parse(subject.GetProperty("section").GetString() ?? "0"));
-
+                    writer.WriteString("credit_lps", subject.GetProperty("credit_lps").GetString());
+                    
                     writer.WriteString("subject_name_th", subject.GetProperty("subject_name_th").GetString()?.Trim() ?? "ไม่มีข้อมูล");
                     writer.WriteString("subject_name_en", subject.GetProperty("subject_name_en").GetString()?.Trim() ?? "ไม่มีข้อมูล");
 
@@ -209,7 +210,6 @@ public class SdmCurriculumTeachtable
                     .GetProperty("group")
                     .GetProperty("group_name")
                     .GetString();
-
                 // Console.WriteLine($"Calling API: {genEdApiUrl}");
                 // Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
                 return (groupName, null);
