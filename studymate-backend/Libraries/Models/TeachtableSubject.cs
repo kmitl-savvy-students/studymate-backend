@@ -5,6 +5,7 @@ public class TeachtableSubject(
     string subject_id,
     int interested,
     float rating,
+    int count_of_review,
     int id = 0
 ) : IBaseModel
 {
@@ -12,5 +13,6 @@ public class TeachtableSubject(
     public Teachtable? teachtable { get; set; } = teachtable;
     public string subject_id { get; set; } = subject_id;
     public int interested { get; set; } = interested;
+    public int count_of_review { get; set; } = count_of_review;
     public float rating { get; set; } = rating;
 }
