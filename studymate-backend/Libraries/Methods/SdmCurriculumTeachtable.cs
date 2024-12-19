@@ -94,7 +94,7 @@ public class SdmCurriculumTeachtable
                 {
                     writer.WriteStartObject();
 
-                    writer.WriteString("class", classValue.GetString());
+                    writer.WriteString("classLevel", classValue.GetString());
                     writer.WriteString("subject_type_name_th", subjectTypeNameTh ?? "ไม่มีข้อมูล");
                     writer.WriteString("subject_type_name_en", subjectTypeNameEn ?? "ไม่มีข้อมูล");
 
@@ -102,14 +102,14 @@ public class SdmCurriculumTeachtable
                     writer.WriteNumber("credit", int.Parse(subject.GetProperty("credit").GetString() ?? "0"));
                     writer.WriteNumber("section", int.Parse(subject.GetProperty("section").GetString() ?? "0"));
                     writer.WriteString("credit_lps", subject.GetProperty("credit_lps").GetString());
-                    
+
                     writer.WriteString("subject_name_th", subject.GetProperty("subject_name_th").GetString()?.Trim() ?? "ไม่มีข้อมูล");
                     writer.WriteString("subject_name_en", subject.GetProperty("subject_name_en").GetString()?.Trim() ?? "ไม่มีข้อมูล");
 
                     var (subjectTypeName, subjectSubTypeName) = await FetchSubjectDetails(subject.GetProperty("subject_id").GetString(), uniqueId, curriculumYear);
                     writer.WriteString("subject_type_name", subjectTypeName ?? "ไม่ระบุ");
                     writer.WriteString("subject_subtype_name", subjectSubTypeName ?? "ไม่ระบุ");
-                    
+
                     // Transform classdatetime
                     var classDatetime = subject.GetProperty("classdatetime").GetString();
                     var transformedDatetime = TransformClassDatetime(classDatetime);
@@ -120,15 +120,15 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(dt);
                     }
                     writer.WriteEndArray();
-                 
+
                     writer.WriteString("classbuilding", subject.GetProperty("classbuilding").GetString());
                     writer.WriteString("room_no", subject.GetProperty("room_no").GetString());
-                    
+
                     writer.WriteString("rule", subject.GetProperty("rule").GetString());
-                    
+
                     var teacherListTh = TransformTeacherList(subject.GetProperty("teacher_list_th").GetString());
                     var teacherListEn = TransformTeacherList(subject.GetProperty("teacher_list_en").GetString());
-                    
+
                     writer.WritePropertyName("teacher_list_th");
                     writer.WriteStartArray();
                     foreach (var teacher in teacherListTh)
@@ -136,7 +136,7 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(teacher);
                     }
                     writer.WriteEndArray();
-                    
+
                     writer.WritePropertyName("teacher_list_en");
                     writer.WriteStartArray();
                     foreach (var teacher in teacherListEn)
@@ -144,11 +144,11 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(teacher);
                     }
                     writer.WriteEndArray();
-                  
+
                     var lectOrPrac = subject.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
                         subject.GetProperty("lect_or_prac").GetString() == "ป" ? "ปฏิบัติ" : subject.GetProperty("lect_or_prac").GetString();
                     writer.WriteString("lect_or_prac", lectOrPrac);
-                    
+
                     var midtermStart = subject.GetProperty("midterm_start_date_time").GetString();
                     var midtermEnd = subject.GetProperty("midterm_end_date_time").GetString();
                     var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
@@ -159,7 +159,7 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(value);
                     }
                     writer.WriteEndArray();
-                    
+
                     var finalStart = subject.GetProperty("final_start_date_time").GetString();
                     var finalEnd = subject.GetProperty("final_end_date_time").GetString();
                     var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
@@ -174,8 +174,8 @@ public class SdmCurriculumTeachtable
                     var rating = 0.0f;
                     writer.WriteNumber("interested", interested);
                     writer.WriteNumber("rating", rating);
-                    
-                    writer.WriteEndObject(); 
+
+                    writer.WriteEndObject();
                 }
             }
         }
@@ -186,7 +186,7 @@ public class SdmCurriculumTeachtable
 
         return filteredJson.RootElement.Clone();
     }
-    
+
     private static async Task<(string? subjectTypeName, string? subjectSubTypeName)> FetchSubjectDetails(
         string subjectId,
         string uniqueId,
@@ -250,7 +250,7 @@ public class SdmCurriculumTeachtable
         var teachers = cleanTeacherList.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
         return teachers.Select(t => t.Trim()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
     }
-    
+
     // แก้ไข: ฟังก์ชัน TransformClassDatetime ให้รองรับ null และรูปแบบผิดปกติ
     private static List<string> TransformClassDatetime(string rawDatetime)
     {
@@ -318,7 +318,7 @@ public class SdmCurriculumTeachtable
 
         return result;
     }
-    
+
     private static List<string> TransformDateTime(string startDateTime, string endDateTime, string phase)
     {
         if (string.IsNullOrWhiteSpace(startDateTime) || string.IsNullOrWhiteSpace(endDateTime))

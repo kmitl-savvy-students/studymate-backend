@@ -1,120 +1,155 @@
 ﻿using Npgsql;
 using studymate_backend.Libraries.Database.QueryBuilders;
+using System;
+using System.Collections.Generic;
+using System.Data;
 
-namespace studymate_backend.Libraries.Database;
-
-public class SdmPgsqlQuery(
-    ISdmPgsqlQueryBase queryBase
-)
+namespace studymate_backend.Libraries.Database
 {
-    private NpgsqlCommand? _command;
-    private NpgsqlDataReader? _reader;
-    private NpgsqlDataSource? _source;
-
-    public int insertedId;
-
-    private void ExecuteScalar()
+    public class SdmPgsqlQuery
     {
-        var dataSource = SdmDataSource.Get();
-        if (dataSource == null)
-            return;
+        private readonly ISdmPgsqlQueryBase queryBase;
 
-        _source = dataSource;
-        try
+        // Instead of holding a live reader and command, we'll store all results in memory.
+        private List<object?[]>? _rows;
+        private int _currentRowIndex = -1;
+
+        // Store column count after loading
+        private int _columnCount = 0;
+
+        // For insertedId when executing scalar inserts
+        public int insertedId;
+
+        public SdmPgsqlQuery(ISdmPgsqlQueryBase queryBase)
         {
-            _command = _source.CreateCommand(queryBase.Build());
-            var result = _command.ExecuteScalar();
-            if (result?.GetType() == typeof(int))
-                insertedId = Convert.ToInt32(result);
-        }
-        catch (NpgsqlException ex)
-        {
-            Console.WriteLine("ERROR: SdmPgsqlQuery.ExecuteScalar(): " + ex.Message);
-        }
-    }
-
-    public static SdmPgsqlQuery Execute(ISdmPgsqlQueryBase queryBase)
-    {
-        var query = new SdmPgsqlQuery(queryBase);
-
-        if (queryBase is SdmPgsqlQueryInsert)
-            query.ExecuteScalar();
-        else
-            query.GetReader();
-
-        return query;
-    }
-
-    private NpgsqlDataReader? GetReader()
-    {
-        if (_reader != null)
-            return _reader;
-
-        var dataSource = SdmDataSource.Get();
-        if (dataSource == null)
-            return null;
-
-        _source = dataSource;
-        try
-        {
-            _command = _source.CreateCommand(queryBase.Build());
-            _reader = _command.ExecuteReader();
-        }
-        catch (NpgsqlException ex)
-        {
-            Console.WriteLine("ERROR: SdmPostgresQuery.getReader(): " + ex.Message);
+            this.queryBase = queryBase;
         }
 
-        return _reader;
-    }
+        public static SdmPgsqlQuery Execute(ISdmPgsqlQueryBase queryBase)
+        {
+            var query = new SdmPgsqlQuery(queryBase);
 
-    public bool Next()
-    {
-        return GetReader()?.Read() ?? false;
-    }
+            if (queryBase is SdmPgsqlQueryInsert)
+            {
+                query.ExecuteScalar();
+            }
+            else
+            {
+                query.LoadAllRows();
+            }
 
-    public void CleanUp()
-    {
-        _reader?.Dispose();
-        _command?.Dispose();
-    }
+            return query;
+        }
 
-    public string ToString(int columnIndex)
-    {
-        var reader = GetReader();
+        private void ExecuteScalar()
+        {
+            var dataSource = SdmDataSource.Get();
+            if (dataSource == null)
+                return;
 
-        if (reader == null)
-            return string.Empty;
+            using (var command = dataSource.CreateCommand(queryBase.Build()))
+            {
+                var result = command.ExecuteScalar();
+                if (result is int intValue)
+                    insertedId = intValue;
+            }
+            // Connection is closed automatically after command disposal since we used DataSource.CreateCommand()
+        }
 
-        return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetString(columnIndex);
-    }
-    public int ToInt(int columnIndex)
-    {
-        var reader = GetReader();
+        private void LoadAllRows()
+        {
+            var dataSource = SdmDataSource.Get();
+            if (dataSource == null)
+                return;
 
-        if (reader == null)
+            using (var command = dataSource.CreateCommand(queryBase.Build()))
+            using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection))
+            {
+                _columnCount = reader.FieldCount;
+                _rows = new List<object?[]>();
+
+                while (reader.Read())
+                {
+                    var values = new object?[reader.FieldCount];
+                    reader.GetValues(values);
+                    _rows.Add(values);
+                }
+            }
+            // Reader and command disposed, connection closed immediately after load.
+        }
+
+        public bool Next()
+        {
+            if (_rows == null || _rows.Count == 0)
+                return false;
+
+            _currentRowIndex++;
+            return _currentRowIndex < _rows.Count;
+        }
+
+        public void CleanUp()
+        {
+            // Nothing to clean up now since we close and dispose immediately after query execution
+            // But we implement this so usage code that calls CleanUp() still works without changes.
+            _rows = null;
+            _currentRowIndex = -1;
+        }
+
+        private object? GetValue(int columnIndex)
+        {
+            if (_rows == null || _currentRowIndex < 0 || _currentRowIndex >= _rows.Count)
+                return null;
+
+            if (columnIndex < 0 || columnIndex >= _columnCount)
+                return null;
+
+            return _rows[_currentRowIndex][columnIndex];
+        }
+
+        public string ToString(int columnIndex)
+        {
+            var val = GetValue(columnIndex);
+            return val == null || val is DBNull ? string.Empty : val.ToString() ?? string.Empty;
+        }
+
+        public int ToInt(int columnIndex)
+        {
+            var val = GetValue(columnIndex);
+            if (val == null || val is DBNull)
+                return -1;
+
+            if (int.TryParse(val.ToString(), out var result))
+                return result;
+
             return -1;
+        }
 
-        return reader.IsDBNull(columnIndex) ? -1 : reader.GetInt32(columnIndex);
-    }
-    public string ToDateTime(int columnIndex)
-    {
-        var reader = GetReader();
+        public string ToDateTime(int columnIndex)
+        {
+            var val = GetValue(columnIndex);
+            if (val == null || val is DBNull)
+                return string.Empty;
 
-        if (reader == null)
+            if (val is DateTime dt)
+                return dt.ToString("yyyy-MM-dd HH:mm:ss zzz");
+
+            // Attempt to parse if it's a string
+            if (DateTime.TryParse(val.ToString(), out var parsedDt))
+                return parsedDt.ToString("yyyy-MM-dd HH:mm:ss zzz");
+
             return string.Empty;
+        }
 
-        return reader.IsDBNull(columnIndex) ? string.Empty : reader.GetDateTime(columnIndex).ToString("yyyy-MM-dd HH:mm:ss zzz");
+        public float ToFloat(int columnIndex)
+        {
+            var val = GetValue(columnIndex);
+            if (val == null || val is DBNull)
+                return 0.0f;
+
+            if (float.TryParse(val.ToString(), out var result))
+                return result;
+
+            return 0.0f;
+        }
     }
-    
-    public float ToFloat(int columnIndex)
-    {
-        var reader = GetReader();
-
-        if (reader == null)
-            return 0.0f; // คืนค่าเริ่มต้นหาก reader เป็น null
-
-        return reader.IsDBNull(columnIndex) ? 0.0f : Convert.ToSingle(reader.GetValue(columnIndex));
-    }
-
 }
