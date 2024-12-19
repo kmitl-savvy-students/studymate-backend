@@ -26,6 +26,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
                 query.ToString(2),
                 query.ToInt(3),
                 query.ToFloat(4),
+                query.ToInt(5),
                 query.ToInt(0)
                 
             ));
@@ -43,6 +44,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
         insert.Insert("subject_id", teachtableSubject.subject_id);
         insert.Insert("interested", teachtableSubject.interested.ToString());
         insert.Insert("rating", teachtableSubject.rating.ToString());
+        insert.Insert("count_of_review", teachtableSubject.count_of_review.ToString());
 
         var query = SdmPgsqlQuery.Execute(insert);
         query.CleanUp();
