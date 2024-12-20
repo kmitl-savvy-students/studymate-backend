@@ -14,15 +14,11 @@ public class TeachtableSubjectReviewController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        try
-        {
-            var reviews = SdmTeachtableSubjectReview.GetAll();
-            return Ok(reviews);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "An error occurred while fetching reviews.", error = ex.Message });
-        }
+        var reviews = SdmTeachtableSubjectReview.GetAll();
+        
+        if (reviews.Count == 0)
+            return NotFound(new { message = "Review not found." });
+        return Ok(reviews);
     }
 
     // ดึงข้อมูลตาม ID
