@@ -78,97 +78,6 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             return null;
         return result[0];
     }
-
-    
-    // public static TeachtableSubject CheckOrCreate(int teachtableId, string subjectId)
-    // {
-    //     try
-    //     {
-    //         var select = new SdmPgsqlQuerySelect("teachtable_subject")
-    //             .AddWhereCondition("teachtable_id", teachtableId.ToString())
-    //             .AddWhereCondition("subject_id", subjectId);
-    //
-    //         var result = ProcessQuery(select);
-    //         if (result.Count > 0)
-    //         {
-    //             return result[0]; // Return TeachtableSubject ที่มีอยู่
-    //         }
-    //
-    //         // ถ้าไม่มี TeachtableSubject ให้สร้างใหม่
-    //         var newTeachtableSubject = new TeachtableSubject(
-    //             teachtable: new Teachtable(0, 0, teachtableId),
-    //             subject_id: subjectId,
-    //             interested: 0,
-    //             rating: 0.0f
-    //         );
-    //
-    //         Insert(newTeachtableSubject);
-    //
-    //         // Query ใหม่เพื่อตรวจสอบ
-    //         Console.WriteLine("Querying TeachtableSubject after Insert");
-    //         var selectAfterInsert = new SdmPgsqlQuerySelect("teachtable_subject")
-    //             .AddWhereCondition("teachtable_id", teachtableId.ToString())
-    //             .AddWhereCondition("subject_id", subjectId);
-    //
-    //         var newResult = ProcessQuery(selectAfterInsert);
-    //         if (newResult.Count > 0)
-    //         {
-    //             return newResult[0];
-    //         }
-    //
-    //         throw new Exception("Failed to retrieve TeachtableSubject after Insert.");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error in CheckOrCreate: {ex.Message}");
-    //         throw;
-    //     }
-    // }
-    
-    // public static TeachtableSubject CheckOrCreate(int teachtableId, string subjectId)
-    // {
-    //     try
-    //     {
-    //         // ตรวจสอบว่ามี TeachtableSubject อยู่หรือไม่
-    //         var select = new SdmPgsqlQuerySelect("teachtable_subject")
-    //             .AddWhereCondition("teachtable_id", teachtableId.ToString())
-    //             .AddWhereCondition("subject_id", subjectId);
-    //
-    //         var result = ProcessQuery(select);
-    //         if (result.Count > 0)
-    //         {
-    //             return result[0]; // ถ้ามีอยู่แล้ว Return
-    //         }
-    //
-    //         // ถ้าไม่มี ให้สร้าง TeachtableSubject ใหม่
-    //         var newTeachtableSubject = new TeachtableSubject(
-    //             teachtable: new Teachtable(0, 0, teachtableId),
-    //             subject_id: subjectId,
-    //             interested: 0,
-    //             rating: 0.0f
-    //         );
-    //
-    //         Insert(newTeachtableSubject);
-    //
-    //         // Query ใหม่หลังจาก Insert เพื่อดึงข้อมูลที่สร้าง
-    //         var selectAfterInsert = new SdmPgsqlQuerySelect("teachtable_subject")
-    //             .AddWhereCondition("teachtable_id", teachtableId.ToString())
-    //             .AddWhereCondition("subject_id", subjectId);
-    //
-    //         var newResult = ProcessQuery(selectAfterInsert);
-    //         if (newResult.Count > 0)
-    //         {
-    //             return newResult[0];
-    //         }
-    //
-    //         throw new Exception("Failed to retrieve TeachtableSubject after Insert.");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error in CheckOrCreate: {ex.Message}");
-    //         throw;
-    //     }
-    // }
     
     public static TeachtableSubject CheckOrCreate(int teachtableId, string subjectId)
     {
@@ -194,7 +103,8 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
                 teachtable: SdmTeachtable.GetById(teachtableId),
                 subject_id: subjectId,
                 interested: 0,
-                rating: 0.0f
+                rating: 0.0f,
+                count_of_review: 0
             );
             Insert(newTeachtableSubject);
 
