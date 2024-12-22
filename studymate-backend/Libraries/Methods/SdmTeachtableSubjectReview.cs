@@ -22,7 +22,7 @@ public class SdmTeachtableSubjectReview
         {
             result.Add(new TeachtableSubjectReview(
                 SdmTeachtableSubject.GetById(query.ToInt(1)), // Foreign Key: teachtable_subject_id
-                SdmUser.GetBy(query.ToString(2)),             // Foreign Key: user_id
+                query.ToString(2),             // Foreign Key: user_id
                 query.ToString(3),                           // Review
                 query.ToFloat(4),                            // Rating
                 query.ToInt(5),                              // Like
@@ -48,14 +48,14 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            Console.WriteLine($"Insert Review Debug: teachtable_subject_id={review.teachtable_subject?.id}, user_id={review.user?.id}, review={review.review}, rating={review.rating}, like={review.like}");
+            // Console.WriteLine($"Insert Review Debug: teachtable_subject_id={review.teachtable_subject?.id}, user_id={review.user?.id}, review={review.review}, rating={review.rating}, like={review.like}");
 
             if (review.teachtable_subject == null || review.teachtable_subject.id == 0)
             {
                 throw new Exception("teachtable_subject is null or has invalid id.");
             }
 
-            if (review.user == null || string.IsNullOrEmpty(review.user.id))
+            if (string.IsNullOrEmpty(review.user_id))
             {
                 throw new Exception("User is null or has invalid id.");
             }
@@ -63,7 +63,7 @@ public class SdmTeachtableSubjectReview
             var insert = new SdmPgsqlQueryInsert(TableName);
 
             insert.Insert("teachtable_subject_id", review.teachtable_subject.id.ToString());
-            insert.Insert("user_id", review.user.id);
+            insert.Insert("user_id", review.user_id);
             insert.Insert("review", review.review);
             insert.Insert("rating", review.rating.ToString());
             insert.Insert("like", review.like.ToString());
@@ -149,7 +149,7 @@ public class SdmTeachtableSubjectReview
             var update = new SdmPgsqlQueryUpdate(TableName);
 
             update.Set("teachtable_subject_id", reviewToUpdate.teachtable_subject?.id.ToString() ?? "NULL");
-            update.Set("user_id", reviewToUpdate.user?.id);
+            update.Set("user_id", reviewToUpdate.user_id);
             update.Set("review", reviewToUpdate.review);
             update.Set("rating", reviewToUpdate.rating.ToString());
             update.Set("like", reviewToUpdate.like.ToString());
@@ -226,12 +226,12 @@ public class SdmTeachtableSubjectReview
 
             var newReview = new TeachtableSubjectReview(
                 teachtable_subject: teachableSubject,
-                user: user,
+                user_id: studentId,
                 review: review,
                 rating: rating,
                 like: 0
             );
-            Console.WriteLine($"TeachtableSubjectReview Created: teachtable_subject_id={newReview.teachtable_subject?.id}, user_id={newReview.user?.id}, review={newReview.review}, rating={newReview.rating}, like={newReview.like}");
+            Console.WriteLine($"TeachtableSubjectReview Created: teachtable_subject_id={newReview.teachtable_subject?.id}, user_id={newReview.user_id}, review={newReview.review}, rating={newReview.rating}, like={newReview.like}");
             Insert(newReview);
         }
         catch (Exception ex)
