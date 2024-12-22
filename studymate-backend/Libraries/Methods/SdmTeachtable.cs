@@ -1,6 +1,7 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
+using studymate_backend.Libraries.Helper;
 
 namespace studymate_backend.Libraries.Methods;
 
@@ -84,6 +85,9 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
     
     public static Teachtable CheckOrCreate(int year, int term)
     {
+        if (!SdmNumber.IsAcademicTerm(term) ||
+            !SdmNumber.IsAcademicYear(year))
+            throw new ArgumentException("Invalid academic year or term.");
         // สร้าง Query Object พร้อมเงื่อนไข
         var select = new SdmPgsqlQuerySelect("teachtable")
             .AddWhereCondition("academic_year", year.ToString())

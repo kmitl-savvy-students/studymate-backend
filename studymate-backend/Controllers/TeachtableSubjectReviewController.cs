@@ -15,30 +15,10 @@ public class TeachtableSubjectReviewController : ControllerBase
     public IActionResult GetAll()
     {
         var reviews = SdmTeachtableSubjectReview.GetAll();
-        
+
         if (reviews.Count == 0)
             return NotFound(new { message = "Review not found." });
         return Ok(reviews);
-    }
-
-    // ดึงข้อมูลตาม ID
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpGet("{id}")]
-    public IActionResult GetById(int id)
-    {
-        try
-        {
-            var review = SdmTeachtableSubjectReview.GetById(id);
-            if (review == null)
-            {
-                return NotFound(new { message = "Review not found." });
-            }
-            return Ok(review);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "An error occurred while fetching the review.", error = ex.Message });
-        }
     }
 
     // เพิ่มรีวิวใหม่
@@ -61,59 +41,77 @@ public class TeachtableSubjectReviewController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while creating the review.", error = ex.Message });
+            return StatusCode(500,
+                new { message = "An error occurred while creating the review.", error = ex.Message });
         }
     }
 
-    // อัปเดตรีวิว
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] TeachtableSubjectReviewDto reviewDto)
+    [HttpGet("{subjectId}/{studentId}")]
+    public IActionResult GetBySubjectAndStudent(string subjectId, string studentId)
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetById(id);
+            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
             }
 
-            // อัปเดตค่าของ Review
-            review.review = reviewDto.Review;
-            review.rating = reviewDto.Rating;
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while fetching the review.", error = ex.Message });
+        }
+    }
 
-            SdmTeachtableSubjectReview.Update(review);
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPatch("update")]
+    public IActionResult Update([FromBody] TeachtableSubjectReviewDto reviewDto)
+    {
+        try
+        {
+            SdmTeachtableSubjectReview.Update(
+                studentId: reviewDto.StudentId,
+                year: reviewDto.Year,
+                term: reviewDto.Term,
+                subjectId: reviewDto.SubjectId,
+                review: reviewDto.Review,
+                rating: reviewDto.Rating
+            );
 
             return Ok(new { message = "Review updated successfully." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while updating the review.", error = ex.Message });
+            return NotFound(new { message = "An error occurred while updating the review.", error = ex.Message });
         }
     }
-
-    // ลบรีวิว
+    
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    [HttpDelete("{subjectId}/{studentId}")]
+    public IActionResult Delete(string subjectId, string studentId)
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetById(id);
+            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
             }
-
-            SdmTeachtableSubjectReview.Delete(review);
+            SdmTeachtableSubjectReview.Delete(subjectId, studentId);
             return Ok(new { message = "Review deleted successfully." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while deleting the review.", error = ex.Message });
+            return StatusCode(500,
+                new { message = "An error occurred while deleting the review.", error = ex.Message });
         }
     }
 }
+
 
 // DTO สำหรับรับข้อมูลจาก Request
 public class TeachtableSubjectReviewDto
@@ -123,5 +121,5 @@ public class TeachtableSubjectReviewDto
     public int Term { get; set; }
     public string SubjectId { get; set; } = string.Empty;
     public string Review { get; set; } = string.Empty;
-    public float Rating { get; set; }
+    public float Rating { get; set; } 
 }

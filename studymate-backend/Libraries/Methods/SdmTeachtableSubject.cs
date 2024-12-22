@@ -35,19 +35,6 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
         query.CleanUp();
         return result;
     }
-
-    // public static void Insert(TeachtableSubject teachtableSubject)
-    // {
-    //     var insert = new SdmPgsqlQueryInsert(TableName);
-    //     
-    //     insert.Insert("teachtable_id", teachtableSubject.teachtable?.id.ToString());
-    //     insert.Insert("subject_id", teachtableSubject.subject_id);
-    //     insert.Insert("interested", teachtableSubject.interested.ToString());
-    //     insert.Insert("rating", teachtableSubject.rating.ToString());
-    //
-    //     var query = SdmPgsqlQuery.Execute(insert);
-    //     query.CleanUp();
-    // }
     
     public static void Insert(TeachtableSubject teachtableSubject)
     {
@@ -67,9 +54,6 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     
     public static TeachtableSubject? GetById(int id)
     {
-        // if (id == null)
-        //     return null;
-        
         var select = GetQueryObj();
         select.WhereEqual("id", id.ToString());
         
@@ -81,6 +65,12 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     
     public static TeachtableSubject CheckOrCreate(int teachtableId, string subjectId)
     {
+        
+        if (string.IsNullOrWhiteSpace(subjectId))
+        {
+            throw new ArgumentException("Invalid subjectId. SubjectId cannot be empty or null.");
+        }
+        
         try
         {
             Console.WriteLine($"CheckOrCreate: Checking teachtable_subject with teachtable_id={teachtableId}, subject_id={subjectId}");
