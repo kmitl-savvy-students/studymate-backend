@@ -6,6 +6,8 @@ public class TeachtableSubjectReview(
     string review,
     float rating,
     int like,
+    // DateOnly created = default, // ใช้ default (ค่าเริ่มต้นของ DateOnly)
+    DateOnly? created = null,
     int id = 0
 ) : IBaseModel
 {
@@ -15,4 +17,7 @@ public class TeachtableSubjectReview(
     public string review { get; set; } = review;
     public float rating { get; set; } = rating;
     public int like { get; set; } = like;
+    // public DateOnly created { get; set; } = created == default ? DateOnly.FromDateTime(DateTime.Now) : created;
+    public DateOnly created { get; set; } = created ?? DateOnly.FromDateTime(DateTime.Now); // ถ้าไม่กำหนด ใช้วันที่ปัจจุบัน
+
 }

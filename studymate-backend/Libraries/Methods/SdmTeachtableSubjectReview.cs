@@ -20,12 +20,28 @@ public class SdmTeachtableSubjectReview
 
         while (query.Next())
         {
+            // ตรวจสอบและแปลงค่าของ created
+            DateOnly createdValue;
+
+            try
+            {
+                // ดึงค่าจากคอลัมน์ 6 และแปลงเป็น DateTime ก่อน
+                var createdDateTime = DateTime.Parse(query.ToString(6)); // แปลงจาก string เป็น DateTime
+                createdValue = DateOnly.FromDateTime(createdDateTime);  // แปลงจาก DateTime เป็น DateOnly
+            }
+            catch
+            {
+                // หากค่าที่ดึงมาไม่สามารถแปลงได้ ให้ใช้วันที่ปัจจุบันแทน
+                createdValue = DateOnly.FromDateTime(DateTime.Now);
+            }
+            
             result.Add(new TeachtableSubjectReview(
                 SdmTeachtableSubject.GetById(query.ToInt(1)), // Foreign Key: teachtable_subject_id
                 query.ToString(2),             // Foreign Key: user_id
                 query.ToString(3),                           // Review
                 query.ToFloat(4),                            // Rating
                 query.ToInt(5),                              // Like
+                createdValue,
                 query.ToInt(0)                               // Primary Key: id
             ));
 
