@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
-using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/teachtablesubjectreview")]
+[Route("api/teachtable-subject-review")]
 public class TeachtableSubjectReviewController : ControllerBase
 {
-    // ดึงข้อมูลทั้งหมด
+    
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpGet]
     public IActionResult GetAll()
@@ -20,8 +19,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             return NotFound(new { message = "Review not found." });
         return Ok(reviews);
     }
-
-    // เพิ่มรีวิวใหม่
+    
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost]
     public IActionResult Create([FromBody] TeachtableSubjectReviewDto reviewDto)
@@ -53,6 +51,27 @@ public class TeachtableSubjectReviewController : ControllerBase
         try
         {
             var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            if (review == null)
+            {
+                return NotFound(new { message = "Review not found." });
+            }
+
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while fetching the review.", error = ex.Message });
+        }
+    }
+    
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpGet("{subjectId}")]
+    public IActionResult GetBySubject(string subjectId)
+    {
+        try
+        {
+            var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
@@ -112,8 +131,6 @@ public class TeachtableSubjectReviewController : ControllerBase
     }
 }
 
-
-// DTO สำหรับรับข้อมูลจาก Request
 public class TeachtableSubjectReviewDto
 {
     public string StudentId { get; set; } = string.Empty;

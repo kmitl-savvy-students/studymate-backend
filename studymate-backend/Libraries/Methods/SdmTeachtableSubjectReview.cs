@@ -11,7 +11,7 @@ public class SdmTeachtableSubjectReview
     {
         return new SdmPgsqlQuerySelect(TableName);
     }
-
+    
     public static List<TeachtableSubjectReview> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
@@ -25,25 +25,41 @@ public class SdmTeachtableSubjectReview
 
             try
             {
-                // ดึงค่าจากคอลัมน์ 6 และแปลงเป็น DateTime ก่อน
                 var createdDateTime = DateTime.Parse(query.ToString(6)); // แปลงจาก string เป็น DateTime
                 createdValue = DateOnly.FromDateTime(createdDateTime);  // แปลงจาก DateTime เป็น DateOnly
             }
             catch
             {
-                // หากค่าที่ดึงมาไม่สามารถแปลงได้ ให้ใช้วันที่ปัจจุบันแทน
                 createdValue = DateOnly.FromDateTime(DateTime.Now);
             }
-            
+
+            // ดึง subject_name_en จากตาราง subject
+            string subjectNameEn = "";
+            if (query.ToInt(1) > 0)
+            {
+                var teachtableSubject = SdmTeachtableSubject.GetById(query.ToInt(1));
+                if (teachtableSubject != null)
+                {
+                    var subject = SdmSubject.GetBy(teachtableSubject.subject_id); // ดึง Subject โดยใช้ subject_id
+                    if (subject != null)
+                    {
+                        subjectNameEn = subject.subject_ename; // ดึง subject_name_en
+                    }
+                }
+            }
+
             result.Add(new TeachtableSubjectReview(
                 SdmTeachtableSubject.GetById(query.ToInt(1)), // Foreign Key: teachtable_subject_id
-                query.ToString(2),             // Foreign Key: user_id
-                query.ToString(3),                           // Review
-                query.ToFloat(4),                            // Rating
-                query.ToInt(5),                              // Like
+                query.ToString(2),             
+                query.ToString(3),                          
+                query.ToFloat(4),                          
+                query.ToInt(5),                           
                 createdValue,
-                query.ToInt(0)                               // Primary Key: id
-            ));
+                query.ToInt(0)                            
+            )
+            {
+                subject_name_en = subjectNameEn // Assign dynamically
+            });
 
             if (!isArray) break;
         }
@@ -64,8 +80,7 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // Console.WriteLine($"Insert Review Debug: teachtable_subject_id={review.teachtable_subject?.id}, user_id={review.user?.id}, review={review.review}, rating={review.rating}, like={review.like}");
-
+            
             if (review.teachtable_subject == null || review.teachtable_subject.id == 0)
             {
                 throw new Exception("teachtable_subject is null or has invalid id.");
@@ -92,6 +107,42 @@ public class SdmTeachtableSubjectReview
         catch (Exception ex)
         {
             Console.WriteLine($"Error in Insert: {ex.Message}");
+            throw;
+        }
+    }
+    
+    public static List<TeachtableSubjectReview> GetBySubject(string subjectId)
+    {
+        try
+        {
+            // ดึง teachtable_subject_id จาก subjectId
+            var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
+            selectSubject.AddWhereCondition("subject_id", subjectId);
+
+            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject);
+            if (subjectResult.Count == 0)
+            {
+                // Console.WriteLine($"TeachtableSubject not found for subjectId={subjectId}");
+                return null;
+            }
+
+            var teachtableSubjectId = subjectResult[0].id;
+
+            // Query teachtable_subject_review โดยใช้ teachtable_subject_id และ user_id
+            var selectReview = GetQueryObj();
+            selectReview.AddWhereCondition("teachtable_subject_id", teachtableSubjectId.ToString());
+
+            var reviewResult = ProcessQuery(selectReview, true);
+            if (reviewResult.Count == 0)
+            {
+                return null;
+            }
+
+            return reviewResult;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetBySubjectAndStudent: {ex.Message}");
             throw;
         }
     }
@@ -138,11 +189,11 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // 1. ตรวจสอบหรือสร้าง Teachtable
+            // ตรวจสอบหรือสร้าง Teachtable
             var teachtable = SdmTeachtable.CheckOrCreate(year, term);
             Console.WriteLine($"Teachtable: id={teachtable?.id}, academic_year={teachtable?.academic_year}, academic_term={teachtable?.academic_term}");
 
-            // 2. ตรวจสอบหรือสร้าง TeachtableSubject
+            // ตรวจสอบหรือสร้าง TeachtableSubject
             var teachableSubject = SdmTeachtableSubject.CheckOrCreate(teachtable.id, subjectId);
             if (teachableSubject == null || teachableSubject.id == 0)
             {
@@ -150,14 +201,14 @@ public class SdmTeachtableSubjectReview
             }
             Console.WriteLine($"TeachtableSubject: id={teachableSubject.id}, subject_id={teachableSubject.subject_id}");
 
-            // 3. ดึง Review ที่ต้องการอัปเดต
+            // ดึง Review ที่ต้องการอัปเดต
             var reviewToUpdate = GetBySubjectAndStudent(subjectId, studentId);
             if (reviewToUpdate == null)
             {
                 throw new Exception("TeachtableSubjectReview not found.");
             }
 
-            // 4. อัปเดตข้อมูล
+            // อัปเดตข้อมูล
             reviewToUpdate.teachtable_subject = teachableSubject;
             reviewToUpdate.review = review;
             reviewToUpdate.rating = rating;
