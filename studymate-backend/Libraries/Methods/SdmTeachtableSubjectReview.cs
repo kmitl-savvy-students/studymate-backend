@@ -274,6 +274,13 @@ public class SdmTeachtableSubjectReview
 
         try
         {
+            // ตรวจสอบว่าผู้ใช้ได้รีวิววิชานี้ไปแล้วหรือไม่
+            var existingReview = GetBySubjectAndStudent(subjectId, studentId);
+            if (existingReview != null)
+            {
+                throw new Exception("You have already reviewed this subject.");
+            }
+            
             var teachtable = SdmTeachtable.CheckOrCreate(year, term);
             Console.WriteLine($"Teachtable: id={teachtable?.id}, academic_year={teachtable?.academic_year}, academic_term={teachtable?.academic_term}");
 
