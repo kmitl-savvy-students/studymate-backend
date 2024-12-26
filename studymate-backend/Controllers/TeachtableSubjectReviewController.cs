@@ -9,7 +9,6 @@ namespace studymate_backend.Controllers;
 public class TeachtableSubjectReviewController : ControllerBase
 {
     
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpGet]
     public IActionResult GetAll()
     {
@@ -44,7 +43,6 @@ public class TeachtableSubjectReviewController : ControllerBase
         }
     }
 
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpGet("{subjectId}/{studentId}")]
     public IActionResult GetBySubjectAndStudent(string subjectId, string studentId)
     {
@@ -65,7 +63,6 @@ public class TeachtableSubjectReviewController : ControllerBase
         }
     }
     
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpGet("{subjectId}")]
     public IActionResult GetBySubject(string subjectId)
     {
