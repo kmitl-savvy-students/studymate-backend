@@ -192,42 +192,21 @@ public class SdmCurriculumTeachtable
         string uniqueId,
         string curriculumYear)
     {
-        // URL ของ API
-        string genEdApiUrl = $"http://localhost:5000/api/gened-subject/get/{subjectId}";
-        string subjectGroupApiUrl = $"http://localhost:5000/api/subject-group-and-subgroup/{subjectId}/{uniqueId}/{curriculumYear}";
-
         try
         {
-            // ลองเรียก API GenEd Subject
-            var genEdResponse = await HttpClient.GetAsync(genEdApiUrl);
-            if (genEdResponse.IsSuccessStatusCode)
+            // ดึงข้อมูล GenEd Subject จาก SdmGenedSubject
+            var genedSubject = SdmGenedSubject.GetBy(subjectId);
+            if (genedSubject != null && genedSubject.group != null)
             {
-                var genEdData = await genEdResponse.Content.ReadAsStringAsync();
-                var genEdJson = JsonDocument.Parse(genEdData);
-
-                // ดึงค่า group_name
-                var groupName = genEdJson.RootElement
-                    .GetProperty("group")
-                    .GetProperty("group_name")
-                    .GetString();
-                // Console.WriteLine($"Calling API: {genEdApiUrl}");
-                // Console.WriteLine($"Response from API: {await genEdResponse.Content.ReadAsStringAsync()}");
+                var groupName = genedSubject.group.groupName; // ใช้ groupName จาก GenedGroup
                 return (groupName, null);
             }
 
-            // ถ้าไม่เจอข้อมูลใน GenEd API ให้ลองเรียก Subject Group API
-            var subjectGroupResponse = await HttpClient.GetAsync(subjectGroupApiUrl);
-            if (subjectGroupResponse.IsSuccessStatusCode)
+            // ดึงข้อมูล Subject Group และ Subgroup จาก SdmSubjectGroupAndSubgroup
+            var subjectGroupAndSubgroup = SdmSubjectGroupAndSubgroup.GetSubjectGroupAndSubgroupBySubjectId(subjectId, uniqueId, curriculumYear);
+            if (subjectGroupAndSubgroup != null)
             {
-                var subjectGroupData = await subjectGroupResponse.Content.ReadAsStringAsync();
-                var subjectGroupJson = JsonDocument.Parse(subjectGroupData);
-
-                // ดึงค่า group_name และ subgroup_name
-                var groupName = subjectGroupJson.RootElement.GetProperty("group_name").GetString();
-                var subGroupName = subjectGroupJson.RootElement.GetProperty("subgroup_name").GetString();
-                // Console.WriteLine($"Calling API: {subjectGroupApiUrl}");
-                // Console.WriteLine($"Response from API: {await subjectGroupResponse.Content.ReadAsStringAsync()}");
-                return (groupName, subGroupName);
+                return (subjectGroupAndSubgroup.Value.groupName, subjectGroupAndSubgroup.Value.subgroupName);
             }
         }
         catch (Exception ex)
@@ -235,9 +214,10 @@ public class SdmCurriculumTeachtable
             Console.WriteLine($"Error fetching subject details: {ex.Message}");
         }
 
-        // คืนค่า "ไม่ระบุ" ถ้าไม่พบข้อมูลในทั้งสอง API
+        // คืนค่า null ถ้าไม่พบข้อมูลในทั้งสองแหล่ง
         return (null, null);
     }
+    
 
     private static List<string> TransformTeacherList(string rawTeacherList)
     {
