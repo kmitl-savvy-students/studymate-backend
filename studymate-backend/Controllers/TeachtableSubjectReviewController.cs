@@ -15,7 +15,7 @@ public class TeachtableSubjectReviewController : ControllerBase
         var reviews = SdmTeachtableSubjectReview.GetAll();
 
         if (reviews.Count == 0)
-            return NotFound(new { message = "Review not found." });
+            return Ok(reviews);
         return Ok(reviews);
     }
     
@@ -51,7 +51,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
-                return NotFound(new { message = "Review not found." });
+                return Ok(new object[] { });
             }
 
             return Ok(review);
@@ -71,7 +71,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
             if (review == null)
             {
-                return NotFound(new { message = "Review not found." });
+                return Ok(new object[] { });
             }
 
             return Ok(review);
