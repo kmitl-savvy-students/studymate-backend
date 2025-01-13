@@ -69,7 +69,7 @@ public class TeachtableSubjectReviewController : ControllerBase
         try
         {
             var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
-            if (review == null)
+            if (review == null|| review.Count == 0)
             {
                 return Ok(new object[] { });
             }

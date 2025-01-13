@@ -61,7 +61,7 @@ public class SdmTeachtableSubjectReview
                 subject_name_en = subjectNameEn // Assign dynamically
             });
 
-            if (!isArray) break;
+            // if (!isArray) break;
         }
 
         query.CleanUp();
@@ -115,34 +115,36 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // ดึง teachtable_subject_id จาก subjectId
+            // 1. ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
             var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
-
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject);
+        
+            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ตั้งค่า isArray เป็น true
             if (subjectResult.Count == 0)
             {
-                // Console.WriteLine($"TeachtableSubject not found for subjectId={subjectId}");
-                return null;
+                return new List<TeachtableSubjectReview>(); // คืนค่าเป็นลิสต์ว่างถ้าไม่พบข้อมูล
             }
 
-            var teachtableSubjectId = subjectResult[0].id;
+            var allReviews = new List<TeachtableSubjectReview>();
 
-            // Query teachtable_subject_review โดยใช้ teachtable_subject_id และ user_id
-            var selectReview = GetQueryObj();
-            selectReview.AddWhereCondition("teachtable_subject_id", teachtableSubjectId.ToString());
-
-            var reviewResult = ProcessQuery(selectReview, true);
-            if (reviewResult.Count == 0)
+            // 2. ดึงข้อมูลรีวิวจาก teachtable_subject_review ทั้งหมด
+            foreach (var subject in subjectResult)
             {
-                return null;
+                var selectReview = GetQueryObj();
+                selectReview.AddWhereCondition("teachtable_subject_id", subject.id.ToString());
+
+                var reviewResult = ProcessQuery(selectReview, true);
+                if (reviewResult.Count > 0)
+                {
+                    allReviews.AddRange(reviewResult); // รวมข้อมูลทั้งหมดในลิสต์เดียว
+                }
             }
 
-            return reviewResult;
+            return allReviews; // คืนค่าลิสต์ของรีวิวทั้งหมด
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetBySubjectAndStudent: {ex.Message}");
+            Console.WriteLine($"Error in GetBySubject: {ex.Message}");
             throw;
         }
     }
