@@ -36,6 +36,10 @@ public class TeachtableSubjectReviewController : ControllerBase
 
             return Ok(new { message = "Review created successfully." });
         }
+        catch (InvalidOperationException ex) // ตรวจจับรีวิวที่มีอยู่แล้ว
+        {
+            return StatusCode(409, new { message = ex.Message }); // ส่ง 409 Conflict กลับไป
+        }
         catch (Exception ex)
         {
             return StatusCode(500,
