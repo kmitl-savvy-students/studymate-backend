@@ -153,32 +153,31 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // ดึง teachtable_subject_id จาก subjectId
+            // ดึง teachtable_subject_id ทั้งหมดที่เกี่ยวข้องกับ subjectId
             var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
 
             var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject);
             if (subjectResult.Count == 0)
             {
-                // Console.WriteLine($"TeachtableSubject not found for subjectId={subjectId}");
-                return null;
+                return null; // ไม่มี teachtable_subject_id ที่เกี่ยวข้อง
             }
 
-            var teachtableSubjectId = subjectResult[0].id;
-
-            // Query teachtable_subject_review โดยใช้ teachtable_subject_id และ user_id
-            var selectReview = GetQueryObj();
-            selectReview.AddWhereCondition("teachtable_subject_id", teachtableSubjectId.ToString());
-            selectReview.AddWhereCondition("user_id", studentId);
-
-            var reviewResult = ProcessQuery(selectReview);
-            if (reviewResult.Count == 0)
+            // ตรวจสอบ teachtable_subject_review สำหรับ user_id และ teachtable_subject_id
+            foreach (var teachtableSubject in subjectResult)
             {
-                Console.WriteLine($"TeachtableSubjectReview not found for subjectId={subjectId}, studentId={studentId}");
-                return null;
+                var selectReview = GetQueryObj();
+                selectReview.AddWhereCondition("teachtable_subject_id", teachtableSubject.id.ToString());
+                selectReview.AddWhereCondition("user_id", studentId);
+
+                var reviewResult = ProcessQuery(selectReview, true);
+                if (reviewResult.Count > 0)
+                {
+                    return reviewResult[0]; // คืนค่าหากมีรีวิวที่ตรงกัน
+                }
             }
 
-            return reviewResult[0];
+            return null; // ไม่มีรีวิวที่ตรงกัน
         }
         catch (Exception ex)
         {
@@ -186,6 +185,7 @@ public class SdmTeachtableSubjectReview
             throw;
         }
     }
+
     
     public static void Update(string studentId, int year, int term, string subjectId, string review, float rating)
     {
@@ -280,7 +280,8 @@ public class SdmTeachtableSubjectReview
             var existingReview = GetBySubjectAndStudent(subjectId, studentId);
             if (existingReview != null)
             {
-                throw new Exception("You have already reviewed this subject.");
+                // throw new Exception("You have already reviewed this subject.");
+                throw new InvalidOperationException("User has already reviewed this subject.");
             }
             
             var teachtable = SdmTeachtable.CheckOrCreate(year, term);
@@ -309,6 +310,11 @@ public class SdmTeachtableSubjectReview
             );
             Console.WriteLine($"TeachtableSubjectReview Created: teachtable_subject_id={newReview.teachtable_subject?.id}, user_id={newReview.user_id}, review={newReview.review}, rating={newReview.rating}, like={newReview.like}");
             Insert(newReview);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine($"Conflict: {ex.Message}");
+            throw; // ข้อผิดพลาดนี้จะถูกจัดการใน Controller
         }
         catch (Exception ex)
         {
