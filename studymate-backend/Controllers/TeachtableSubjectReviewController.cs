@@ -36,6 +36,10 @@ public class TeachtableSubjectReviewController : ControllerBase
 
             return Ok(new { message = "Review created successfully." });
         }
+        catch (InvalidOperationException ex) // ตรวจจับรีวิวที่มีอยู่แล้ว
+        {
+            return Conflict(new { message = ex.Message });  // ส่ง 409 Conflict กลับไป
+        }
         catch (Exception ex)
         {
             return StatusCode(500,
@@ -69,11 +73,11 @@ public class TeachtableSubjectReviewController : ControllerBase
         try
         {
             var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
-            if (review == null)
+            if (review == null|| review.Count == 0)
             {
                 return Ok(new object[] { });
             }
-
+            
             return Ok(review);
         }
         catch (Exception ex)
