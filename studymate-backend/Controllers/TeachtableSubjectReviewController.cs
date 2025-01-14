@@ -77,7 +77,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             {
                 return Ok(new object[] { });
             }
-
+            
             return Ok(review);
         }
         catch (Exception ex)

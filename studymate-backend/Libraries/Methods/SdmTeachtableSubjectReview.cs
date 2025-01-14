@@ -157,7 +157,7 @@ public class SdmTeachtableSubjectReview
             var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
 
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject);
+            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true);
             if (subjectResult.Count == 0)
             {
                 return null; // ไม่มี teachtable_subject_id ที่เกี่ยวข้อง
@@ -273,7 +273,7 @@ public class SdmTeachtableSubjectReview
     public static void CreateReview(string studentId, int year, int term, string subjectId, string review, float rating)
     {
         Console.WriteLine($"Received Data: studentId={studentId}, year={year}, term={term}, subjectId={subjectId}, review={review}, rating={rating}");
-
+    
         try
         {
             // ตรวจสอบว่าผู้ใช้ได้รีวิววิชานี้ไปแล้วหรือไม่
@@ -286,21 +286,21 @@ public class SdmTeachtableSubjectReview
             
             var teachtable = SdmTeachtable.CheckOrCreate(year, term);
             Console.WriteLine($"Teachtable: id={teachtable?.id}, academic_year={teachtable?.academic_year}, academic_term={teachtable?.academic_term}");
-
+    
             var teachableSubject = SdmTeachtableSubject.CheckOrCreate(teachtable.id, subjectId);
             if (teachableSubject == null || teachableSubject.id == 0)
             {
                 throw new Exception("TeachtableSubject is null or has invalid id.");
             }
             Console.WriteLine($"TeachtableSubject: id={teachableSubject.id}, subject_id={teachableSubject.subject_id}");
-
+    
             var user = SdmUser.GetBy(studentId);
             if (user == null || string.IsNullOrEmpty(user.id))
             {
                 throw new Exception("User is null or has invalid id.");
             }
             Console.WriteLine($"User: id={user.id}");
-
+    
             var newReview = new TeachtableSubjectReview(
                 teachtable_subject: teachableSubject,
                 user_id: studentId,
