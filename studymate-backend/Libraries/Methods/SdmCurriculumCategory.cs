@@ -4,10 +4,9 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmCurriculumCategory
+public abstract class SdmCurriculumCategory : ISdmBaseMethod<CurriculumCategory>
 {
     public static string TableName => "cu_curri_category";
-
     public static SdmPgsqlQuerySelect GetQueryObj()
     {
         return new SdmPgsqlQuerySelect(TableName);
@@ -16,7 +15,6 @@ public class SdmCurriculumCategory
     public static List<CurriculumCategory> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
-
         var result = new List<CurriculumCategory>();
 
         while (query.Next())
@@ -43,29 +41,13 @@ public class SdmCurriculumCategory
         return result;
     }
     
-    public static List<CurriculumCategory> GetByCurriAndYear(string curri_id, string year)
+    public static List<CurriculumCategory> QueryBy(string uniqueId, string year)
     {
         var select = GetQueryObj();
-        select.WhereEqual("curri_id", curri_id);
+        select.WhereEqual("curri_id", uniqueId);
         select.WhereEqual("year", year);
 
         var result = ProcessQuery(select, true);
-        if (result.Count == 0)
-            return null;
         return result;
     }
-    
-    public static List<CurriculumCategory> GetByCurriAndYearAndCat(string curri_id, string year, int cat_id)
-    {
-        var select = GetQueryObj();
-        select.WhereEqual("curri_id", curri_id);
-        select.WhereEqual("year", year);
-        select.WhereEqual("c_cat_id", cat_id.ToString());
-
-        var result = ProcessQuery(select, true);
-        if (result.Count == 0)
-            return null;
-        return result;
-    }
-
 }

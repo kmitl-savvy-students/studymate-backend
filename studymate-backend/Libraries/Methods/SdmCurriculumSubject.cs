@@ -4,10 +4,9 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
+public abstract class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
 {
     public static string TableName => "curriculum_subject";
-
     public static SdmPgsqlQuerySelect GetQueryObj()
     {
         return new SdmPgsqlQuerySelect(TableName);
@@ -16,7 +15,6 @@ public class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
     public static List<CurriculumSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
-
         var result = new List<CurriculumSubject>();
 
         while (query.Next())
@@ -78,5 +76,18 @@ public class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
         if (result.Count == 0)
             return null;
         return result[0];
+    }
+    
+    public static List<CurriculumSubject> QueryBy(string uniqueId, string year, string categoryId, string groupId, string subgroupId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("unique_id", uniqueId);
+        select.WhereEqual("year", year);
+        select.WhereEqual("category_id", categoryId);
+        select.WhereEqual("group_id", groupId);
+        select.WhereEqual("subgroup_id", subgroupId);
+
+        var result = ProcessQuery(select, true);
+        return result;
     }
 }

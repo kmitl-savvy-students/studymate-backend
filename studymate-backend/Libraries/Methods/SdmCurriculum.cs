@@ -4,10 +4,9 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmCurriculum : ISdmBaseMethod<Curriculum>
+public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
 {
     public static string TableName => "curriculum";
-
     public static SdmPgsqlQuerySelect GetQueryObj()
     {
         return new SdmPgsqlQuerySelect(TableName);
@@ -16,7 +15,6 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
     public static List<Curriculum> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmPgsqlQuery.Execute(queryBuilder);
-
         var result = new List<Curriculum>();
 
         while (query.Next())
@@ -54,9 +52,7 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
         select.WhereEqual("id", id.ToString());
 
         var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        return result.Count == 0 ? null : result[0];
     }
     public static Curriculum? GetBy(string uniqueId, string year)
     {
@@ -65,8 +61,16 @@ public class SdmCurriculum : ISdmBaseMethod<Curriculum>
         select.WhereEqual("year", year);
 
         var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        return result.Count == 0 ? null : result[0];
+    }
+
+    public static Curriculum? QueryBy(string uniqueId, string year)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("unique_id", uniqueId);
+        select.WhereEqual("year", year);
+
+        var result = ProcessQuery(select);
+        return result.Count == 0 ? null : result[0];
     }
 }
