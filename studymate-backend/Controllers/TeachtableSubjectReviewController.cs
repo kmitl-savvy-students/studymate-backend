@@ -38,7 +38,7 @@ public class TeachtableSubjectReviewController : ControllerBase
         }
         catch (InvalidOperationException ex) // ตรวจจับรีวิวที่มีอยู่แล้ว
         {
-            return StatusCode(409, new { message = ex.Message }); // ส่ง 409 Conflict กลับไป
+            return Conflict(new { message = ex.Message });  // ส่ง 409 Conflict กลับไป
         }
         catch (Exception ex)
         {
