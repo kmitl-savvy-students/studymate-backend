@@ -185,57 +185,6 @@ public class SdmTeachtableSubjectReview
             throw;
         }
     }
-
-    
-    public static void Update(string studentId, int year, int term, string subjectId, string review, float rating)
-    {
-        try
-        {
-            // ตรวจสอบหรือสร้าง Teachtable
-            var teachtable = SdmTeachtable.CheckOrCreate(year, term);
-            Console.WriteLine($"Teachtable: id={teachtable?.id}, academic_year={teachtable?.academic_year}, academic_term={teachtable?.academic_term}");
-
-            // ตรวจสอบหรือสร้าง TeachtableSubject
-            var teachableSubject = SdmTeachtableSubject.CheckOrCreate(teachtable.id, subjectId);
-            if (teachableSubject == null || teachableSubject.id == 0)
-            {
-                throw new Exception("TeachtableSubject is null or has invalid id.");
-            }
-            Console.WriteLine($"TeachtableSubject: id={teachableSubject.id}, subject_id={teachableSubject.subject_id}");
-
-            // ดึง Review ที่ต้องการอัปเดต
-            var reviewToUpdate = GetBySubjectAndStudent(subjectId, studentId);
-            if (reviewToUpdate == null)
-            {
-                throw new Exception("TeachtableSubjectReview not found.");
-            }
-
-            // อัปเดตข้อมูล
-            reviewToUpdate.teachtable_subject = teachableSubject;
-            reviewToUpdate.review = review;
-            reviewToUpdate.rating = rating;
-
-            var update = new SdmPgsqlQueryUpdate(TableName);
-
-            update.Set("teachtable_subject_id", reviewToUpdate.teachtable_subject?.id.ToString() ?? "NULL");
-            update.Set("user_id", reviewToUpdate.user_id);
-            update.Set("review", reviewToUpdate.review);
-            update.Set("rating", reviewToUpdate.rating.ToString());
-            update.Set("like", reviewToUpdate.like.ToString());
-
-            update.WhereEqual("id", reviewToUpdate.id.ToString());
-
-            var query = SdmPgsqlQuery.Execute(update);
-            query.CleanUp();
-
-            Console.WriteLine("TeachtableSubjectReview Updated Successfully!");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in Update: {ex.Message}");
-            throw;
-        }
-    }
     
     public static void Delete(string subjectId, string studentId)
     {

@@ -86,29 +86,6 @@ public class TeachtableSubjectReviewController : ControllerBase
                 new { message = "An error occurred while fetching the review.", error = ex.Message });
         }
     }
-
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPatch("update")]
-    public IActionResult Update([FromBody] TeachtableSubjectReviewDto reviewDto)
-    {
-        try
-        {
-            SdmTeachtableSubjectReview.Update(
-                studentId: reviewDto.StudentId,
-                year: reviewDto.Year,
-                term: reviewDto.Term,
-                subjectId: reviewDto.SubjectId,
-                review: reviewDto.Review,
-                rating: reviewDto.Rating
-            );
-
-            return Ok(new { message = "Review updated successfully." });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = "An error occurred while updating the review.", error = ex.Message });
-        }
-    }
     
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("{subjectId}/{studentId}")]
