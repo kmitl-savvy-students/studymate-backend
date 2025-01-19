@@ -190,27 +190,27 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // ดึง teachtable_subject_id จาก subjectId
+            // ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
             var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
 
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject);
+            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ใช้ isArray = true เพื่อดึงข้อมูลทั้งหมด
             if (subjectResult.Count == 0)
             {
                 throw new Exception("TeachtableSubject not found.");
             }
 
-            var teachtableSubjectId = subjectResult[0].id;
+            // ลบข้อมูล teachtable_subject_review ทั้งหมดที่เกี่ยวข้องกับ user_id
+            foreach (var subject in subjectResult)
+            {
+                var delete = new SdmPgsqlQueryDelete(TableName);
+                delete.WhereEqual("teachtable_subject_id", subject.id.ToString());
+                delete.WhereEqual("user_id", studentId);
 
-            // ลบข้อมูลใน teachtable_subject_review โดยใช้ teachtable_subject_id และ user_id
-            var delete = new SdmPgsqlQueryDelete(TableName);
-            delete.WhereEqual("teachtable_subject_id", teachtableSubjectId.ToString());
-            delete.WhereEqual("user_id", studentId);
-
-            var query = SdmPgsqlQuery.Execute(delete);
-            query.CleanUp();
-
-            Console.WriteLine("TeachtableSubjectReview Deleted Successfully!");
+                var query = SdmPgsqlQuery.Execute(delete);
+                query.CleanUp();
+                Console.WriteLine($"Deleted review for teachtable_subject_id={subject.id}, user_id={studentId}");
+            }
         }
         catch (Exception ex)
         {
@@ -218,6 +218,7 @@ public class SdmTeachtableSubjectReview
             throw;
         }
     }
+
     
     public static void CreateReview(string studentId, int year, int term, string subjectId, string review, float rating)
     {

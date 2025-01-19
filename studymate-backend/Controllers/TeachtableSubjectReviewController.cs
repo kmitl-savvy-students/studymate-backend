@@ -98,8 +98,19 @@ public class TeachtableSubjectReviewController : ControllerBase
             {
                 return NotFound(new { message = "Review not found." });
             }
+
             SdmTeachtableSubjectReview.Delete(subjectId, studentId);
-            return Ok(new { message = "Review deleted successfully." });
+
+            // ตรวจสอบว่าข้อมูลถูกลบจริงหรือไม่
+            var remainingReview = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            if (remainingReview == null)
+            {
+                return Ok(new { message = "Review deleted successfully." });
+            }
+            else
+            {
+                return StatusCode(500, new { message = "Failed to delete the review." });
+            }
         }
         catch (Exception ex)
         {
@@ -107,6 +118,7 @@ public class TeachtableSubjectReviewController : ControllerBase
                 new { message = "An error occurred while deleting the review.", error = ex.Message });
         }
     }
+
 }
 
 public class TeachtableSubjectReviewDto
