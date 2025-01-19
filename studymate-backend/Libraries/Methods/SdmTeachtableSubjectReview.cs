@@ -218,7 +218,6 @@ public class SdmTeachtableSubjectReview
             throw;
         }
     }
-
     
     public static void CreateReview(string studentId, int year, int term, string subjectId, string review, float rating)
     {
