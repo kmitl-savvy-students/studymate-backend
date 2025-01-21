@@ -10,7 +10,7 @@ public class DatabaseController : ControllerBase
     [HttpGet("test-connection")]
     public IActionResult TestConnection()
     {
-        const string connectionString = "server=127.0.0.1;uid=admin;pwd=admin;database=studymate";
+        const string connectionString = "server=192.168.50.52;uid=admin;pwd=adminsdmkmitl;database=sdm-kmitl-db";
         try
         {
             using var conn = new MySqlConnection(connectionString);
