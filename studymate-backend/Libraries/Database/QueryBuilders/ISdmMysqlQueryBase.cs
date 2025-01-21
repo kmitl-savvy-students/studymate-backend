@@ -1,6 +1,6 @@
 ﻿namespace studymate_backend.Libraries.Database.QueryBuilders;
 
-public interface ISdmPgsqlQueryBase
+public interface ISdmMysqlQueryBase
 {
     protected string TableName { get; }
     protected string GetTableName()

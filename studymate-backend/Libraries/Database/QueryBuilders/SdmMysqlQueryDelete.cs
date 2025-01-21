@@ -1,8 +1,8 @@
 ﻿namespace studymate_backend.Libraries.Database.QueryBuilders;
 
-public class SdmPgsqlQueryDelete(
+public class SdmMysqlQueryDelete(
     string tableName
-) : ISdmPgsqlQueryBase
+) : ISdmMysqlQueryBase
 {
     private readonly List<string> _whereConditions = [];
     private string _whereRawQuery = string.Empty;
@@ -11,9 +11,9 @@ public class SdmPgsqlQueryDelete(
 
     public string Build()
     {
-        var command = $"DELETE FROM \"{TableName}\"";
+        var command = $"DELETE FROM `{TableName}`";
 
-        if (_whereRawQuery != string.Empty)
+        if (!string.IsNullOrEmpty(_whereRawQuery))
             command += " " + _whereRawQuery;
         else if (_whereConditions.Count > 0)
             command += " WHERE " + string.Join(" AND ", _whereConditions);
@@ -25,9 +25,10 @@ public class SdmPgsqlQueryDelete(
     {
         _whereRawQuery = rawQuery;
     }
+
     public void WhereEqual(string field, string value)
     {
-        var condition = $"\"{field}\" = '{value.Replace("'", "''")}'";
+        var condition = $"`{field}` = '{value.Replace("'", "''")}'";
         _whereConditions.Add(condition);
     }
 }

@@ -9,14 +9,14 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
 {
     public static string TableName => "user_token";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<UserToken> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<UserToken> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<UserToken>();
 
@@ -56,7 +56,7 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
     public static UserToken? GetBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        select.WhereEqual("user_id", user.Id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -66,23 +66,23 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
 
     public static void Insert(UserToken userToken)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
 
         insert.Insert("id", userToken.id);
-        insert.Insert("user_id", userToken.user?.id);
+        insert.Insert("user_id", userToken.user?.Id);
         insert.Insert("created", userToken.created.ToString());
         insert.Insert("expired", userToken.expired.ToString());
 
-        var query = SdmPgsqlQuery.Execute(insert);
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
 
     public static void Delete(UserToken userToken)
     {
-        var delete = new SdmPgsqlQueryDelete(TableName);
+        var delete = new SdmMysqlQueryDelete(TableName);
         delete.WhereEqual("id", userToken.id);
 
-        var query = SdmPgsqlQuery.Execute(delete);
+        var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
     }
 }

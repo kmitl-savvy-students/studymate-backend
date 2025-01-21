@@ -10,20 +10,20 @@ public class SdmSubjectGroupAndSubgroup
     public static string TableNameGroup => "curriculum_group";
     public static string TableNameSubgroup => "curriculum_subgroup";
 
-    public static SdmPgsqlQuerySelect GetQueryObj(string tableName)
+    public static SdmMysqlQuerySelect GetQueryObj(string tableName)
     {
-        return new SdmPgsqlQuerySelect(tableName);
+        return new SdmMysqlQuerySelect(tableName);
     }
 
     public static (string groupName, string subgroupName)? GetSubjectGroupAndSubgroupBySubjectId(string subjectId, string uniqueId, string year)
     {
     // Query curriculum_subject
-        var subjectQuery = new SdmPgsqlQuerySelect("curriculum_subject")
+        var subjectQuery = new SdmMysqlQuerySelect("curriculum_subject")
             .AddWhereCondition("subject_id", subjectId)
             .AddWhereCondition("unique_id", uniqueId)
             .AddWhereCondition("year", year);
 
-        var subjectResult = SdmPgsqlQuery.Execute(subjectQuery);
+        var subjectResult = SdmMysqlQuery.Execute(subjectQuery);
         if (!subjectResult.Next())
         {
             subjectResult.CleanUp();
@@ -35,13 +35,13 @@ public class SdmSubjectGroupAndSubgroup
         var subgroupId = subjectResult.ToInt(3); // subgroup_id เป็น smallint
 
         // Query curriculum_group
-        var groupQuery = new SdmPgsqlQuerySelect("curriculum_group")
+        var groupQuery = new SdmMysqlQuerySelect("curriculum_group")
             .AddWhereCondition("category_id", categoryId.ToString())
             .AddWhereCondition("group_id", groupId.ToString())
             .AddWhereCondition("unique_id", uniqueId)
             .AddWhereCondition("year", year);
 
-        var groupResult = SdmPgsqlQuery.Execute(groupQuery);
+        var groupResult = SdmMysqlQuery.Execute(groupQuery);
         string? groupName = null;
         if (groupResult.Next())
         {
@@ -50,14 +50,14 @@ public class SdmSubjectGroupAndSubgroup
         groupResult.CleanUp();
 
         // Query curriculum_subgroup
-        var subgroupQuery = new SdmPgsqlQuerySelect("curriculum_subgroup")
+        var subgroupQuery = new SdmMysqlQuerySelect("curriculum_subgroup")
             .AddWhereCondition("category_id", categoryId.ToString())
             .AddWhereCondition("group_id", groupId.ToString())
             .AddWhereCondition("subgroup_id", subgroupId.ToString())
             .AddWhereCondition("unique_id", uniqueId)
             .AddWhereCondition("year", year);
 
-        var subgroupResult = SdmPgsqlQuery.Execute(subgroupQuery);
+        var subgroupResult = SdmMysqlQuery.Execute(subgroupQuery);
         string? subgroupName = null;
         if (subgroupResult.Next())
         {

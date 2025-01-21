@@ -1,40 +1,43 @@
-﻿using Npgsql;
+﻿using MySql.Data.MySqlClient;
 using System;
 
 namespace studymate_backend.Libraries.Database
 {
-    public class SdmDataSource
+    public static class SdmDataSource
     {
-        private static NpgsqlDataSource? DataSource { get; set; }
+        private static MySqlConnection? Connection { get; set; }
 
-        public static NpgsqlDataSource? Get()
+        public static MySqlConnection? Get()
         {
-            if (DataSource != null)
-                return DataSource;
-
-            try
+            if (Connection == null)
             {
-                var server = Environment.GetEnvironmentVariable("DB_SERVER");
-                var database = Environment.GetEnvironmentVariable("DB_NAME");
-                var userId = Environment.GetEnvironmentVariable("DB_USER");
-                var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
-
-                var connectionString = $"Host={server};Database={database};Username={userId};Password={password};";
-
-                DataSource = NpgsqlDataSource.Create(connectionString);
+                try
+                {
+                    const string connectionString = "server=127.0.0.1;uid=admin;pwd=admin;database=studymate";
+                    Connection = new MySqlConnection(connectionString);
+                    Connection.Open();
+                }
+                catch (MySqlException ex)
+                {
+                    Console.WriteLine("ERROR: SdmDataSource.Get(): " + ex.Message);
+                    Connection = null;
+                }
             }
-            catch (NpgsqlException ex)
+            else if (Connection.State != System.Data.ConnectionState.Open)
             {
-                Console.WriteLine("ERROR: SdmDataSource.get(): " + ex.Message);
+                Connection.Open();
             }
 
-            return DataSource;
+            return Connection;
         }
 
         public static void Dispose()
         {
-            DataSource?.Dispose();
-            DataSource = null;
+            if (Connection == null)
+                return;
+            Connection.Close();
+            Connection.Dispose();
+            Connection = null;
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace studymate_backend.Libraries.Database.QueryBuilders;
 
-public class SdmPgsqlQueryUpdate(
+public class SdmMysqlQueryUpdate(
     string tableName
-) : ISdmPgsqlQueryBase
+) : ISdmMysqlQueryBase
 {
     private readonly List<string> _setConditions = [];
     private readonly List<string> _whereConditions = [];
@@ -15,9 +15,9 @@ public class SdmPgsqlQueryUpdate(
         if (_setConditions.Count == 0)
             throw new InvalidOperationException("No columns specified for update.");
 
-        var command = $"UPDATE \"{TableName}\" SET " + string.Join(", ", _setConditions);
+        var command = $"UPDATE `{TableName}` SET " + string.Join(", ", _setConditions);
 
-        if (_whereRawQuery != string.Empty)
+        if (!string.IsNullOrEmpty(_whereRawQuery))
             command += " " + _whereRawQuery;
         else if (_whereConditions.Count > 0)
             command += " WHERE " + string.Join(" AND ", _whereConditions);
@@ -27,7 +27,7 @@ public class SdmPgsqlQueryUpdate(
 
     public void Set(string field, string? value)
     {
-        var condition = $"\"{field}\" = " + (value == null ? "NULL" : $"'{value.Replace("'", "''")}'");
+        var condition = $"`{field}` = " + (value == null ? "NULL" : $"'{value.Replace("'", "''")}'");
         _setConditions.Add(condition);
     }
 
@@ -35,9 +35,10 @@ public class SdmPgsqlQueryUpdate(
     {
         _whereRawQuery = rawQuery;
     }
+
     public void WhereEqual(string field, string value)
     {
-        var condition = $"\"{field}\" = '{value.Replace("'", "''")}'";
+        var condition = $"`{field}` = '{value.Replace("'", "''")}'";
         _whereConditions.Add(condition);
     }
 }

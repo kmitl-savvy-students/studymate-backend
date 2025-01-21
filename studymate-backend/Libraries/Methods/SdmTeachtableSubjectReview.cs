@@ -7,14 +7,14 @@ public class SdmTeachtableSubjectReview
 {
     public static string TableName => "teachtable_subject_review";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
     
-    public static List<TeachtableSubjectReview> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<TeachtableSubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<TeachtableSubjectReview>();
 
@@ -91,7 +91,7 @@ public class SdmTeachtableSubjectReview
                 throw new Exception("User is null or has invalid id.");
             }
 
-            var insert = new SdmPgsqlQueryInsert(TableName);
+            var insert = new SdmMysqlQueryInsert(TableName);
 
             insert.Insert("teachtable_subject_id", review.teachtable_subject.id.ToString());
             insert.Insert("user_id", review.user_id);
@@ -99,7 +99,7 @@ public class SdmTeachtableSubjectReview
             insert.Insert("rating", review.rating.ToString());
             insert.Insert("like", review.like.ToString());
 
-            var query = SdmPgsqlQuery.Execute(insert);
+            var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
 
             Console.WriteLine("TeachtableSubjectReview Inserted Successfully!");
@@ -116,7 +116,7 @@ public class SdmTeachtableSubjectReview
         try
         {
             // 1. ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
-            var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
+            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
         
             var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ตั้งค่า isArray เป็น true
@@ -154,7 +154,7 @@ public class SdmTeachtableSubjectReview
         try
         {
             // ดึง teachtable_subject_id ทั้งหมดที่เกี่ยวข้องกับ subjectId
-            var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
+            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
 
             var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true);
@@ -191,7 +191,7 @@ public class SdmTeachtableSubjectReview
         try
         {
             // ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
-            var selectSubject = new SdmPgsqlQuerySelect("teachtable_subject");
+            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
             selectSubject.AddWhereCondition("subject_id", subjectId);
 
             var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ใช้ isArray = true เพื่อดึงข้อมูลทั้งหมด
@@ -203,11 +203,11 @@ public class SdmTeachtableSubjectReview
             // ลบข้อมูล teachtable_subject_review ทั้งหมดที่เกี่ยวข้องกับ user_id
             foreach (var subject in subjectResult)
             {
-                var delete = new SdmPgsqlQueryDelete(TableName);
+                var delete = new SdmMysqlQueryDelete(TableName);
                 delete.WhereEqual("teachtable_subject_id", subject.id.ToString());
                 delete.WhereEqual("user_id", studentId);
 
-                var query = SdmPgsqlQuery.Execute(delete);
+                var query = SdmMysqlQuery.Execute(delete);
                 query.CleanUp();
                 Console.WriteLine($"Deleted review for teachtable_subject_id={subject.id}, user_id={studentId}");
             }
@@ -244,11 +244,11 @@ public class SdmTeachtableSubjectReview
             Console.WriteLine($"TeachtableSubject: id={teachableSubject.id}, subject_id={teachableSubject.subject_id}");
     
             var user = SdmUser.GetBy(studentId);
-            if (user == null || string.IsNullOrEmpty(user.id))
+            if (user == null || string.IsNullOrEmpty(user.Id))
             {
                 throw new Exception("User is null or has invalid id.");
             }
-            Console.WriteLine($"User: id={user.id}");
+            Console.WriteLine($"User: id={user.Id}");
     
             var newReview = new TeachtableSubjectReview(
                 teachtable_subject: teachableSubject,
