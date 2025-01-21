@@ -13,7 +13,7 @@ namespace studymate_backend.Libraries.Database
             {
                 try
                 {
-                    const string connectionString = "server=127.0.0.1;uid=admin;pwd=admin;database=studymate";
+                    const string connectionString = "server=192.168.50.52;uid=admin;pwd=adminsdmkmitl;database=sdm-kmitl-db";
                     Connection = new MySqlConnection(connectionString);
                     Connection.Open();
                 }
