@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Helper;
+using System.Text.Json;
 
 namespace studymate_backend.Controllers;
 
@@ -51,4 +52,53 @@ public class CurriculumTeachtableController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+    
+    [AllowAnonymous]
+    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear}/{uniqueId}/{subjectId}")]
+    public async Task<IActionResult> GetBySubjectId(
+        [FromRoute] int year,
+        [FromRoute] int semester,
+        [FromRoute] string faculty,
+        [FromRoute] string department,
+        [FromRoute] string curriculum,
+        [FromRoute] int classYear,
+        [FromRoute] string curriculumYear,
+        [FromRoute] string uniqueId,
+        [FromRoute] string subjectId)
+    {
+        // ตรวจสอบค่า curriculumYear
+        if (curriculumYear != "2560" && curriculumYear != "2564")
+        {
+            return BadRequest(new { message = "curriculumYear must be either 2560 or 2564." });
+        }
+
+        // ตรวจสอบค่าทั้งหมด
+        if (!SdmNumber.IsAcademicYear(year) || 
+            !SdmNumber.IsAcademicTerm(semester) || 
+            !SdmNumber.IsClassYear(classYear) || 
+            string.IsNullOrWhiteSpace(subjectId))
+        {
+            return BadRequest(new { message = "Invalid request data." });
+        }
+
+        try
+        {
+            // เรียกใช้งาน Service Layer
+            var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
+                year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId);
+
+            // หากไม่มีข้อมูล ให้ส่งคืน array ว่าง
+            if (filteredData.GetArrayLength() == 0)
+            {
+                return Ok(new JsonElement[0]);
+            }
+
+            return Ok(filteredData);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
 }

@@ -59,6 +59,64 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
+    
+    public static async Task<JsonElement> FetchFilteredTeachTableSubjectData(
+    int selectedYear,
+    int selectedSemester,
+    string selectedFaculty,
+    string selectedDepartment,
+    string selectedCurriculum,
+    int selectedClassYear,
+    string selectedSubjectId,
+    string curriculumYear,
+    string uniqueId)
+    {
+        string apiUrl = $"https://regis.reg.kmitl.ac.th/api/?" +
+                        $"function=get-teach-table-show&mode=by_subject_id" +
+                        $"&selected_year={selectedYear}" +
+                        $"&selected_semester={selectedSemester}" +
+                        $"&selected_faculty={selectedFaculty}" +
+                        $"&selected_department={selectedDepartment}" +
+                        $"&selected_curriculum={selectedCurriculum}" +
+                        $"&selected_class_year={selectedClassYear}" +
+                        $"&search_all_faculty=false" +
+                        $"&search_all_department=false" +
+                        $"&search_all_curriculum=false" +
+                        $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}" +
+                        $"&selected_subject_id={selectedSubjectId}";
+
+        try
+        {
+            Console.WriteLine($"Calling Public API: {apiUrl}");
+            var response = await HttpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Public API Error: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new Exception($"Public API Error: {response.StatusCode}");
+            }
+
+            var data = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                Console.WriteLine("Public API returned empty response.");
+                return JsonDocument.Parse("[]").RootElement;
+            }
+
+            Console.WriteLine($"Public API Response: {data}");
+            var jsonDoc = JsonDocument.Parse(data);
+
+            // ส่งคืนเฉพาะข้อมูลของ subjectId
+            var transformedData = await TransformData(jsonDoc.RootElement, curriculumYear, selectedCurriculum, uniqueId);
+            return transformedData;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in FetchFilteredTeachTableSubjectData: {ex.Message}");
+            throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
+        }
+    }
 
     private static async Task<JsonElement> TransformData(JsonElement root, string curriculumYear, string curriculum, string uniqueId)
     {
@@ -217,7 +275,6 @@ public class SdmCurriculumTeachtable
         // คืนค่า null ถ้าไม่พบข้อมูลในทั้งสองแหล่ง
         return (null, null);
     }
-    
 
     private static List<string> TransformTeacherList(string rawTeacherList)
     {
