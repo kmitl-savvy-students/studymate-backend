@@ -232,6 +232,7 @@ public class SdmCurriculumTeachtable
                     var rating = 0.0f;
                     writer.WriteNumber("interested", interested);
                     writer.WriteNumber("rating", rating);
+                    writer.WriteString("remark", subject.GetProperty("remark").GetString());
 
                     writer.WriteEndObject();
                 }
