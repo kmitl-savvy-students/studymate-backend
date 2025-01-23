@@ -54,7 +54,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear}/{uniqueId}/{subjectId}")]
+    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear}/{uniqueId}/{subjectId}/{section}")]
     public async Task<IActionResult> GetBySubjectId(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -64,7 +64,8 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] int classYear,
         [FromRoute] string curriculumYear,
         [FromRoute] string uniqueId,
-        [FromRoute] string subjectId)
+        [FromRoute] string subjectId,
+        [FromRoute] int? section) // section เป็น optional
     {
         // ตรวจสอบค่า curriculumYear
         if (curriculumYear != "2560" && curriculumYear != "2564")
@@ -72,7 +73,7 @@ public class CurriculumTeachtableController : ControllerBase
             return BadRequest(new { message = "curriculumYear must be either 2560 or 2564." });
         }
 
-        // ตรวจสอบค่าทั้งหมด
+        // ตรวจสอบค่าที่จำเป็นทั้งหมด
         if (!SdmNumber.IsAcademicYear(year) || 
             !SdmNumber.IsAcademicTerm(semester) || 
             !SdmNumber.IsClassYear(classYear) || 
@@ -83,9 +84,9 @@ public class CurriculumTeachtableController : ControllerBase
 
         try
         {
-            // เรียกใช้งาน Service Layer
+            // เรียก Service Layer โดยส่งค่า section (อาจจะ null)
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
-                year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId);
+                year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
 
             // หากไม่มีข้อมูล ให้ส่งคืน array ว่าง
             if (filteredData.GetArrayLength() == 0)

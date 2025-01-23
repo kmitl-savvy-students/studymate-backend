@@ -51,7 +51,7 @@ public class SdmCurriculumTeachtable
             Console.WriteLine($"Public API Response: {data}");
             var jsonDoc = JsonDocument.Parse(data);
 
-            return await TransformData(jsonDoc.RootElement, curriculumYear, selectedCurriculum, uniqueId);
+            return await TransformData(jsonDoc.RootElement, curriculumYear, uniqueId);
         }
         catch (Exception ex)
         {
@@ -69,7 +69,8 @@ public class SdmCurriculumTeachtable
     int selectedClassYear,
     string selectedSubjectId,
     string curriculumYear,
-    string uniqueId)
+    string uniqueId,
+    int? section = null) // section เป็น optional
     {
         string apiUrl = $"https://regis.reg.kmitl.ac.th/api/?" +
                         $"function=get-teach-table-show&mode=by_subject_id" +
@@ -107,8 +108,8 @@ public class SdmCurriculumTeachtable
             Console.WriteLine($"Public API Response: {data}");
             var jsonDoc = JsonDocument.Parse(data);
 
-            // ส่งคืนเฉพาะข้อมูลของ subjectId
-            var transformedData = await TransformData(jsonDoc.RootElement, curriculumYear, selectedCurriculum, uniqueId);
+            // ส่ง TransformData โดยพิจารณาค่า section (อาจจะ null)
+            var transformedData = await TransformData(jsonDoc.RootElement, curriculumYear, uniqueId, section);
             return transformedData;
         }
         catch (Exception ex)
@@ -117,8 +118,12 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
-
-    private static async Task<JsonElement> TransformData(JsonElement root, string curriculumYear, string curriculum, string uniqueId)
+    
+    private static async Task<JsonElement> TransformData(
+    JsonElement root, 
+    string curriculumYear, 
+    string uniqueId, 
+    int? section = null) // เพิ่ม section เป็น optional parameter
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -150,6 +155,14 @@ public class SdmCurriculumTeachtable
 
                 foreach (var subject in dataArray.EnumerateArray())
                 {
+                    var currentSection = int.Parse(subject.GetProperty("section").GetString() ?? "0");
+
+                    // กรองเฉพาะ section ถ้ามีการส่งค่าเข้ามา
+                    if (section.HasValue && currentSection != section.Value)
+                    {
+                        continue;
+                    }
+
                     writer.WriteStartObject();
 
                     writer.WriteString("classLevel", classValue.GetString());
@@ -158,7 +171,7 @@ public class SdmCurriculumTeachtable
 
                     writer.WriteString("subject_id", subject.GetProperty("subject_id").GetString() ?? "ไม่มีข้อมูล");
                     writer.WriteNumber("credit", int.Parse(subject.GetProperty("credit").GetString() ?? "0"));
-                    writer.WriteNumber("section", int.Parse(subject.GetProperty("section").GetString() ?? "0"));
+                    writer.WriteNumber("section", currentSection);
                     writer.WriteString("credit_lps", subject.GetProperty("credit_lps").GetString());
 
                     writer.WriteString("subject_name_th", subject.GetProperty("subject_name_th").GetString()?.Trim() ?? "ไม่มีข้อมูล");
@@ -228,10 +241,12 @@ public class SdmCurriculumTeachtable
                         writer.WriteStringValue(value);
                     }
                     writer.WriteEndArray();
+
                     var interested = 0;
                     var rating = 0.0f;
                     writer.WriteNumber("interested", interested);
                     writer.WriteNumber("rating", rating);
+                    writer.WriteString("remark", subject.GetProperty("remark").GetString());
 
                     writer.WriteEndObject();
                 }
@@ -244,6 +259,7 @@ public class SdmCurriculumTeachtable
 
         return filteredJson.RootElement.Clone();
     }
+
 
     private static async Task<(string? subjectTypeName, string? subjectSubTypeName)> FetchSubjectDetails(
         string subjectId,
