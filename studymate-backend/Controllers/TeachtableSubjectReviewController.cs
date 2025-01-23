@@ -118,6 +118,164 @@ public class TeachtableSubjectReviewController : ControllerBase
                 new { message = "An error occurred while deleting the review.", error = ex.Message });
         }
     }
+    
+    // [HttpGet("test")]
+    // public async Task<IActionResult> GetLatestSubjects(
+    //     string faculty,
+    //     string department,
+    //     string curriculum,
+    //     string classYear,
+    //     string curriculumYear,
+    //     string uniqueId)
+    // {
+    //     try
+    //     {
+    //         // เรียกฟังก์ชันเพื่อหาปีการศึกษาและเทอมล่าสุด
+    //         var (latestYear, latestTerm) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTerm();
+    //         Console.WriteLine($"[Controller] Using LatestYear: {latestYear}, LatestTerm: {latestTerm}");
+    //
+    //         // // ดึงข้อมูล Subject โดยใช้ LatestYear และ LatestTerm
+    //         // var allSubjects = await SdmTeachtableSubjectReview.GetSubjectsForYearAndTerm(
+    //         //     latestYear, latestTerm, faculty, department, curriculum, classYear, curriculumYear, uniqueId);
+    //         //
+    //         // Console.WriteLine($"[Controller] Found {allSubjects.Count} subjects for year {latestYear}, term {latestTerm}");
+    //
+    //         return Ok(new
+    //         {
+    //             latestYear,
+    //             latestTerm,
+    //             // subjects = allSubjects
+    //         });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"[Controller Error] {ex.Message}");
+    //         return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
+    //     }
+    // }
+    
+    // [HttpGet("test")]
+    // public async Task<IActionResult> GetLatestSubjects()
+    // {
+    //     try
+    //     {
+    //         // เรียกฟังก์ชันเพื่อหาปีการศึกษาและเทอมล่าสุด
+    //         var (latestYear, latestTerm) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTerm();
+    //         Console.WriteLine($"[Controller] Using LatestYear: {latestYear}, LatestTerm: {latestTerm}");
+    //
+    //         // // ดึงข้อมูล Subject โดยใช้ LatestYear และ LatestTerm
+    //         // var allSubjects = await SdmTeachtableSubjectReview.GetSubjectsForYearAndTerm(
+    //         //     latestYear, latestTerm, faculty, department, curriculum, classYear, curriculumYear, uniqueId);
+    //         //
+    //         // Console.WriteLine($"[Controller] Found {allSubjects.Count} subjects for year {latestYear}, term {latestTerm}");
+    //
+    //         return Ok(new
+    //         {
+    //             latestYear,
+    //             latestTerm,
+    //             // subjects = allSubjects
+    //         });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"[Controller Error] {ex.Message}");
+    //         return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
+    //     }
+    // }
+    
+    // [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    // [HttpGet("test2")]
+    // public async Task<IActionResult> GetLatestSubjects2()
+    // {
+    //     try
+    //     {
+    //         // ดึง Token จาก Header
+    //         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    //         // if (string.IsNullOrEmpty(token))
+    //         // {
+    //         //     return Unauthorized(new { message = "Token is required." });
+    //         // }
+    //
+    //         // ดึงข้อมูลผู้ใช้จาก Token
+    //         var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+    //         if (user == null)
+    //         {
+    //             return Unauthorized(new { message = "Invalid or expired token." });
+    //         }
+    //
+    //         Console.WriteLine($"[User Info] UserId: {user.id}, Curriculum: {user.curriculum?.uniqueId}, Year: {user.curriculum?.year}, Pid: {user.curriculum?.pid}");
+    //
+    //         // ตรวจสอบว่า User มี Curriculum หรือไม่
+    //         if (user.curriculum == null) 
+    //         {
+    //             return NotFound(new { message = "You must login and select curriculum." });
+    //         }
+    //
+    //         var publicId = user.curriculum.pid;
+    //     
+    //         // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
+    //         var (latestYear, latestTerm) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTerm(publicId);
+    //
+    //         // var allSubjects = await SdmTeachtableSubjectReview.GetSubjectsForYearAndTerm(
+    //         //     latestYear, latestTerm, faculty, department, curriculum, classYear, user.curriculum.year, user.curriculum.unique_id);
+    //
+    //         return Ok(new
+    //         {
+    //             latestYear,
+    //             latestTerm,
+    //             // subjects = allSubjects
+    //         });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"[Controller Error] {ex.Message}");
+    //         return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
+    //     }
+    // }
+    
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpGet("test2")]
+    public async Task<IActionResult> GetLatestSubjects2()
+    {
+        try
+        {
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+
+            Console.WriteLine($"[User Info] UserId: {user.id}, Curriculum: {user.curriculum?.uniqueId}, Year: {user.curriculum?.year}, Pid: {user.curriculum?.pid}");
+
+            // ตรวจสอบว่า User มี Curriculum หรือไม่
+            if (user.curriculum == null)
+            {
+                return NotFound(new { message = "You must login and select curriculum." });
+            }
+
+            var publicId = user.curriculum.pid;
+
+            // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
+            var (latestYear, latestTerm, allSubjects) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTerm(publicId);
+
+            return Ok(new
+            {
+                latestYear,
+                latestTerm,
+                allSubjects
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Controller Error] {ex.Message}");
+            return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
+        }
+    }
+
 
 }
 
