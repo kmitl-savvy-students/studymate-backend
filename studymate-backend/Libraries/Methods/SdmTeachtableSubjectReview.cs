@@ -399,8 +399,8 @@ public class SdmTeachtableSubjectReview
 
         // จัดเรียงรีวิวจากวันที่ `created` ล่าสุดก่อน แล้วจัดเรียงสำรองตาม `id`
         return allReviews
-            .OrderByDescending(r => r.created) // จัดเรียงวันที่จากล่าสุดไปเก่า
-            .ThenByDescending(r => r.id)      // จัดเรียง id จากมากไปน้อย (สำรอง)
+            .OrderByDescending(review => review.created) // จัดเรียงวันที่จากล่าสุดไปเก่า
+            .ThenByDescending(review => review.id)      // จัดเรียง id จากมากไปน้อย (สำรอง)
             .ToList();
     }
     
