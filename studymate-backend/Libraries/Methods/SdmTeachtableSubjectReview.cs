@@ -8,7 +8,7 @@ public class SdmTeachtableSubjectReview
 {
     private static int? LatestYear { get; set; }
     private static int? LatestTerm { get; set; }
-    private static DateTime LastUpdated { get; set; } = DateTime.MinValue;
+    // private static DateTime LastUpdated { get; set; } = DateTime.MinValue;
     public static string TableName => "teachtable_subject_review";
 
     public static SdmPgsqlQuerySelect GetQueryObj()
@@ -314,62 +314,13 @@ public class SdmTeachtableSubjectReview
         return allSubjects;
     }
     
-    // public static async Task<(int latestYear, int latestTerm)> GetLatestAcademicYearAndTerm(
-    //     string curriculum)
-    // {
-    //     // if (LatestYear.HasValue && LatestTerm.HasValue && DateTime.Now.Subtract(LastUpdated).TotalDays < 1)
-    //     // {
-    //     //     // ใช้ค่าที่เก็บไว้ในตัวแปร (Cache)
-    //     //     Console.WriteLine($"[Cache] LatestYear: {LatestYear.Value}, LatestTerm: {LatestTerm.Value}");
-    //     //     return (LatestYear.Value, LatestTerm.Value);
-    //     // }
-    //
-    //     int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
-    //     int[] terms = { 3, 2, 1 };
-    //
-    //     using var client = new HttpClient();
-    //
-    //     while (currentYear >= 2560) // กำหนดปีต่ำสุด
-    //     {
-    //         foreach (var currentTerm in terms)
-    //         {
-    //             var response = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
-    //                                                  $"&selected_year={currentYear}" +
-    //                                                  $"&selected_semester={currentTerm}" +
-    //                                                  $"&selected_faculty=01" +
-    //                                                  $"&selected_department=05" +
-    //                                                  $"&selected_curriculum={curriculum}" +
-    //                                                  $"&selected_class_year=0" +
-    //                                                  $"&search_all_faculty=false" +
-    //                                                  $"&search_all_department=false" +
-    //                                                  $"&search_all_curriculum=false" +
-    //                                                  $"&search_all_class_year=true");
-    //
-    //             if (response.IsSuccessStatusCode)
-    //             {
-    //                 var data = await response.Content.ReadAsStringAsync();
-    //                 if (!string.IsNullOrWhiteSpace(data) && data != "[]")
-    //                 {
-    //                     // บันทึกค่าในตัวแปร (Cache)
-    //                     LatestYear = currentYear;
-    //                     LatestTerm = currentTerm;
-    //                     return (currentYear, currentTerm);
-    //                 }
-    //             }
-    //         }
-    //         currentYear--;
-    //     }
-    //
-    //     throw new Exception("Cannot find valid academic year and term.");
-    // }
-    
-    public static async Task<(int latestYear, int latestTerm, List<string> allSubjects)> GetLatestAcademicYearAndTerm(string curriculum)
+    public static async Task<(int latestYear, int latestTerm, List<string> allSubjectsOfFaculty, List<string> allSubjectsOfGened, List<string> allSubjects)> GetLatestAcademicYearAndTermLongTest(string curriculum)
     {
         int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
         int[] terms = { 3, 2, 1 };
-
+    
         using var client = new HttpClient();
-
+    
         while (currentYear >= 2560) // กำหนดปีต่ำสุด
         {
             foreach (var currentTerm in terms)
@@ -385,20 +336,133 @@ public class SdmTeachtableSubjectReview
                                                      $"&search_all_department=false" +
                                                      $"&search_all_curriculum=false" +
                                                      $"&search_all_class_year=true");
-
+    
                 if (response.IsSuccessStatusCode)
                 {
-                    var data = await response.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrWhiteSpace(data) && data != "[]")
+                    var dataOfFaculty = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(dataOfFaculty) && dataOfFaculty != "[]")
                     {
                         // ดึง subject_id จาก response
-                        var allSubjects = ExtractSubjectIdsFromApiResponse(data);
+                        var allSubjectsOfFaculty = ExtractSubjectIdsFromApiResponse(dataOfFaculty);
+                        
+                        // บันทึกค่าในตัวแปร (Cache)
+                        LatestYear = currentYear;
+                        LatestTerm = currentTerm;
+                        
+                        var responseGened = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                                                                  $"&selected_year={currentYear}" +
+                                                                  $"&selected_semester={currentTerm}" +
+                                                                  $"&selected_faculty=90" +
+                                                                  $"&selected_department=90" +
+                                                                  $"&selected_curriculum=x" +
+                                                                  $"&selected_class_year=0" +
+                                                                  $"&search_all_faculty=false" +
+                                                                  $"&search_all_department=false" +
+                                                                  $"&search_all_curriculum=true" +
+                                                                  $"&search_all_class_year=true");
+                        
+                        var allSubjectsOfGened = new List<string>();
+                        if (responseGened.IsSuccessStatusCode)
+                        {
+                            var dataOfGened = await responseGened.Content.ReadAsStringAsync();
+                            if (!string.IsNullOrWhiteSpace(dataOfGened) && dataOfGened != "[]")
+                            {
+                                // ดึง subject_id จาก response
+                                allSubjectsOfGened = ExtractSubjectIdsFromApiResponse(dataOfGened);
+                            }
+                        }
+
+                        var allSubjects = allSubjectsOfFaculty.Concat(allSubjectsOfGened).Distinct().ToList();
+    
+                        return (currentYear, currentTerm, allSubjectsOfFaculty, allSubjectsOfGened, allSubjects);
+                    }
+                }
+            }
+            currentYear--;
+        }
+    
+        throw new Exception("Cannot find valid academic year and term.");
+    }
+    
+    public static async Task<(int latestYear, int latestTerm, List<string> newAllSubject)> GetLatestAcademicYearAndTerm(string curriculum)
+    {
+        int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
+        int[] terms = { 3, 2, 1 };
+
+        using var client = new HttpClient();
+
+        while (currentYear >= 2560) // กำหนดปีต่ำสุด
+        {
+            foreach (var currentTerm in terms)
+            {
+                // ยิง API สำหรับ allSubjects
+                var responseAllSubjects = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                                                                $"&selected_year={currentYear}" +
+                                                                $"&selected_semester={currentTerm}" +
+                                                                $"&selected_faculty=01" +
+                                                                $"&selected_department=05" +
+                                                                $"&selected_curriculum={curriculum}" +
+                                                                $"&selected_class_year=0" +
+                                                                $"&search_all_faculty=false" +
+                                                                $"&search_all_department=false" +
+                                                                $"&search_all_curriculum=false" +
+                                                                $"&search_all_class_year=true");
+
+                if (responseAllSubjects.IsSuccessStatusCode)
+                {
+                    var dataAllSubjects = await responseAllSubjects.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(dataAllSubjects) && dataAllSubjects != "[]")
+                    {
+                        // ดึง subject_id สำหรับ allSubjects
+                        var allSubjects = ExtractSubjectIdsFromApiResponse(dataAllSubjects);
+                        Console.WriteLine("[GetLatestAcademicYearAndTerm] AllSubjects:");
+                        foreach (var subjectId in allSubjects)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+
+                        // ยิง API สำหรับ AllArrayOfGened
+                        var responseGened = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                                                                  $"&selected_year={currentYear}" +
+                                                                  $"&selected_semester={currentTerm}" +
+                                                                  $"&selected_faculty=90" +
+                                                                  $"&selected_department=90" +
+                                                                  $"&selected_curriculum=x" +
+                                                                  $"&selected_class_year=0" +
+                                                                  $"&search_all_faculty=false" +
+                                                                  $"&search_all_department=false" +
+                                                                  $"&search_all_curriculum=true" +
+                                                                  $"&search_all_class_year=true");
+
+                        var allGenedSubjects = new List<string>();
+                        if (responseGened.IsSuccessStatusCode)
+                        {
+                            var dataGened = await responseGened.Content.ReadAsStringAsync();
+                            if (!string.IsNullOrWhiteSpace(dataGened) && dataGened != "[]")
+                            {
+                                // ดึง subject_id สำหรับ AllArrayOfGened
+                                allGenedSubjects = ExtractSubjectIdsFromApiResponse(dataGened);
+                                Console.WriteLine("[GetLatestAcademicYearAndTerm] AllArrayOfGened:");
+                                foreach (var subjectId in allGenedSubjects)
+                                {
+                                    Console.WriteLine($"- {subjectId}");
+                                }
+                            }
+                        }
+
+                        // รวม allSubjects และ allGenedSubjects เข้า newAllSubject
+                        var newAllSubject = allSubjects.Concat(allGenedSubjects).Distinct().ToList();
+                        Console.WriteLine("[GetLatestAcademicYearAndTerm] newAllSubject:");
+                        foreach (var subjectId in newAllSubject)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
 
                         // บันทึกค่าในตัวแปร (Cache)
                         LatestYear = currentYear;
                         LatestTerm = currentTerm;
 
-                        return (currentYear, currentTerm, allSubjects);
+                        return (currentYear, currentTerm, newAllSubject);
                     }
                 }
             }
@@ -407,7 +471,6 @@ public class SdmTeachtableSubjectReview
 
         throw new Exception("Cannot find valid academic year and term.");
     }
-
     
     public static User? GetUserInfoFromToken(string token)
     {
@@ -429,5 +492,6 @@ public class SdmTeachtableSubjectReview
         // คืนค่า User ที่เชื่อมโยงกับ Token
         return userToken.user;
     }
+    
     
 }
