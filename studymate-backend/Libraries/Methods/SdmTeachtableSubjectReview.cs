@@ -397,7 +397,11 @@ public class SdmTeachtableSubjectReview
             }
         }
 
-        return allReviews;
+        // จัดเรียงรีวิวจากวันที่ `created` ล่าสุดก่อน แล้วจัดเรียงสำรองตาม `id`
+        return allReviews
+            .OrderByDescending(r => r.created) // จัดเรียงวันที่จากล่าสุดไปเก่า
+            .ThenByDescending(r => r.id)      // จัดเรียง id จากมากไปน้อย (สำรอง)
+            .ToList();
     }
     
     public static User? GetUserInfoFromToken(string token)
