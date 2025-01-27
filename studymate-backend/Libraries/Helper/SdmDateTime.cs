@@ -58,4 +58,10 @@ public class SdmDateTime
     {
         return _dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss zzz");
     }
+    
+    public DateTime ToDateTime()
+    {
+        return _dateTimeOffset.DateTime;
+    }
+
 }

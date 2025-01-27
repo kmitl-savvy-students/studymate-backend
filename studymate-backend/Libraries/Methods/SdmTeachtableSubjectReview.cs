@@ -1,10 +1,14 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
+using Newtonsoft.Json.Linq;
 
 namespace studymate_backend.Libraries.Methods;
 public class SdmTeachtableSubjectReview
 {
+    private static int? LatestYear { get; set; }
+    private static int? LatestTerm { get; set; }
+    // private static DateTime LastUpdated { get; set; } = DateTime.MinValue;
     public static string TableName => "teachtable_subject_review";
 
     public static SdmPgsqlQuerySelect GetQueryObj()
@@ -270,6 +274,173 @@ public class SdmTeachtableSubjectReview
             Console.WriteLine($"Error in CreateReview: {ex.Message}");
             throw;
         }
+    }
+    
+    public static List<string> ExtractSubjectIdsFromApiResponse(string apiResponse)
+    {
+        var allSubjects = new List<string>();
+
+        try
+        {
+            // แปลง JSON string เป็น JArray
+            var jsonArray = JArray.Parse(apiResponse);
+
+            foreach (var faculty in jsonArray)
+            {
+                var teachTableArray = faculty["teachtable"];
+                if (teachTableArray == null) continue;
+
+                foreach (var teachTable in teachTableArray)
+                {
+                    var dataArray = teachTable["data"];
+                    if (dataArray == null) continue;
+
+                    foreach (var data in dataArray)
+                    {
+                        var subjectId = data["subject_id"]?.ToString();
+                        if (!string.IsNullOrEmpty(subjectId) && !allSubjects.Contains(subjectId))
+                        {
+                            allSubjects.Add(subjectId); // เพิ่ม subject_id ถ้ายังไม่มีใน List
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Error] Failed to extract subject IDs: {ex.Message}");
+        }
+
+        return allSubjects;
+    }
+    
+    public static async Task<List<string>> GetAllSubjectInFacultyAndGened(string curriculum)
+    {
+        int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
+        int[] terms = { 3, 2, 1 };
+    
+        using var client = new HttpClient();
+    
+        while (currentYear >= 2560) // กำหนดปีต่ำสุด
+        {
+            foreach (var currentTerm in terms)
+            {
+                var responseFaculty = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                                                     $"&selected_year={currentYear}" +
+                                                     $"&selected_semester={currentTerm}" +
+                                                     $"&selected_faculty=01" +
+                                                     $"&selected_department=05" +
+                                                     $"&selected_curriculum={curriculum}" +
+                                                     $"&selected_class_year=0" +
+                                                     $"&search_all_faculty=false" +
+                                                     $"&search_all_department=false" +
+                                                     $"&search_all_curriculum=false" +
+                                                     $"&search_all_class_year=true");
+    
+                if (responseFaculty.IsSuccessStatusCode)
+                {
+                    var dataOfFaculty = await responseFaculty.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(dataOfFaculty) && dataOfFaculty != "[]")
+                    {
+                        // ดึง subject_id จาก response
+                        var allSubjectsOfFaculty = ExtractSubjectIdsFromApiResponse(dataOfFaculty);
+                        
+                        // บันทึกค่าในตัวแปร
+                        LatestYear = currentYear;
+                        LatestTerm = currentTerm;
+                        
+                        var responseGened = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                                                                  $"&selected_year={currentYear}" +
+                                                                  $"&selected_semester={currentTerm}" +
+                                                                  $"&selected_faculty=90" +
+                                                                  $"&selected_department=90" +
+                                                                  $"&selected_curriculum=x" +
+                                                                  $"&selected_class_year=0" +
+                                                                  $"&search_all_faculty=false" +
+                                                                  $"&search_all_department=false" +
+                                                                  $"&search_all_curriculum=true" +
+                                                                  $"&search_all_class_year=true");
+                        
+                        var allSubjectsOfGened = new List<string>();
+                        if (responseGened.IsSuccessStatusCode)
+                        {
+                            var dataOfGened = await responseGened.Content.ReadAsStringAsync();
+                            if (!string.IsNullOrWhiteSpace(dataOfGened) && dataOfGened != "[]")
+                            {
+                                // ดึง subject_id จาก response
+                                allSubjectsOfGened = ExtractSubjectIdsFromApiResponse(dataOfGened);
+                            }
+                        }
+
+                        var allSubjects = allSubjectsOfFaculty.Concat(allSubjectsOfGened).Distinct().ToList();
+                        // แสดงผลใน Console
+                        Console.WriteLine($"[GetAllSubjectInFacultyAndGenedTest] CurrentYear: {currentYear}");
+                        Console.WriteLine($"[GetAllSubjectInFacultyAndGenedTest] CurrentTerm: {currentTerm}");
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjectsOfFaculty:");
+                        foreach (var subjectId in allSubjectsOfFaculty)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjectsOfGened:");
+                        foreach (var subjectId in allSubjectsOfGened)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjects:");
+                        foreach (var subjectId in allSubjects)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+    
+                        return (allSubjects);
+                    }
+                }
+            }
+            currentYear--;
+        }
+    
+        throw new Exception("Cannot find valid academic year and term.");
+    }
+    
+    public static List<TeachtableSubjectReview> GetReviewsBySubjects(List<string> subjectIds)
+    {
+        var allReviews = new List<TeachtableSubjectReview>();
+
+        foreach (var subjectId in subjectIds)
+        {
+            var reviews = GetBySubject(subjectId); // ใช้ฟังก์ชันที่มีอยู่แล้วเพื่อดึงรีวิวของแต่ละ subjectId
+            if (reviews.Count > 0)
+            {
+                allReviews.AddRange(reviews); // รวมรีวิวทั้งหมดในลิสต์เดียว
+            }
+        }
+
+        // จัดเรียงรีวิวจากวันที่ `created` ล่าสุดก่อน แล้วจัดเรียงสำรองตาม `id`
+        return allReviews
+            .OrderByDescending(review => review.created) // จัดเรียงวันที่จากล่าสุดไปเก่า
+            .ThenByDescending(review => review.id)      // จัดเรียง id จากมากไปน้อย (สำรอง)
+            .ToList();
+    }
+    
+    public static User? GetUserInfoFromToken(string token)
+    {
+        // ใช้ SdmUserToken.GetBy เพื่อดึง UserToken จาก Token ID
+        var userToken = SdmUserToken.GetBy(token);
+        if (userToken == null)
+        {
+            Console.WriteLine("[Error] Token not found or invalid.");
+            return null;
+        }
+
+        // ตรวจสอบว่า Token หมดอายุหรือไม่
+        if (userToken.expired.ToDateTime() < DateTime.Now)
+        {
+            Console.WriteLine("[Error] Token has expired.");
+            return null;
+        }
+
+        // คืนค่า User ที่เชื่อมโยงกับ Token
+        return userToken.user;
     }
     
 }
