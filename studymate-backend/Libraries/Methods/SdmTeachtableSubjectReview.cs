@@ -314,7 +314,7 @@ public class SdmTeachtableSubjectReview
         return allSubjects;
     }
     
-    public static async Task<(int latestYear, int latestTerm, List<string> allSubjectsOfFaculty, List<string> allSubjectsOfGened, List<string> allSubjects)> GetLatestAcademicYearAndTermLongTest(string curriculum)
+    public static async Task<(int latestYear, int latestTerm, List<string> allSubjectsOfFaculty, List<string> allSubjectsOfGened, List<string> allSubjects)> GetAllSubjectInFacultyAndGened(string curriculum)
     {
         int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
         int[] terms = { 3, 2, 1 };

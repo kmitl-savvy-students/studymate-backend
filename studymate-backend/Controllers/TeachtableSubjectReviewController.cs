@@ -146,7 +146,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             var publicId = user.curriculum.pid;
     
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-            var (latestYear, latestTerm, allSubjectsOfFaculty, allSubjectsOfGened, allSubjects) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTermLongTest(publicId);
+            var (latestYear, latestTerm, allSubjectsOfFaculty, allSubjectsOfGened, allSubjects) = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
     
             return Ok(new
             {
@@ -191,15 +191,13 @@ public class TeachtableSubjectReviewController : ControllerBase
             var publicId = user.curriculum.pid;
 
             // ดึงข้อมูลล่าสุด
-            var (latestYear, latestTerm, _, _, allSubjects) = await SdmTeachtableSubjectReview.GetLatestAcademicYearAndTermLongTest(publicId);
+            var (_, _, _, _, allSubjects) = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
 
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
             var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
 
             return Ok(new
             {
-                latestYear,
-                latestTerm,
                 reviews
             });
         }
