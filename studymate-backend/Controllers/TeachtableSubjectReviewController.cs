@@ -150,11 +150,8 @@ public class TeachtableSubjectReviewController : ControllerBase
             
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
             var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
-    
-            return Ok(new
-            {
-                reviews
-            });
+
+            return Ok(reviews);
         }
         catch (Exception ex)
         {
