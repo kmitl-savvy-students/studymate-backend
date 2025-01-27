@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
-using SdmAuthentication = studymate_backend.Libraries.Helper.SdmAuthentication;
-using SdmString = studymate_backend.Libraries.Helper.SdmString;
 
 namespace studymate_backend.Controllers;
 
@@ -12,7 +10,7 @@ namespace studymate_backend.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    #region Sign Up
+    #region [POST] Sign Up
     [AllowAnonymous]
     [HttpPost("sign-up")]
     public ActionResult SignUp([FromBody] DtoSignUp dtoSignUp)
@@ -31,27 +29,31 @@ public class AuthController : ControllerBase
             !SdmString.IsValid(nameNick, 256) ||
             !SdmString.IsValid(nameFirst, 256) ||
             !SdmString.IsValid(nameLast, 256))
-            return BadRequest(new { message = "Invalid request data." });
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
 
-        if (SdmUser.GetBy(id) != null)
-            return Conflict(new { message = "User with the given ID already exists." });
+        var idInt = int.Parse(id);
+
+        if (SdmUser.GetBy(idInt) != null)
+            return Conflict(new { message = "รหัสผู้ใช้งานถูกสมัครสมาชิกไว้อยู่แล้ว" });
 
         if (password != passwordConfirm)
-            return BadRequest("Password mismatch.");
+            return BadRequest("ยืนยันรหัสผ่านไม่ถูกต้อง");
         if (!SdmAuthentication.IsPasswordStrong(password))
-            return BadRequest(new { message = "Password does not meet strength requirements." });
+            return BadRequest(new { message = "รหัสผ่านไม่แข็งแรงพอ" });
 
         SdmUser.Insert(new User(
-            id,
+            idInt,
             SdmAuthentication.PasswordHash(password),
             nameNick,
             nameFirst,
             nameLast,
             "",
+            false,
             null
         ));
-        return Ok(new { message = "User created." });
+        return Ok();
     }
+
     public class DtoSignUp
     {
         public required string Id { get; init; } = string.Empty;
@@ -62,7 +64,7 @@ public class AuthController : ControllerBase
         public required string NameLast { get; init; } = string.Empty;
     }
     #endregion
-    #region Sign In
+    #region [POST] Sign In
     [AllowAnonymous]
     [HttpPost("sign-in")]
     public ActionResult<UserToken> SignIn(DtoSignIn dtoSignIn)
@@ -73,14 +75,16 @@ public class AuthController : ControllerBase
         if (!SdmNumber.IsValid(id) ||
             !SdmString.IsValid(id, 8, 8) ||
             !SdmString.IsValid(password, 64))
-            return BadRequest(new { message = "Invalid request data." });
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
 
-        var user = SdmUser.GetBy(id);
+        var idInt = int.Parse(id);
+
+        var user = SdmUser.GetBy(idInt);
         if (user == null)
-            return NotFound(new { message = "Incorrect username or password." });
+            return NotFound(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
 
         if (!SdmAuthentication.PasswordVerify(password, user.Password))
-            return NotFound(new { message = "Incorrect username or password." });
+            return NotFound(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
 
         var randomizeToken = SdmString.GenerateRandomToken();
         while (SdmUserToken.GetBy(randomizeToken) != null)
@@ -88,7 +92,7 @@ public class AuthController : ControllerBase
 
         var userToken = SdmUserToken.GetBy(user);
         if (userToken != null)
-            SdmUserToken.Delete(userToken);
+            SdmUserToken.DeleteBy(userToken);
 
         userToken = new UserToken(
             randomizeToken,
@@ -100,13 +104,14 @@ public class AuthController : ControllerBase
 
         return Ok(userToken);
     }
+
     public class DtoSignIn
     {
         public required string Id { get; init; } = string.Empty;
         public required string Password { get; init; } = string.Empty;
     }
     #endregion
-    #region Sign Out
+    #region [POST] Sign Out
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("sign-out")]
     public ActionResult SignOut(DtoSignOut dtoSignOut)
@@ -114,22 +119,23 @@ public class AuthController : ControllerBase
         var userTokenId = SdmString.CleanAndTrim(dtoSignOut.UserTokenId);
 
         if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest(new { message = "Invalid request data." });
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
 
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
-            return NotFound(new { message = "Incorrect user token." });
+            return NotFound(new { message = "ไม่พบเซสชัน" });
 
-        SdmUserToken.Delete(userToken);
-        return Ok(new { message = "Sign out successfully." });
+        SdmUserToken.DeleteBy(userToken);
+        return Ok();
     }
+
     public class DtoSignOut
     {
         public required string UserTokenId { get; init; } = string.Empty;
     }
     #endregion
 
-    #region Token Refresh
+    #region [POST] Token Refresh
     [AllowAnonymous]
     [HttpPost("token")]
     public ActionResult<UserToken> Token(DtoToken dtoToken)
@@ -145,6 +151,7 @@ public class AuthController : ControllerBase
 
         return Ok(userToken);
     }
+
     public class DtoToken
     {
         public required string UserTokenId { get; init; } = string.Empty;

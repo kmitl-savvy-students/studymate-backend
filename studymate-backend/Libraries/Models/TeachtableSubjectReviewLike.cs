@@ -1,4 +1,5 @@
-﻿namespace studymate_backend.Libraries.Models;
+﻿/*TEMP
+namespace studymate_backend.Libraries.Models;
 
 public class TeachtableSubjectReviewLike(
     string user_id,
@@ -10,3 +11,5 @@ public class TeachtableSubjectReviewLike(
     public TeachtableSubjectReview? teachtable_subject_review { get; set; } = teachtable_subject_review;
     public string user_id { get; set; } = user_id;
 }
+*/
+

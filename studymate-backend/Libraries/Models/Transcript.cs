@@ -9,8 +9,8 @@ public class Transcript(
     SdmDateTime created
 ) : IBaseModel
 {
-    public int id { get; set; } = id;
-    public User? user { get; set; } = user;
-    public Curriculum? curriculum { get; set; } = curriculum;
-    public SdmDateTime created { get; set; } = created;
+    public int Id { get; set; } = id;
+    public User? User { get; set; } = user;
+    public Curriculum? Curriculum { get; set; } = curriculum;
+    public SdmDateTime Created { get; set; } = created;
 }

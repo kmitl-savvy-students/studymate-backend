@@ -10,8 +10,7 @@ public class SdmDateTime
     {
         _dateTimeOffset = new DateTimeOffset(dateTime);
     }
-
-    public SdmDateTime(DateTimeOffset dateTimeOffset)
+    private SdmDateTime(DateTimeOffset dateTimeOffset)
     {
         _dateTimeOffset = dateTimeOffset;
     }
@@ -22,13 +21,13 @@ public class SdmDateTime
         {
             _dateTimeOffset = DateTimeOffset.ParseExact(
                 dateTimeString,
-                "yyyy-MM-dd HH:mm:ss zzz",
+                "yyyy-MM-dd HH:mm:ss",
                 CultureInfo.InvariantCulture
             );
         }
         catch (FormatException)
         {
-            throw new ArgumentException("Invalid date format. Expected format: yyyy-MM-dd HH:mm:ss zzz");
+            throw new ArgumentException("Invalid date format. Expected format: yyyy-MM-dd HH:mm:ss");
         }
     }
 
@@ -56,12 +55,11 @@ public class SdmDateTime
 
     public override string ToString()
     {
-        return _dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss zzz");
+        return _dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss");
     }
-    
+
     public DateTime ToDateTime()
     {
         return _dateTimeOffset.DateTime;
     }
-
 }

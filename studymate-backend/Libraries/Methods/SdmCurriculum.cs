@@ -6,30 +6,25 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
 {
-    public static string TableName => "curriculum";
+    public static string TableName => "Curriculum";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
-
     public static List<Curriculum> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
-        var result = new List<Curriculum>();
 
+        var result = new List<Curriculum>();
         while (query.Next())
         {
             result.Add(new Curriculum(
                 query.ToInt(0),
-                query.ToString(1),
-                query.ToString(2),
+                SdmCurriculumType.GetBy(query.ToInt(1)),
+                query.ToInt(2),
                 query.ToString(3),
                 query.ToString(4),
-                query.ToString(5),
-                query.ToString(6),
-                query.ToString(7),
-                query.ToString(8),
-                query.ToString(9)
+                SdmCurriculumGroup.GetBy(query.ToInt(5))
             ));
             if (!isArray) break;
         }
@@ -45,30 +40,10 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         var result = ProcessQuery(select, true);
         return result;
     }
-
     public static Curriculum? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
-
-        var result = ProcessQuery(select);
-        return result.Count == 0 ? null : result[0];
-    }
-    public static Curriculum? GetBy(string uniqueId, string year)
-    {
-        var select = GetQueryObj();
-        select.WhereEqual("unique_id", uniqueId);
-        select.WhereEqual("year", year);
-
-        var result = ProcessQuery(select);
-        return result.Count == 0 ? null : result[0];
-    }
-
-    public static Curriculum? QueryBy(string uniqueId, string year)
-    {
-        var select = GetQueryObj();
-        select.WhereEqual("unique_id", uniqueId);
-        select.WhereEqual("year", year);
+        select.WhereEqual("Id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];

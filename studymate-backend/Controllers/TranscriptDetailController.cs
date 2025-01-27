@@ -7,38 +7,38 @@ namespace studymate_backend.Controllers;
 
 [ApiController]
 [Route("api/transcript")]
-public class TranscriptDataController : ControllerBase
+public class TranscriptDetailController : ControllerBase
 {
+    #region [GET] Transcript Details
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpGet("get/{userId}")]
-    public ActionResult<IEnumerable<TranscriptData>> Get(string userId)
+    [HttpGet("get/{userId:int}")]
+    public ActionResult<IEnumerable<TranscriptDetail>> Get(int userId)
     {
-        // Verify user
         var user = SdmUser.GetBy(userId);
         if (user == null)
-            return Unauthorized(new { message = "User not found." });
+            return Unauthorized();
 
         var transcript = SdmTranscript.GetBy(user);
-        var transcriptDatas = SdmTranscriptData.GetAllBy(transcript);
+        var transcriptDatas = SdmTranscriptDetail.GetAllBy(transcript);
 
         return Ok(transcriptDatas);
     }
-
+    #endregion
+    #region [DELETE] Transcript Details
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpDelete("delete/{userId}")]
-    public ActionResult Delete(string userId)
+    [HttpDelete("delete/{userId:int}")]
+    public ActionResult Delete(int userId)
     {
-        // Verify user
         var user = SdmUser.GetBy(userId);
         if (user == null)
-            return Unauthorized(new { message = "User not found." });
+            return Unauthorized();
 
-        // Get All Transcripts
         var transcripts = SdmTranscript.GetAllBy(user);
         foreach (var transcript in transcripts)
-            SdmTranscriptData.DeleteByTranscript(transcript);
-        SdmTranscript.DeleteByUser(user);
+            SdmTranscriptDetail.DeleteBy(transcript);
+        SdmTranscript.DeleteBy(user);
 
-        return Ok(new { message = "Transcript data deleted." });
+        return Ok();
     }
+    #endregion
 }

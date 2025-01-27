@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿/*
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace studymate_backend.Libraries.Methods;
 
 public class SdmCurriculumTeachtable
 {
-    private static readonly HttpClient HttpClient = new HttpClient();
+    private static readonly HttpClient HttpClient = new();
 
     public static async Task<JsonElement> FetchFilteredTeachTableData(
         int selectedYear,
@@ -16,18 +18,18 @@ public class SdmCurriculumTeachtable
         string curriculumYear,
         string uniqueId)
     {
-        string apiUrl = $"https://k8s.reg.kmitl.ac.th/reg/api/?" +
-                        $"function=get-teach-table-show&mode=by_class" +
-                        $"&selected_year={selectedYear}" +
-                        $"&selected_semester={selectedSemester}" +
-                        $"&selected_faculty={selectedFaculty}" +
-                        $"&selected_department={selectedDepartment}" +
-                        $"&selected_curriculum={selectedCurriculum}" +
-                        $"&selected_class_year={selectedClassYear}" +
-                        $"&search_all_faculty=false" +
-                        $"&search_all_department=false" +
-                        $"&search_all_curriculum=false" +
-                        $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}";
+        var apiUrl = $"https://k8s.reg.kmitl.ac.th/reg/api/?" +
+                     $"function=get-teach-table-show&mode=by_class" +
+                     $"&selected_year={selectedYear}" +
+                     $"&selected_semester={selectedSemester}" +
+                     $"&selected_faculty={selectedFaculty}" +
+                     $"&selected_department={selectedDepartment}" +
+                     $"&selected_curriculum={selectedCurriculum}" +
+                     $"&selected_class_year={selectedClassYear}" +
+                     $"&search_all_faculty=false" +
+                     $"&search_all_department=false" +
+                     $"&search_all_curriculum=false" +
+                     $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}";
 
         try
         {
@@ -59,32 +61,32 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
-    
+
     public static async Task<JsonElement?> FetchFilteredTeachTableSubjectData(
-    int selectedYear,
-    int selectedSemester,
-    string selectedFaculty,
-    string selectedDepartment,
-    string selectedCurriculum,
-    int selectedClassYear,
-    string selectedSubjectId,
-    string curriculumYear,
-    string uniqueId,
-    string? section = null) // section เป็น optional
+        int selectedYear,
+        int selectedSemester,
+        string selectedFaculty,
+        string selectedDepartment,
+        string selectedCurriculum,
+        int selectedClassYear,
+        string selectedSubjectId,
+        string curriculumYear,
+        string uniqueId,
+        string? section = null) // section เป็น optional
     {
-        string apiUrl = $"https://regis.reg.kmitl.ac.th/api/?" +
-                        $"function=get-teach-table-show&mode=by_subject_id" +
-                        $"&selected_year={selectedYear}" +
-                        $"&selected_semester={selectedSemester}" +
-                        $"&selected_faculty={selectedFaculty}" +
-                        $"&selected_department={selectedDepartment}" +
-                        $"&selected_curriculum={selectedCurriculum}" +
-                        $"&selected_class_year={selectedClassYear}" +
-                        $"&search_all_faculty=false" +
-                        $"&search_all_department=false" +
-                        $"&search_all_curriculum=false" +
-                        $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}" +
-                        $"&selected_subject_id={selectedSubjectId}";
+        var apiUrl = $"https://regis.reg.kmitl.ac.th/api/?" +
+                     $"function=get-teach-table-show&mode=by_subject_id" +
+                     $"&selected_year={selectedYear}" +
+                     $"&selected_semester={selectedSemester}" +
+                     $"&selected_faculty={selectedFaculty}" +
+                     $"&selected_department={selectedDepartment}" +
+                     $"&selected_curriculum={selectedCurriculum}" +
+                     $"&selected_class_year={selectedClassYear}" +
+                     $"&search_all_faculty=false" +
+                     $"&search_all_department=false" +
+                     $"&search_all_curriculum=false" +
+                     $"&search_all_class_year={(selectedClassYear == 0 ? "true" : "false")}" +
+                     $"&selected_subject_id={selectedSubjectId}";
 
         try
         {
@@ -112,15 +114,9 @@ public class SdmCurriculumTeachtable
             var transformedData = await TransformData(jsonDoc.RootElement, curriculumYear, uniqueId, section);
 
             // ตรวจสอบว่า TransformData ส่งคืนอาเรย์ว่างหรือไม่
-            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 0)
-            {
-                return null; // คืน null ถ้าไม่มีข้อมูลใน Array
-            }
-            
-            if (section != null)
-            {
-                return transformedData[0];
-            }
+            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 0) return null; // คืน null ถ้าไม่มีข้อมูลใน Array
+
+            if (section != null) return transformedData[0];
 
             return transformedData;
         }
@@ -130,12 +126,12 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
-        
+
     private static async Task<JsonElement> TransformData(
-    JsonElement root, 
-    string curriculumYear, 
-    string uniqueId, 
-    string? section = null) // เพิ่ม section เป็น optional parameter
+        JsonElement root,
+        string curriculumYear,
+        string uniqueId,
+        string? section = null) // เพิ่ม section เป็น optional parameter
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -170,10 +166,7 @@ public class SdmCurriculumTeachtable
                     var currentSection = int.Parse(subject.GetProperty("section").GetString() ?? "0");
 
                     // กรองเฉพาะ section ถ้ามีการส่งค่าเข้ามา
-                    if (!string.IsNullOrWhiteSpace(section) && currentSection.ToString() != section)
-                    {
-                        continue;
-                    }
+                    if (!string.IsNullOrWhiteSpace(section) && currentSection.ToString() != section) continue;
 
                     writer.WriteStartObject();
 
@@ -198,10 +191,7 @@ public class SdmCurriculumTeachtable
                     var transformedDatetime = TransformClassDatetime(classDatetime);
                     writer.WritePropertyName("classdatetime");
                     writer.WriteStartArray();
-                    foreach (var dt in transformedDatetime)
-                    {
-                        writer.WriteStringValue(dt);
-                    }
+                    foreach (var dt in transformedDatetime) writer.WriteStringValue(dt);
                     writer.WriteEndArray();
 
                     writer.WriteString("classbuilding", subject.GetProperty("classbuilding").GetString());
@@ -214,18 +204,12 @@ public class SdmCurriculumTeachtable
 
                     writer.WritePropertyName("teacher_list_th");
                     writer.WriteStartArray();
-                    foreach (var teacher in teacherListTh)
-                    {
-                        writer.WriteStringValue(teacher);
-                    }
+                    foreach (var teacher in teacherListTh) writer.WriteStringValue(teacher);
                     writer.WriteEndArray();
 
                     writer.WritePropertyName("teacher_list_en");
                     writer.WriteStartArray();
-                    foreach (var teacher in teacherListEn)
-                    {
-                        writer.WriteStringValue(teacher);
-                    }
+                    foreach (var teacher in teacherListEn) writer.WriteStringValue(teacher);
                     writer.WriteEndArray();
 
                     var lectOrPrac = subject.GetProperty("lect_or_prac").GetString() == "ท" ? "ทฤษฎี" :
@@ -237,10 +221,7 @@ public class SdmCurriculumTeachtable
                     var midtermDateTime = TransformDateTime(midtermStart, midtermEnd, "กลางภาค");
                     writer.WritePropertyName("midterm_date_time");
                     writer.WriteStartArray();
-                    foreach (var value in midtermDateTime)
-                    {
-                        writer.WriteStringValue(value);
-                    }
+                    foreach (var value in midtermDateTime) writer.WriteStringValue(value);
                     writer.WriteEndArray();
 
                     var finalStart = subject.GetProperty("final_start_date_time").GetString();
@@ -248,10 +229,7 @@ public class SdmCurriculumTeachtable
                     var finalDateTime = TransformDateTime(finalStart, finalEnd, "ปลายภาค");
                     writer.WritePropertyName("final_date_time");
                     writer.WriteStartArray();
-                    foreach (var value in finalDateTime)
-                    {
-                        writer.WriteStringValue(value);
-                    }
+                    foreach (var value in finalDateTime) writer.WriteStringValue(value);
                     writer.WriteEndArray();
 
                     var interested = 0;
@@ -290,10 +268,7 @@ public class SdmCurriculumTeachtable
 
             // ดึงข้อมูล Subject Group และ Subgroup จาก SdmSubjectGroupAndSubgroup
             var subjectGroupAndSubgroup = SdmSubjectGroupAndSubgroup.GetSubjectGroupAndSubgroupBySubjectId(subjectId, uniqueId, curriculumYear);
-            if (subjectGroupAndSubgroup != null)
-            {
-                return (subjectGroupAndSubgroup.Value.groupName, subjectGroupAndSubgroup.Value.subgroupName);
-            }
+            if (subjectGroupAndSubgroup != null) return (subjectGroupAndSubgroup.Value.groupName, subjectGroupAndSubgroup.Value.subgroupName);
         }
         catch (Exception ex)
         {
@@ -306,12 +281,9 @@ public class SdmCurriculumTeachtable
 
     private static List<string> TransformTeacherList(string rawTeacherList)
     {
-        if (string.IsNullOrWhiteSpace(rawTeacherList))
-        {
-            return new List<string>();
-        }
+        if (string.IsNullOrWhiteSpace(rawTeacherList)) return new List<string>();
 
-        var cleanTeacherList = System.Text.RegularExpressions.Regex.Replace(rawTeacherList, "<.*?>", "\n");
+        var cleanTeacherList = Regex.Replace(rawTeacherList, "<.*?>", "\n");
         var teachers = cleanTeacherList.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
         return teachers.Select(t => t.Trim()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
     }
@@ -337,69 +309,5 @@ public class SdmCurriculumTeachtable
         };
 
         var result = new List<string>();
+        */
 
-        try
-        {
-            var parts = rawDatetime.Split(new[] { "<div>", "</div>", "+" }, StringSplitOptions.RemoveEmptyEntries);
-
-            string? currentDay = null;
-            foreach (var part in parts)
-            {
-                var dayMatch = dayMapping.FirstOrDefault(m => part.StartsWith(m.Key));
-                if (dayMatch.Key != null)
-                {
-                    currentDay = dayMatch.Value;
-                    if (!result.Contains(currentDay))
-                    {
-                        result.Add(currentDay);
-                    }
-
-                    var timePart = part.Replace(dayMatch.Key, "").Trim();
-                    if (!string.IsNullOrWhiteSpace(timePart))
-                    {
-                        result.Add(timePart);
-                    }
-                }
-                else if (currentDay != null)
-                {
-                    var cleanedPart = part.Trim();
-                    foreach (var dayKey in dayMapping.Keys)
-                    {
-                        if (cleanedPart.StartsWith(dayKey))
-                        {
-                            cleanedPart = cleanedPart.Replace(dayKey, "").Trim();
-                            break;
-                        }
-                    }
-                    result.Add(cleanedPart);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error transforming 'classdatetime': {ex.Message}");
-            result.Add("ข้อมูลเวลาไม่ถูกต้อง");
-        }
-
-        return result;
-    }
-
-    private static List<string> TransformDateTime(string startDateTime, string endDateTime, string phase)
-    {
-        if (string.IsNullOrWhiteSpace(startDateTime) || string.IsNullOrWhiteSpace(endDateTime))
-        {
-            return new List<string> { phase, "ไม่ระบุ", "ไม่ระบุ" };
-        }
-
-        var start = DateTime.Parse(startDateTime);
-        var end = DateTime.Parse(endDateTime);
-
-        // แปลงชื่อวันและลบคำว่า "วัน" ออก
-        var dayOfWeek = start.ToString("dddd", new System.Globalization.CultureInfo("th-TH")).Replace("วัน", "");
-        var date = start.ToString("d MMMM yyyy", new System.Globalization.CultureInfo("th-TH"));
-        var timeRange = $"{start:HH:mm}-{end:HH:mm}";
-
-        return new List<string> { phase, $"{dayOfWeek} {date}", timeRange };
-    }
-
-}
