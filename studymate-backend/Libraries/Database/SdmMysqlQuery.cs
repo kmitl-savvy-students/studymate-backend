@@ -1,14 +1,14 @@
-﻿using MySql.Data.MySqlClient;
+﻿using System.Data;
+using MySql.Data.MySqlClient;
 using studymate_backend.Libraries.Database.QueryBuilders;
-using System.Data;
 
 namespace studymate_backend.Libraries.Database;
 
 public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
 {
-    private List<object?[]>? _rows;
-    private int _currentRowIndex = -1;
     private int _columnCount;
+    private int _currentRowIndex = -1;
+    private List<object?[]>? _rows;
 
     public int InsertedId;
 
@@ -17,13 +17,9 @@ public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
         var query = new SdmMysqlQuery(queryBase);
 
         if (queryBase is SdmMysqlQueryInsert)
-        {
             query.ExecuteScalar();
-        }
         else
-        {
             query.LoadAllRows();
-        }
 
         return query;
     }
@@ -91,6 +87,15 @@ public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
     {
         var val = GetValue(columnIndex);
         return val is null or DBNull ? string.Empty : val.ToString() ?? string.Empty;
+    }
+
+    public bool ToBool(int columnIndex)
+    {
+        var val = GetValue(columnIndex);
+        if (val is null or DBNull)
+            return false;
+
+        return bool.TryParse(val.ToString(), out var result) && result;
     }
 
     public int ToInt(int columnIndex)

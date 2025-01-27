@@ -12,6 +12,7 @@ namespace studymate_backend.Controllers;
 [Route("api/google")]
 public class GoogleOAuthController : ControllerBase
 {
+    #region Google Environment Variables
     private readonly string _oAuth2Endpoint = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT") ?? "";
     private readonly string _oAuth2EndpointToken = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_TOKEN") ?? "";
     private readonly string _oAuth2EndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_USER_INFO") ?? "";
@@ -19,19 +20,20 @@ public class GoogleOAuthController : ControllerBase
     private readonly string _oAuthClientSecret = Environment.GetEnvironmentVariable("OAUTH_CLIENT_SECRET") ?? "";
     private readonly string _oAuthEndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH_ENDPOINT_USER_INFO") ?? "";
     private readonly string _oAuthRedirectUri = Environment.GetEnvironmentVariable("OAUTH_REDIRECT_URI") ?? "";
+    #endregion
 
+    #region [GET] Google Link
     [AllowAnonymous]
     [HttpGet("link/sign-up")]
-    public ActionResult<DtoGoogleLink> GetLinkSignUp()
+    public ActionResult GetLinkSignUp()
     {
-        return Ok(new DtoGoogleLink { href = GetLink(_oAuthRedirectUri + "/sign-up") });
+        return Ok(new { href = GetLink(_oAuthRedirectUri + "/sign-up") });
     }
-
     [AllowAnonymous]
     [HttpGet("link/sign-in")]
-    public ActionResult<DtoGoogleLink> GetLinkSignIn()
+    public ActionResult GetLinkSignIn()
     {
-        return Ok(new DtoGoogleLink { href = GetLink(_oAuthRedirectUri + "/sign-in") });
+        return Ok(new { href = GetLink(_oAuthRedirectUri + "/sign-in") });
     }
 
     private string GetLink(string redirectUri)
@@ -45,80 +47,78 @@ public class GoogleOAuthController : ControllerBase
                "&access_type=offline" +
                "&prompt=consent";
     }
-
+    #endregion
+    #region [POST] Google Callback
     [AllowAnonymous]
     [HttpPost("callback")]
     public async Task<ActionResult<UserToken>> Callback(DtoGoogleCallback callback)
     {
-        var authorizationCode = SdmString.CleanAndTrim(callback.code);
+        var authorizationCode = SdmString.CleanAndTrim(callback.Code);
 
-        // Get Access Token
-        var googleAccessToken = await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.redirectUri);
-        if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.access_token))
-            return Unauthorized(new { message = "Cannot get Google access token." });
+        var googleAccessToken =
+            await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.RedirectUri);
+        if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.AccessToken))
+            return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้" });
 
-        // Get User Info from Access Token
         var client = new HttpClient();
         var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, _oAuth2EndpointUserInfo);
-        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
+        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.AccessToken);
 
         var response = await client.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
-            return Unauthorized(new { message = "Cannot get user info." });
+            return Unauthorized(new { message = "ไม่สามารถเข้าถึงข้อมูลผู้ใช้ได้" });
 
         var responseContent = await response.Content.ReadAsStringAsync();
         var userInfo = JsonSerializer.Deserialize<DtoUserInfo>(responseContent);
 
         if (userInfo == null)
-            return Unauthorized(new { message = "Cannot get user info" });
+            return Unauthorized(new { message = "ไม่สามารถเข้าถึงข้อมูลผู้ใช้ได้" });
 
-        var id = (userInfo.email ?? "00000000@kmitl.ac.th").Split('@')[0];
-        var domain = userInfo.hd;
+        var id = userInfo.Email.Split('@')[0];
+        var domain = userInfo.Hd;
 
-        // Verify KMITL user
         if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
-            return Unauthorized(new { message = "Must use KMITL Account." });
+            return Unauthorized(new { message = "กรุณาใช้บัญชีของสถาบันเท่านั้น" });
 
-        var user = SdmUser.GetBy(id);
+        var idInt = int.Parse(id);
+
+        var user = SdmUser.GetBy(idInt);
         if (user == null)
         {
-            if (callback.redirectUri == "sign-in")
-                return NotFound(new { message = "User not found, please sign up." });
+            if (callback.RedirectUri == "sign-in")
+                return NotFound(new { message = "ไม่พบข้อมูลผู้ใช้งาน กรุณาสมัครสมาชิก" });
 
-            // Create user if user doesn't exist
             user = new User(
-                id,
+                idInt,
                 SdmAuthentication.PasswordHash(SdmString.GenerateRandomToken()),
-                userInfo.given_name,
-                userInfo.given_name,
-                userInfo.family_name,
-                userInfo.picture,
+                userInfo.GivenName,
+                userInfo.GivenName,
+                userInfo.FamilyName,
+                userInfo.Picture,
+                false,
                 null
             );
             SdmUser.Insert(user);
         }
         else
         {
-            if (callback.redirectUri == "sign-up")
-                return Conflict(new { message = "You already sign up, please sign in." });
+            if (callback.RedirectUri == "sign-up")
+                return Conflict(new { message = "คุณได้สมัครสมาชิกไปแล้ว กรุณาเข้าสู่ระบบแทน" });
 
-            user.NameFirst = userInfo.given_name;
-            user.NameLast = userInfo.family_name;
-            user.Profile = userInfo.picture;
-            SdmUser.Update(user);
+            user.NameFirst = userInfo.GivenName;
+            user.NameLast = userInfo.FamilyName;
+            user.Profile = userInfo.Picture;
+            SdmUser.UpdateBy(user);
         }
 
-        // Generate token string
         var randomizeToken = SdmString.GenerateRandomToken();
         while (SdmUserToken.GetBy(randomizeToken) != null)
             randomizeToken = SdmString.GenerateRandomToken();
 
-        // Verify if token is already exists
         var userToken = SdmUserToken.GetBy(user);
         if (userToken != null)
-            SdmUserToken.Delete(userToken);
+            SdmUserToken.DeleteBy(userToken);
 
-        // Create token
         userToken = new UserToken(
             randomizeToken,
             user,
@@ -130,19 +130,36 @@ public class GoogleOAuthController : ControllerBase
         return Ok(userToken);
     }
 
+    public class DtoUserInfo
+    {
+        public required string Id { get; init; }
+        public required string Email { get; init; }
+        public required bool VerifiedEmail { get; init; }
+        public required string Name { get; init; }
+        public required string GivenName { get; init; }
+        public required string FamilyName { get; init; }
+        public required string Picture { get; init; }
+        public required string Hd { get; init; }
+    }
+
+    public class DtoGoogleCallback
+    {
+        public required string Code { get; init; } = string.Empty;
+        public required string RedirectUri { get; init; } = string.Empty;
+    }
+
     private async Task<DtoGoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
     {
         var client = new HttpClient();
         var tokenRequest = new HttpRequestMessage(HttpMethod.Post, _oAuth2EndpointToken)
         {
-            Content = new FormUrlEncodedContent(new[]
-            {
+            Content = new FormUrlEncodedContent([
                 new KeyValuePair<string, string>("code", code),
                 new KeyValuePair<string, string>("client_id", _oAuthClientId),
                 new KeyValuePair<string, string>("client_secret", _oAuthClientSecret),
                 new KeyValuePair<string, string>("redirect_uri", redirectUri),
                 new KeyValuePair<string, string>("grant_type", "authorization_code")
-            })
+            ])
         };
 
         var response = await client.SendAsync(tokenRequest);
@@ -150,36 +167,14 @@ public class GoogleOAuthController : ControllerBase
         return JsonSerializer.Deserialize<DtoGoogleAccessToken>(responseContent);
     }
 
-    public class DtoGoogleCallback
-    {
-        public required string code { get; set; }
-        public required string redirectUri { get; set; }
-    }
-
     public class DtoGoogleAccessToken
     {
-        public string? access_token { get; set; }
-        public int? expires_in { get; set; }
-        public string? refresh_token { get; set; }
-        public string? scope { get; set; }
-        public string? token_type { get; set; }
-        public string? id_token { get; set; }
+        public string? AccessToken { get; init; }
+        public int? ExpiresIn { get; init; }
+        public string? RefreshToken { get; init; }
+        public string? Scope { get; init; }
+        public string? TokenType { get; init; }
+        public string? IdToken { get; init; }
     }
-
-    public class DtoUserInfo
-    {
-        public required string id { get; set; }
-        public required string email { get; set; }
-        public required bool verified_email { get; set; }
-        public required string name { get; set; }
-        public required string given_name { get; set; }
-        public required string family_name { get; set; }
-        public required string picture { get; set; }
-        public required string hd { get; set; }
-    }
-
-    public class DtoGoogleLink
-    {
-        public required string href { get; set; }
-    }
+    #endregion
 }

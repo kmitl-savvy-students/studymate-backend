@@ -7,28 +7,26 @@ namespace studymate_backend.Libraries.Methods;
 public abstract class SdmUser : ISdmBaseMethod<User>
 {
     public static string TableName => "User";
-
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
-
     public static List<User> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<User>();
-
         while (query.Next())
         {
             result.Add(new User(
-                query.ToString(0),
+                query.ToInt(0),
                 query.ToString(1),
                 query.ToString(2),
                 query.ToString(3),
                 query.ToString(4),
                 query.ToString(5),
-                SdmCurriculum.GetBy(query.ToInt(6))
+                query.ToBool(6),
+                SdmCurriculum.GetBy(query.ToInt(7))
             ));
             if (!isArray) break;
         }
@@ -44,11 +42,10 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         var result = ProcessQuery(select, true);
         return result;
     }
-
-    public static User? GetBy(string id)
+    public static User? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id);
+        select.WhereEqual("Id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -58,19 +55,18 @@ public abstract class SdmUser : ISdmBaseMethod<User>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("Id", user.Id);
+        insert.Insert("Id", user.Id.ToString());
         insert.Insert("Password", user.Password);
         insert.Insert("NameNick", user.NameNick);
         insert.Insert("NameFirst", user.NameFirst);
         insert.Insert("NameLast", user.NameLast);
         insert.Insert("Profile", user.Profile);
-        insert.Insert("CurriculumId", user.Curriculum?.id.ToString());
+        insert.Insert("CurriculumId", user.Curriculum?.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
-
-    public static void Update(User user)
+    public static void UpdateBy(User user)
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
@@ -78,9 +74,9 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         update.Set("NameFirst", user.NameFirst);
         update.Set("NameLast", user.NameLast);
         update.Set("Profile", user.Profile);
-        update.Set("CurriculumId", user.Curriculum?.id.ToString());
+        update.Set("CurriculumId", user.Curriculum?.Id.ToString());
 
-        update.WhereEqual("Id", user.Id);
+        update.WhereEqual("Id", user.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

@@ -46,16 +46,11 @@ public class SdmTokenHandler(
         }
 
         var user = userToken.user;
-        if (user == null)
-        {
-            Logger.LogWarning("User not found for the provided token.");
-            return Task.FromResult(AuthenticateResult.Fail("User not found"));
-        }
 
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, user.GetFullName()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id)
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

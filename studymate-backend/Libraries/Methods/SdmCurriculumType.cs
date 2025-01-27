@@ -1,28 +1,27 @@
-﻿using studymate_backend.Libraries.Database;
+using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
-using studymate_backend.Libraries.Enums;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
+public abstract class SdmCurriculumType : ISdmBaseMethod<CurriculumType>
 {
-    public static string TableName => "CurriculumGroup";
+    public static string TableName => "CurriculumType";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
-    public static List<CurriculumGroup> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    public static List<CurriculumType> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
 
-        var result = new List<CurriculumGroup>();
+        var result = new List<CurriculumType>();
         while (query.Next())
         {
-            result.Add(new CurriculumGroup(
+            result.Add(new CurriculumType(
                 query.ToInt(0),
-                GetBy(query.ToInt(1)),
-                EnumBase.Get<EnumGroupType>(query.ToString(2)) ?? EnumGroupType.REQUIRED_ALL,
+                SdmDepartment.GetBy(query.ToInt(1)),
+                query.ToString(2),
                 query.ToString(3)
             ));
             if (!isArray) break;
@@ -32,14 +31,14 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return result;
     }
 
-    public static List<CurriculumGroup> GetAll()
+    public static List<CurriculumType> GetAll()
     {
         var select = GetQueryObj();
 
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static CurriculumGroup? GetBy(int id)
+    public static CurriculumType? GetBy(int id)
     {
         var select = GetQueryObj();
         select.WhereEqual("Id", id.ToString());
