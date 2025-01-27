@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8080"
     env_file:
-      - /home/admin-preprod/backend-env/.env
+      - /home/admin-prod/backend/.env
     networks:
       - backend-network
     labels:
