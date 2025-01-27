@@ -1,6 +1,32 @@
+# FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# ENV ASPNETCORE_ENVIRONMENT=preprod
+
+# WORKDIR /app
+
+# EXPOSE 8080
+
+# COPY ["studymate-backend.sln", "./"]
+# COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
+# COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
+
+# RUN dotnet restore
+# RUN dotnet clean
+
+# COPY . .
+
+# RUN dotnet publish -c Release -o /app/publish --no-self-contained --no-restore
+
+# FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+# WORKDIR /app
+# COPY --from=build /app/publish .
+
+# ENTRYPOINT ["dotnet", "studymate-backend.dll"]
+# Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-ENV ASPNETCORE_ENVIRONMENT=prod
+ENV ASPNETCORE_ENVIRONMENT=preprod
 
 WORKDIR /app
 

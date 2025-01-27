@@ -1,0 +1,47 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using studymate_backend.Libraries.Methods;
+using studymate_backend.Libraries.Models;
+
+namespace studymate_backend.Controllers;
+
+[ApiController]
+[Route("api/user")]
+public class UserController : ControllerBase
+{
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPatch("update")]
+    public ActionResult<User> Update([FromBody] DtoUpdateUser user)
+    {
+        var existingUser = SdmUser.GetBy(user.id);
+        if (existingUser == null)
+            return NotFound(new { message = "User not found" });
+
+        if (user.curriculumId != null)
+        {
+            var newCurriculum = SdmCurriculum.GetBy(user.curriculumId ?? -1);
+            if (newCurriculum == null)
+                return NotFound(new { message = "Curriculum not found" });
+            existingUser.curriculum = newCurriculum;
+        }
+
+        existingUser.nameNick = user.nameNick ?? existingUser.nameNick;
+        existingUser.nameFirst = user.nameFirst ?? existingUser.nameFirst;
+        existingUser.nameLast = user.nameLast ?? existingUser.nameLast;
+        existingUser.profile = user.profile ?? existingUser.profile;
+
+        SdmUser.Update(existingUser);
+
+        return Ok(user);
+    }
+
+    public class DtoUpdateUser
+    {
+        public required string id { get; set; }
+        public string? nameNick { get; set; }
+        public string? nameFirst { get; set; }
+        public string? nameLast { get; set; }
+        public string? profile { get; set; }
+        public int? curriculumId { get; set; }
+    }
+}

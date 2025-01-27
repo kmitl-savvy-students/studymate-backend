@@ -1,0 +1,156 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: CI for StudyMate-Backend Develop Branch
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
+
+jobs:
+  test:
+    name: Unit Test
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - name: Configure Git safe directory
+        run: |
+          git config --global --add safe.directory /__w/studymate-backend/studymate-backend
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Restore dependencies
+        run: dotnet restore studymate-backend.sln
+      - name: Build the project
+        run: dotnet build studymate-backend.sln --no-restore
+      - name: Test
+        run: dotnet test ./studymate-backend-tests/studymate-backend-tests.csproj --logger "trx;LogFileName=test-results.trx" --verbosity normal
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1.9.1
+        if: success() || failure()
+        with:
+          name: .NET xUnit Test
+          path: "**/test-results.trx"
+          reporter: dotnet-trx
+          fail-on-error: true
+          fail-on-empty: false
+      - name: cleaning project
+        run: |
+          rm -rf /Tests/bin/
+          rm -rf /Tests/obj/
+
+  # sonarqube:
+  #   name: SonarQube Analyze
+  #   needs: test
+  #   runs-on: ["self-hosted", "org-runner"]
+  #   container:
+  #     image: mcr.microsoft.com/dotnet/sdk:8.0
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Set up JDK 17
+  #       uses: actions/setup-java@v1
+  #       with:
+  #         java-version: 17
+
+  #     - name: Cache SonarQube packages
+  #       uses: actions/cache@v1
+  #       with:
+  #         path: ~/.sonar/cache
+  #         key: ${{ runner.os }}-sonar
+  #         restore-keys: ${{ runner.os }}-sonar
+
+  #     - name: Cache SonarQube scanner
+  #       id: cache-sonar-scanner
+  #       uses: actions/cache@v1
+  #       with:
+  #         path: .sonar/scanner
+  #         key: ${{ runner.os }}-sonar-scanner
+  #         restore-keys: ${{ runner.os }}-sonar-scanner
+
+  #     - name: Install SonarQube scanner
+  #       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+  #       run: |
+  #         mkdir -p .sonar/scanner
+  #         dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
+
+  #     - name: Build and analyze
+  #       run: |
+  #         ./.sonar/scanner/dotnet-sonarscanner begin /k:"kmitl-savvy-students_studymate-backend_944fc207-7ea9-446a-ace5-ef3f9905d4ac" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.scanner.scanAll=false /d:sonar.verbose=true
+  #         dotnet build .
+  #         ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+  build:
+    name: Build
+    needs: test
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+    steps:
+      - name: give runner permission
+        run: |
+          sudo chown -R admin-preprod:admin-preprod /home/admin-preprod/actions-runner/_work/studymate-backend/studymate-backend
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Remove Old Docker Image
+        run: |
+          docker image prune -f
+          docker rmi -f $(docker images -q back-img) || true
+
+      - name: Build Docker Image
+        run: |
+          docker build -f Dockerfile.preprod -t back-img .
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "back-runner"]
+
+    steps:
+      - name: Stop and Remove Container
+        run: |
+          docker compose -f docker-compose.preprod.yml down -v || true
+      - name: Deploy application using Docker Compose
+        run: |
+          docker compose -f docker-compose.preprod.yml up -d --build
+      - name: ✅✅ Finish ✅✅
+        run: echo "All Passed => Fisnish !!"
+
+  # deploy:
+  #   name: Deploy
+  #   needs: build
+  #   runs-on:
+  #     labels: ["self-hosted", "Linux", "X64", "back-runner"]
+
+  #   steps:
+  #     - name: Stop and Remove Container
+  #       run: |
+  #         docker compose -f docker-compose.preprod.yml down -v || true
+  #     - name: Create Directory To Store File
+  #       run: |
+  #         mkdir -p ./studymate-backend/tmp/keys
+  #         sudo chown -R admin-preprod:admin-preprod ./studymate-backend/tmp/keys
+  #     - name: Create Google Credentials File
+  #       id: create-json
+  #       uses: jsdaniell/create-json@v1.2.3
+  #       with:
+  #         name: "vertex-ai-access-key.json"
+  #         json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+  #         dir: "./studymate-backend/tmp/keys/"
+  #     - name: Deploy application using Docker Compose
+  #       run: |
+  #         docker compose -f docker-compose.preprod.yml up -d --build
+  #     - name: Clean up credentials file
+  #       run: rm -f ./studymate-backend/tmp/keys/vertex-ai-access-key.json
+  #     - name: ✅✅ Finish ✅✅
+  #       run: echo "All Passed => Fisnish !!"
