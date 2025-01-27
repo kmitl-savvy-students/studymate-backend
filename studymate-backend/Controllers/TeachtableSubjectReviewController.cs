@@ -120,8 +120,8 @@ public class TeachtableSubjectReviewController : ControllerBase
     }
     
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpGet("longtest")]
-    public async Task<IActionResult> GetLatestSubjects2()
+    [HttpGet("current")]
+    public async Task<IActionResult> GetLatestSubjects()
     {
         try
         {
@@ -146,56 +146,11 @@ public class TeachtableSubjectReviewController : ControllerBase
             var publicId = user.curriculum.pid;
     
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-            var (latestYear, latestTerm, allSubjectsOfFaculty, allSubjectsOfGened, allSubjects) = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
-    
-            return Ok(new
-            {
-                latestYear,
-                latestTerm,
-                allSubjectsOfFaculty,
-                allSubjectsOfGened,
-                allSubjects
-            });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Controller Error] {ex.Message}");
-            return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
-        }
-    }
-    
-    [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpGet("current")]
-    public async Task<IActionResult> GetCurrentSubjectReviews()
-    {
-        try
-        {
-            // ดึง Token จาก Header
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-            // ดึงข้อมูลผู้ใช้จาก Token
-            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
-            if (user == null)
-            {
-                return Unauthorized(new { message = "Invalid or expired token." });
-            }
-
-            Console.WriteLine($"[User Info] UserId: {user.id}, Curriculum: {user.curriculum?.uniqueId}, Year: {user.curriculum?.year}, Pid: {user.curriculum?.pid}");
-
-            // ตรวจสอบว่า User มี Curriculum หรือไม่
-            if (user.curriculum == null)
-            {
-                return NotFound(new { message = "You must login and select curriculum." });
-            }
-
-            var publicId = user.curriculum.pid;
-
-            // ดึงข้อมูลล่าสุด
-            var (_, _, _, _, allSubjects) = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
-
+            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
+            
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
             var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
-
+    
             return Ok(new
             {
                 reviews

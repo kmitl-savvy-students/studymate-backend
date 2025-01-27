@@ -314,7 +314,7 @@ public class SdmTeachtableSubjectReview
         return allSubjects;
     }
     
-    public static async Task<(int latestYear, int latestTerm, List<string> allSubjectsOfFaculty, List<string> allSubjectsOfGened, List<string> allSubjects)> GetAllSubjectInFacultyAndGened(string curriculum)
+    public static async Task<List<string>> GetAllSubjectInFacultyAndGened(string curriculum)
     {
         int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
         int[] terms = { 3, 2, 1 };
@@ -325,7 +325,7 @@ public class SdmTeachtableSubjectReview
         {
             foreach (var currentTerm in terms)
             {
-                var response = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
+                var responseFaculty = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
                                                      $"&selected_year={currentYear}" +
                                                      $"&selected_semester={currentTerm}" +
                                                      $"&selected_faculty=01" +
@@ -337,15 +337,15 @@ public class SdmTeachtableSubjectReview
                                                      $"&search_all_curriculum=false" +
                                                      $"&search_all_class_year=true");
     
-                if (response.IsSuccessStatusCode)
+                if (responseFaculty.IsSuccessStatusCode)
                 {
-                    var dataOfFaculty = await response.Content.ReadAsStringAsync();
+                    var dataOfFaculty = await responseFaculty.Content.ReadAsStringAsync();
                     if (!string.IsNullOrWhiteSpace(dataOfFaculty) && dataOfFaculty != "[]")
                     {
                         // ดึง subject_id จาก response
                         var allSubjectsOfFaculty = ExtractSubjectIdsFromApiResponse(dataOfFaculty);
                         
-                        // บันทึกค่าในตัวแปร (Cache)
+                        // บันทึกค่าในตัวแปร
                         LatestYear = currentYear;
                         LatestTerm = currentTerm;
                         
@@ -373,8 +373,26 @@ public class SdmTeachtableSubjectReview
                         }
 
                         var allSubjects = allSubjectsOfFaculty.Concat(allSubjectsOfGened).Distinct().ToList();
+                        // แสดงผลใน Console
+                        Console.WriteLine($"[GetAllSubjectInFacultyAndGenedTest] CurrentYear: {currentYear}");
+                        Console.WriteLine($"[GetAllSubjectInFacultyAndGenedTest] CurrentTerm: {currentTerm}");
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjectsOfFaculty:");
+                        foreach (var subjectId in allSubjectsOfFaculty)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjectsOfGened:");
+                        foreach (var subjectId in allSubjectsOfGened)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
+                        Console.WriteLine("[GetAllSubjectInFacultyAndGenedTest] AllSubjects:");
+                        foreach (var subjectId in allSubjects)
+                        {
+                            Console.WriteLine($"- {subjectId}");
+                        }
     
-                        return (currentYear, currentTerm, allSubjectsOfFaculty, allSubjectsOfGened, allSubjects);
+                        return (allSubjects);
                     }
                 }
             }
@@ -424,6 +442,5 @@ public class SdmTeachtableSubjectReview
         // คืนค่า User ที่เชื่อมโยงกับ Token
         return userToken.user;
     }
-    
     
 }
