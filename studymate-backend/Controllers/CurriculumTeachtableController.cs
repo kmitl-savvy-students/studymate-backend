@@ -93,7 +93,7 @@ public class CurriculumTeachtableController : ControllerBase
                 return Ok(new JsonElement[0]);
             }
     
-            return Ok(filteredData);
+            return Ok(filteredData[0]);
         }
         catch (Exception ex)
         {
