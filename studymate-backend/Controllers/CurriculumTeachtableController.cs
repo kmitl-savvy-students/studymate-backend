@@ -37,8 +37,6 @@ public class CurriculumTeachtableController : ControllerBase
 
         try
         {
-            // var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableData(
-            //     year, semester, faculty, department, curriculum, classYear, curriculumYear, uniqueId);
             // Pass ค่า null ไปให้ service layer ถ้า parameter ไม่ถูกส่งมา
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableData(
                 year, semester, faculty, department, curriculum, classYear, 
@@ -80,11 +78,9 @@ public class CurriculumTeachtableController : ControllerBase
         {
             return BadRequest(new { message = "subjectId or section are required." });
         }
-    
         
         try
         {
-            // เรียก Service Layer
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
                 year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
     
@@ -100,6 +96,5 @@ public class CurriculumTeachtableController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
-
-
+    
 }
