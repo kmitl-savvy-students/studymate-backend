@@ -18,9 +18,9 @@ public class DepartmentController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [PATCH] Update Department
+    #region [Put] Update Department
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPatch("update")]
+    [HttpPut("update")]
     public ActionResult<Department> Update(Department department)
     {
         SdmDepartment.UpdateBy(department);

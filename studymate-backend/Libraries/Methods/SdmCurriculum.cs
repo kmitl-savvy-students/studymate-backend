@@ -40,6 +40,14 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         var result = ProcessQuery(select, true);
         return result;
     }
+    public static List<Curriculum> GetAllBy(int curriculumTypeId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("CurriculumTypeId", curriculumTypeId.ToString());
+
+        var result = ProcessQuery(select, true);
+        return result;
+    }
     public static Curriculum? GetBy(int id)
     {
         var select = GetQueryObj();
@@ -47,5 +55,34 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
+    }
+
+    public static void Insert(Curriculum curriculum)
+    {
+        var insert = new SdmMysqlQueryInsert(TableName);
+
+        insert.Insert("CurriculumTypeId", curriculum.Type?.Id.ToString());
+        insert.Insert("Year", curriculum.Year.ToString());
+        insert.Insert("NameTh", curriculum.NameTh);
+        insert.Insert("NameEn", curriculum.NameEn);
+        insert.Insert("CurriculumGroupId", curriculum.Group?.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
+    }
+    public static void UpdateBy(Curriculum curriculum)
+    {
+        var update = new SdmMysqlQueryUpdate(TableName);
+
+        update.Set("CurriculumTypeId", curriculum.Type?.Id.ToString());
+        update.Set("Year", curriculum.Year.ToString());
+        update.Set("NameTh", curriculum.NameTh);
+        update.Set("NameEn", curriculum.NameEn);
+        update.Set("CurriculumGroupId", curriculum.Group?.Id.ToString());
+
+        update.WhereEqual("Id", curriculum.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(update);
+        query.CleanUp();
     }
 }

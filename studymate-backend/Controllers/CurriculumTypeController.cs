@@ -35,7 +35,13 @@ public class CurriculumTypeController : ControllerBase
         return Ok(SdmCurriculumType.GetAll());
     }
     [AllowAnonymous]
-    [HttpGet("get-by-department/{id:int}")]
+    [HttpGet("get/{id:int}")]
+    public ActionResult<CurriculumType> GetBy(int id)
+    {
+        return Ok(SdmCurriculumType.GetBy(id));
+    }
+    [AllowAnonymous]
+    [HttpGet("get-by-department/{departmentId:int}")]
     public ActionResult<IEnumerable<CurriculumType>> GetAllBy(int departmentId)
     {
         return Ok(SdmCurriculumType.GetAllBy(departmentId));

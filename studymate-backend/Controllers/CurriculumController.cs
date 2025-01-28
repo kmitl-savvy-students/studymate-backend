@@ -6,21 +6,45 @@ using studymate_backend.Libraries.Models;
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/curriculum/get")]
+[Route("api/curriculum")]
 public class CurriculumController : ControllerBase
 {
-    #region [GET] Curriculum
+    #region [PUT] Update Curriculum
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPut("update")]
+    public ActionResult<Curriculum> Update(Curriculum curriculum)
+    {
+        SdmCurriculum.UpdateBy(curriculum);
+        return Ok();
+    }
+    #endregion
+    #region [POST] Create Curriculum
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPost("create")]
+    public ActionResult<Curriculum> Create(Curriculum curriculum)
+    {
+        SdmCurriculum.Insert(curriculum);
+        return Ok();
+    }
+    #endregion
+    #region [GET] Get Curriculum
     [AllowAnonymous]
-    [HttpGet]
+    [HttpGet("get")]
     public ActionResult<IEnumerable<Curriculum>> GetAll()
     {
         return Ok(SdmCurriculum.GetAll());
     }
     [AllowAnonymous]
-    [HttpGet("{id:int}")]
+    [HttpGet("get/{id:int}")]
     public ActionResult<Curriculum> GetBy(int id)
     {
         return Ok(SdmCurriculum.GetBy(id));
+    }
+    [AllowAnonymous]
+    [HttpGet("get-by-curriculum-type/{curriculumTypeId:int}")]
+    public ActionResult<IEnumerable<Curriculum>> GetAllBy(int curriculumTypeId)
+    {
+        return Ok(SdmCurriculum.GetAllBy(curriculumTypeId));
     }
     #endregion
 }
