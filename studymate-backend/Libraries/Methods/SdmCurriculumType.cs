@@ -38,6 +38,14 @@ public abstract class SdmCurriculumType : ISdmBaseMethod<CurriculumType>
         var result = ProcessQuery(select, true);
         return result;
     }
+    public static List<CurriculumType> GetAllBy(int departmentId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("DepartmentId", departmentId.ToString());
+
+        var result = ProcessQuery(select, true);
+        return result;
+    }
     public static CurriculumType? GetBy(int id)
     {
         var select = GetQueryObj();
@@ -45,5 +53,30 @@ public abstract class SdmCurriculumType : ISdmBaseMethod<CurriculumType>
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
+    }
+
+    public static void Insert(CurriculumType curriculumType)
+    {
+        var insert = new SdmMysqlQueryInsert(TableName);
+
+        insert.Insert("DepartmentId", curriculumType.Department?.Id.ToString());
+        insert.Insert("NameTh", curriculumType.NameTh);
+        insert.Insert("NameEn", curriculumType.NameEn);
+
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
+    }
+    public static void UpdateBy(CurriculumType curriculumType)
+    {
+        var update = new SdmMysqlQueryUpdate(TableName);
+
+        update.Set("DepartmentId", curriculumType.Department?.Id.ToString());
+        update.Set("NameTh", curriculumType.NameTh);
+        update.Set("NameEn", curriculumType.NameEn);
+
+        update.WhereEqual("Id", curriculumType.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(update);
+        query.CleanUp();
     }
 }
