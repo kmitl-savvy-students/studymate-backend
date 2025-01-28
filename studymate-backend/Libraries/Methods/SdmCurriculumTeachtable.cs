@@ -70,7 +70,7 @@ public class SdmCurriculumTeachtable
     string selectedSubjectId,
     string curriculumYear,
     string uniqueId,
-    int? section = null) // section เป็น optional
+    string? section = null) // section เป็น optional
     {
         string apiUrl = $"https://regis.reg.kmitl.ac.th/api/?" +
                         $"function=get-teach-table-show&mode=by_subject_id" +
@@ -123,7 +123,7 @@ public class SdmCurriculumTeachtable
     JsonElement root, 
     string curriculumYear, 
     string uniqueId, 
-    int? section = null) // เพิ่ม section เป็น optional parameter
+    string? section = null) // เพิ่ม section เป็น optional parameter
     {
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
@@ -158,7 +158,7 @@ public class SdmCurriculumTeachtable
                     var currentSection = int.Parse(subject.GetProperty("section").GetString() ?? "0");
 
                     // กรองเฉพาะ section ถ้ามีการส่งค่าเข้ามา
-                    if (section.HasValue && currentSection != section.Value)
+                    if (!string.IsNullOrWhiteSpace(section) && currentSection.ToString() != section)
                     {
                         continue;
                     }

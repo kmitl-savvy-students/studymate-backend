@@ -54,7 +54,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{curriculumYear}/{uniqueId}/{subjectId}/{section}")]
+    [HttpGet("status/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId?}/{section?}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> GetBySubjectId(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -62,38 +62,37 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string department,
         [FromRoute] string curriculum,
         [FromRoute] int classYear,
-        [FromRoute] string curriculumYear,
-        [FromRoute] string uniqueId,
-        [FromRoute] string subjectId,
-        [FromRoute] int? section) // section เป็น optional
+        [FromRoute] string? subjectId,  // เปลี่ยนเป็น nullable
+        [FromRoute] string? section,   // เปลี่ยนเป็น nullable
+        string? curriculumYear,
+        string? uniqueId)
     {
-        // ตรวจสอบค่า curriculumYear
-        if (curriculumYear != "2560" && curriculumYear != "2564")
+        // ตรวจสอบค่าที่จำเป็นอื่น ๆ
+                if (!SdmNumber.IsAcademicYear(year) || 
+                    !SdmNumber.IsAcademicTerm(semester) || 
+                    !SdmNumber.IsClassYear(classYear))
+                {
+                    return BadRequest(new { message = "Invalid request data." });
+                }
+                
+        // ตรวจสอบว่า subjectId และ section มีค่าหรือไม่
+        if (string.IsNullOrWhiteSpace(subjectId) || string.IsNullOrWhiteSpace(section))
         {
-            return BadRequest(new { message = "curriculumYear must be either 2560 or 2564." });
+            return BadRequest(new { message = "subjectId or section are required." });
         }
-
-        // ตรวจสอบค่าที่จำเป็นทั้งหมด
-        if (!SdmNumber.IsAcademicYear(year) || 
-            !SdmNumber.IsAcademicTerm(semester) || 
-            !SdmNumber.IsClassYear(classYear) || 
-            string.IsNullOrWhiteSpace(subjectId))
-        {
-            return BadRequest(new { message = "Invalid request data." });
-        }
-
+    
+        
         try
         {
-            // เรียก Service Layer โดยส่งค่า section (อาจจะ null)
+            // เรียก Service Layer
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
                 year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
-
-            // หากไม่มีข้อมูล ให้ส่งคืน array ว่าง
+    
             if (filteredData.GetArrayLength() == 0)
             {
                 return Ok(new JsonElement[0]);
             }
-
+    
             return Ok(filteredData);
         }
         catch (Exception ex)
@@ -101,5 +100,6 @@ public class CurriculumTeachtableController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+
 
 }
