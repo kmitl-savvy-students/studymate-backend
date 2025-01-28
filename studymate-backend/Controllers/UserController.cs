@@ -11,7 +11,7 @@ public class UserController : ControllerBase
 {
     #region [POST] Update User
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPatch("update")]
+    [HttpPut("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
         var existingUser = SdmUser.GetBy(user.Id);

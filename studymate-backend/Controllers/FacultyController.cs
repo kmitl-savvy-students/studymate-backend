@@ -18,9 +18,9 @@ public class FacultyController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [PATCH] Faculty
+    #region [PUT] Faculty
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPatch("update")]
+    [HttpPut("update")]
     public ActionResult<Faculty> Update(Faculty faculty)
     {
         SdmFaculty.UpdateBy(faculty);
