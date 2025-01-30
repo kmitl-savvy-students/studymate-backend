@@ -76,6 +76,11 @@ public class CurriculumTeachtableController : ControllerBase
         {
             return BadRequest(new { message = "subjectId and section are required." });
         }
+        
+        if (subjectId.Length != 8 || !subjectId.All(char.IsDigit))
+        {
+            return BadRequest(new { message = "subjectId must be exactly 8 digits." });
+        }
 
         try
         {
