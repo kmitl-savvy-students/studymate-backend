@@ -60,7 +60,7 @@ public class SdmCurriculumTeachtable
         }
     }
     
-    public static async Task<JsonElement> FetchFilteredTeachTableSubjectData(
+    public static async Task<JsonElement?> FetchFilteredTeachTableSubjectData(
     int selectedYear,
     int selectedSemester,
     string selectedFaculty,
@@ -102,14 +102,27 @@ public class SdmCurriculumTeachtable
             if (string.IsNullOrWhiteSpace(data))
             {
                 Console.WriteLine("Public API returned empty response.");
-                return JsonDocument.Parse("[]").RootElement;
+                return null;
             }
 
             Console.WriteLine($"Public API Response: {data}");
             var jsonDoc = JsonDocument.Parse(data);
 
-            // ส่ง TransformData โดยพิจารณาค่า section (อาจจะ null)
+            // เรียก TransformData
             var transformedData = await TransformData(jsonDoc.RootElement, curriculumYear, uniqueId, section);
+
+            // ตรวจสอบว่า TransformData ส่งคืนอาเรย์ว่างหรือไม่
+            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 0)
+            {
+                return null; // คืน null ถ้าไม่มีข้อมูลใน Array
+            }
+            
+            // หากเป็นอาเรย์และมีข้อมูลเพียงตัวเดียว ให้คืน Object ตัวแรก
+            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1)
+            {
+                return transformedData[0];
+            }
+
             return transformedData;
         }
         catch (Exception ex)
@@ -118,7 +131,7 @@ public class SdmCurriculumTeachtable
             throw new Exception($"Error fetching Teach Table Data: {ex.Message}");
         }
     }
-    
+        
     private static async Task<JsonElement> TransformData(
     JsonElement root, 
     string curriculumYear, 

@@ -52,7 +52,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("status/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId?}/{section?}/{curriculumYear?}/{uniqueId?}")]
+    [HttpGet("status/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> GetBySubjectId(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -60,36 +60,34 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string department,
         [FromRoute] string curriculum,
         [FromRoute] int classYear,
-        [FromRoute] string? subjectId,  // เปลี่ยนเป็น nullable
-        [FromRoute] string? section,   // เปลี่ยนเป็น nullable
+        [FromRoute] string subjectId,
+        [FromRoute] string section,
         string? curriculumYear,
         string? uniqueId)
     {
-        // ตรวจสอบค่าที่จำเป็นอื่น ๆ
-                if (!SdmNumber.IsAcademicYear(year) || 
-                    !SdmNumber.IsAcademicTerm(semester) || 
-                    !SdmNumber.IsClassYear(classYear))
-                {
-                    return BadRequest(new { message = "Invalid request data." });
-                }
-                
-        // ตรวจสอบว่า subjectId และ section มีค่าหรือไม่
+        if (!SdmNumber.IsAcademicYear(year) || 
+            !SdmNumber.IsAcademicTerm(semester) || 
+            !SdmNumber.IsClassYear(classYear))
+        {
+            return BadRequest(new { message = "Invalid request data." });
+        }
+
         if (string.IsNullOrWhiteSpace(subjectId) || string.IsNullOrWhiteSpace(section))
         {
-            return BadRequest(new { message = "subjectId or section are required." });
+            return BadRequest(new { message = "subjectId and section are required." });
         }
-        
+
         try
         {
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
                 year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
-    
-            if (filteredData.GetArrayLength() == 0)
+
+            if (filteredData == null)
             {
-                return Ok(new JsonElement[0]);
+                return StatusCode(200);
             }
-    
-            return Ok(filteredData[0]);
+
+            return Ok(filteredData);
         }
         catch (Exception ex)
         {
