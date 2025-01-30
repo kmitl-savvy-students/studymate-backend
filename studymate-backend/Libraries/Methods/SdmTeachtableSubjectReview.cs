@@ -8,7 +8,7 @@ public class SdmTeachtableSubjectReview
 {
     private static int? LatestYear { get; set; }
     private static int? LatestTerm { get; set; }
-    // private static DateTime LastUpdated { get; set; } = DateTime.MinValue;
+
     public static string TableName => "teachtable_subject_review";
 
     public static SdmPgsqlQuerySelect GetQueryObj()
