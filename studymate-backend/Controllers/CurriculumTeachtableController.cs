@@ -52,8 +52,8 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("status/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
-    public async Task<IActionResult> GetBySubjectId(
+    [HttpGet("status-section/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
+    public async Task<IActionResult> GetBySection(
         [FromRoute] int year,
         [FromRoute] int semester,
         [FromRoute] string faculty,
@@ -86,6 +86,54 @@ public class CurriculumTeachtableController : ControllerBase
         {
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
                 year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
+
+            if (filteredData == null)
+            {
+                return StatusCode(200);
+            }
+
+            return Ok(filteredData);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("status-subject/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{curriculumYear?}/{uniqueId?}")]
+    public async Task<IActionResult> GetBySubjectId(
+        [FromRoute] int year,
+        [FromRoute] int semester,
+        [FromRoute] string faculty,
+        [FromRoute] string department,
+        [FromRoute] string curriculum,
+        [FromRoute] int classYear,
+        [FromRoute] string subjectId,
+        string? curriculumYear,
+        string? uniqueId)
+    {
+        if (!SdmNumber.IsAcademicYear(year) || 
+            !SdmNumber.IsAcademicTerm(semester) || 
+            !SdmNumber.IsClassYear(classYear))
+        {
+            return BadRequest(new { message = "Invalid request data." });
+        }
+
+        if (string.IsNullOrWhiteSpace(subjectId))
+        {
+            return BadRequest(new { message = "subjectId and section are required." });
+        }
+        
+        if (subjectId.Length != 8 || !subjectId.All(char.IsDigit))
+        {
+            return BadRequest(new { message = "subjectId must be exactly 8 digits." });
+        }
+
+        try
+        {
+            var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
+                year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId);
 
             if (filteredData == null)
             {
