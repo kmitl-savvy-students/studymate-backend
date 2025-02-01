@@ -118,7 +118,12 @@ public class SdmCurriculumTeachtable
             }
             
             // หากเป็นอาเรย์และมีข้อมูลเพียงตัวเดียว ให้คืน Object ตัวแรก
-            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1)
+            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1 && section == null)
+            {
+                return transformedData;
+            }
+            
+            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1 && section != null)
             {
                 return transformedData[0];
             }
