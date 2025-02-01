@@ -52,7 +52,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("status/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
+    [HttpGet("status-section/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> GetBySubjectId(
         [FromRoute] int year,
         [FromRoute] int semester,
