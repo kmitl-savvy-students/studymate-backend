@@ -79,6 +79,17 @@ public class SdmTeachtableSubjectReview
         var result = ProcessQuery(select, true);
         return result;
     }
+
+    public static TeachtableSubjectReview GetById(int id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("id", id.ToString());
+        
+        var  result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
     
     public static void Insert(TeachtableSubjectReview review)
     {
@@ -96,7 +107,7 @@ public class SdmTeachtableSubjectReview
             }
 
             var insert = new SdmPgsqlQueryInsert(TableName);
-
+            
             insert.Insert("teachtable_subject_id", review.teachtable_subject.id.ToString());
             insert.Insert("user_id", review.user_id);
             insert.Insert("review", review.review);
