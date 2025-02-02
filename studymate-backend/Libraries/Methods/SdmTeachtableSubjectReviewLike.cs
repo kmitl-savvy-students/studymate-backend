@@ -70,7 +70,21 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         try
         {
             var selectReview = new SdmPgsqlQuerySelect("teachtable_subject_review");
+            selectReview.AddWhereCondition("id", reviewLike.teachtable_subject_review.id.ToString());
 
+            var reviewResult = SdmTeachtableSubjectReview.ProcessQuery(selectReview, false);
+            if (reviewResult.Count == 0)
+            {
+                throw new Exception("review not found.");
+            }
+            
+            var delete = new SdmPgsqlQueryDelete("teachtable_subject_review_like");
+            delete.WhereEqual("teachtable_subject_review_id", reviewLike.teachtable_subject_review.id.ToString());
+            delete.WhereEqual("user_id", reviewLike.user_id);
+            
+            var query = SdmPgsqlQuery.Execute(delete);
+            query.CleanUp();
+            Console.WriteLine($"deleted like of review teachtable_subject_review_id={reviewLike.teachtable_subject_review.id.ToString()}, user_id={reviewLike.user_id}");
         }
         catch (Exception ex)
         {
