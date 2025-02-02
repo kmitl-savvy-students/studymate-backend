@@ -52,7 +52,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("status-section/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{section}/{curriculumYear?}/{uniqueId?}")]
+    [HttpGet("status-section/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId?}/{section?}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> GetBySection(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -60,8 +60,8 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string department,
         [FromRoute] string curriculum,
         [FromRoute] int classYear,
-        [FromRoute] string subjectId,
-        [FromRoute] string section,
+        [FromRoute] string? subjectId,
+        [FromRoute] string? section,
         string? curriculumYear,
         string? uniqueId)
     {
@@ -71,7 +71,7 @@ public class CurriculumTeachtableController : ControllerBase
         {
             return BadRequest(new { message = "Invalid request data." });
         }
-
+    
         if (string.IsNullOrWhiteSpace(subjectId) || string.IsNullOrWhiteSpace(section))
         {
             return BadRequest(new { message = "subjectId and section are required." });
@@ -81,17 +81,17 @@ public class CurriculumTeachtableController : ControllerBase
         {
             return BadRequest(new { message = "subjectId must be exactly 8 digits." });
         }
-
+    
         try
         {
             var filteredData = await SdmCurriculumTeachtable.FetchFilteredTeachTableSubjectData(
                 year, semester, faculty, department, curriculum, classYear, subjectId, curriculumYear, uniqueId, section);
-
+    
             if (filteredData == null)
             {
                 return StatusCode(200);
             }
-
+    
             return Ok(filteredData);
         }
         catch (Exception ex)
