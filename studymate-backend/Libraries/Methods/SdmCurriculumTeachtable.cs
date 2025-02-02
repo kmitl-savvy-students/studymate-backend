@@ -117,13 +117,7 @@ public class SdmCurriculumTeachtable
                 return null; // คืน null ถ้าไม่มีข้อมูลใน Array
             }
             
-            // หากเป็นอาเรย์และมีข้อมูลเพียงตัวเดียว ให้คืน Object ตัวแรก
-            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1 && section == null)
-            {
-                return transformedData;
-            }
-            
-            if (transformedData.ValueKind == JsonValueKind.Array && transformedData.GetArrayLength() == 1 && section != null)
+            if (section != null)
             {
                 return transformedData[0];
             }
