@@ -101,7 +101,7 @@ public class CurriculumTeachtableController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("status-subject/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId}/{curriculumYear?}/{uniqueId?}")]
+    [HttpGet("status-subject/{year}/{semester}/{faculty}/{department}/{curriculum}/{classYear}/{subjectId?}/{curriculumYear?}/{uniqueId?}")]
     public async Task<IActionResult> GetBySubjectId(
         [FromRoute] int year,
         [FromRoute] int semester,
@@ -109,7 +109,7 @@ public class CurriculumTeachtableController : ControllerBase
         [FromRoute] string department,
         [FromRoute] string curriculum,
         [FromRoute] int classYear,
-        [FromRoute] string subjectId,
+        [FromRoute] string? subjectId,
         string? curriculumYear,
         string? uniqueId)
     {
@@ -122,7 +122,7 @@ public class CurriculumTeachtableController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(subjectId))
         {
-            return BadRequest(new { message = "subjectId and section are required." });
+            return BadRequest(new { message = "subjectId are required." });
         }
         
         if (subjectId.Length != 8 || !subjectId.All(char.IsDigit))
