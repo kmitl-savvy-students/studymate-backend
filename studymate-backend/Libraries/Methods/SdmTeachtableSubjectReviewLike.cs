@@ -45,6 +45,20 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         return result[0];
     }
 
+    public static List<TeachtableSubjectReviewLike> GetByReviewId(string teachtableSubjectReviewId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("teachtable_subject_review_id", teachtableSubjectReviewId);
+        
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
+        {
+            return null;
+        }
+
+        return result;
+    }
+
     public static void Insert(TeachtableSubjectReviewLike reviewLike)
     {
         try
