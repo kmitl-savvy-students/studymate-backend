@@ -92,6 +92,30 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
                 new { message = "An error occurred while deleting the review.", error = ex.Message });
         }
     }
+
+    [HttpGet("{teachtableSubjectReviewId}")]
+    public IActionResult GetByTeachtableSubjectReviewId(int teachtableSubjectReviewId)
+    {
+        try
+        {
+            TeachtableSubjectReview review = SdmTeachtableSubjectReview.GetById(teachtableSubjectReviewId);
+            
+            // ไม่พบรีวิว
+            if (review == null)
+            {
+                return NotFound(new { message = "Teachtable subject review not found." });
+            }
+
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return StatusCode(500, 
+                new { message = "An error occurred while deleting the review.", error = ex.Message });
+        }
+    }
+    
     
 }
 
