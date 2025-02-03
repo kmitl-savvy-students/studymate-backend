@@ -433,6 +433,34 @@ public class SdmTeachtableSubjectReview
             .ToList();
     }
     
+    public static void UpdateLikeCount(int reviewId)
+    {
+        try
+        {
+            // ดึงจำนวน Like ของรีวิวนี้
+            var select = new SdmPgsqlQuerySelect("teachtable_subject_review_like");
+            select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+        
+            // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
+            var countLike = ProcessQuery(select).Count;
+
+            // อัปเดตจำนวนไลค์ใน teachtable_subject_review
+            var update = new SdmPgsqlQueryUpdate("teachtable_subject_review");
+            update.Set("like", countLike.ToString());
+            update.WhereEqual("id", reviewId.ToString());
+
+            var query = SdmPgsqlQuery.Execute(update);
+            query.CleanUp();
+
+            Console.WriteLine($"Updated like count for review {reviewId}: {countLike} likes.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in UpdateLikeCount: {ex.Message}");
+            throw;
+        }
+    }
+    
     public static User? GetUserInfoFromToken(string token)
     {
         // ใช้ SdmUserToken.GetBy เพื่อดึง UserToken จาก Token ID
