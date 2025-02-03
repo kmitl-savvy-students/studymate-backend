@@ -20,9 +20,9 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         while (query.Next())
         {
             result.Add(new TeachtableSubjectReviewLike(
-                query.ToString(0),
+                query.ToString(2),
                 SdmTeachtableSubjectReview.GetById(query.ToInt(1)),
-                query.ToInt(2)
+                query.ToInt(0)
                 ));
                 // if (!isArray) break;
         }
@@ -55,6 +55,7 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         {
             return null;
         }
+        Console.WriteLine($"result of like: {result.Count}");
 
         return result;
     }
@@ -70,7 +71,8 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
             var query = SdmPgsqlQuery.Execute(insert);
             query.CleanUp();
             Console.WriteLine("Like Successfully!");
-
+            
+            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.teachtable_subject_review.id);
         }
         catch (Exception ex)
         {
@@ -99,6 +101,8 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
             var query = SdmPgsqlQuery.Execute(delete);
             query.CleanUp();
             Console.WriteLine($"deleted like of review teachtable_subject_review_id={reviewLike.teachtable_subject_review.id.ToString()}, user_id={reviewLike.user_id}");
+            
+            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.teachtable_subject_review.id);
         }
         catch (Exception ex)
         {
