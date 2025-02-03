@@ -8,7 +8,7 @@ public class SdmTeachtableSubjectReview
 {
     private static int? LatestYear { get; set; }
     private static int? LatestTerm { get; set; }
-    // private static DateTime LastUpdated { get; set; } = DateTime.MinValue;
+
     public static string TableName => "teachtable_subject_review";
 
     public static SdmPgsqlQuerySelect GetQueryObj()
@@ -79,6 +79,17 @@ public class SdmTeachtableSubjectReview
         var result = ProcessQuery(select, true);
         return result;
     }
+
+    public static TeachtableSubjectReview GetById(int id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("id", id.ToString());
+        
+        var  result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
     
     public static void Insert(TeachtableSubjectReview review)
     {
@@ -96,7 +107,7 @@ public class SdmTeachtableSubjectReview
             }
 
             var insert = new SdmPgsqlQueryInsert(TableName);
-
+            
             insert.Insert("teachtable_subject_id", review.teachtable_subject.id.ToString());
             insert.Insert("user_id", review.user_id);
             insert.Insert("review", review.review);
@@ -420,6 +431,34 @@ public class SdmTeachtableSubjectReview
             .OrderByDescending(review => review.created) // จัดเรียงวันที่จากล่าสุดไปเก่า
             .ThenByDescending(review => review.id)      // จัดเรียง id จากมากไปน้อย (สำรอง)
             .ToList();
+    }
+    
+    public static void UpdateLikeCount(int reviewId)
+    {
+        try
+        {
+            // ดึงจำนวน Like ของรีวิวนี้
+            var select = new SdmPgsqlQuerySelect("teachtable_subject_review_like");
+            select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+        
+            // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
+            var countLike = ProcessQuery(select).Count;
+
+            // อัปเดตจำนวนไลค์ใน teachtable_subject_review
+            var update = new SdmPgsqlQueryUpdate("teachtable_subject_review");
+            update.Set("like", countLike.ToString());
+            update.WhereEqual("id", reviewId.ToString());
+
+            var query = SdmPgsqlQuery.Execute(update);
+            query.CleanUp();
+
+            Console.WriteLine($"Updated like count for review {reviewId}: {countLike} likes.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in UpdateLikeCount: {ex.Message}");
+            throw;
+        }
     }
     
     public static User? GetUserInfoFromToken(string token)
