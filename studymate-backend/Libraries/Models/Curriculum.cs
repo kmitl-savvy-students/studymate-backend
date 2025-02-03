@@ -2,17 +2,17 @@
 
 public class Curriculum(
     int id,
-    CurriculumType? type,
+    CurriculumType? curriculumType,
     int year,
     string nameTh,
     string nameEn,
-    CurriculumGroup? group
+    CurriculumGroup? curriculumGroup
 ) : IBaseModel
 {
     public int Id { get; } = id;
-    public CurriculumType? Type { get; set; } = type;
+    public CurriculumType? CurriculumType { get; set; } = curriculumType;
     public int Year { get; set; } = year;
     public string NameTh { get; set; } = nameTh;
     public string NameEn { get; set; } = nameEn;
-    public CurriculumGroup? Group { get; set; } = group;
+    public CurriculumGroup? CurriculumGroup { get; set; } = curriculumGroup;
 }
