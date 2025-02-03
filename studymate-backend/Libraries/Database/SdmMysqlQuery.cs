@@ -31,11 +31,9 @@ public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
             throw new InvalidOperationException("Database connection is not available.");
 
         using var command = new MySqlCommand(queryBase.Build(), connection);
-        var result = command.ExecuteScalar();
-        if (result is int intValue)
-            InsertedId = intValue;
+        command.ExecuteNonQuery();
+        InsertedId = (int)command.LastInsertedId;
     }
-
 
     private void LoadAllRows()
     {
