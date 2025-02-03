@@ -23,7 +23,7 @@ public static class SdmDataSource
         try
         {
             var connectionString = $"server={server};uid={user};pwd={password};database={database};";
-            var newConnection = new MySqlConnection(connectionString);
+            var newConnection = new MySqlConnection()(connectionString);
 
             newConnection.Open();
 

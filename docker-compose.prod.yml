@@ -1,25 +1,23 @@
 services:
   backend:
-    container_name: sdm-backend-container
-    image: back-img
+    container_name: sdm-backend-prod-container
+    image: backend-prod-img
     restart: always
     ports:
       - "8000:8080"
     env_file:
-      - /home/admin-preprod/backend-env/.env
+      - /home/admin-prod/backend/.env
     networks:
-      - backend-network
+      - prod-network
     labels:
       traefik.enable: "true"
       traefik.http.services.sdm-backend.loadbalancer.server.port: "8080"
       traefik.http.services.sdm-backend.loadbalancer.server.scheme: "http"
       traefik.http.routers.sdm-backend-https.entrypoints: "websecure"
-      traefik.http.routers.sdm-backend-https.rule: "Host(`preprod.backend.savvystudymate.com`)"
+      traefik.http.routers.sdm-backend-https.rule: "Host(`prod.backend.savvystudymate.com`) || Host(`backend.savvystudymate.com`)"
       traefik.http.routers.sdm-backend-https.tls: "true"
       traefik.http.routers.sdm-backend-https.tls.certresolver: "cloudflare"
 
 networks:
-  backend-network:
-    external: true
-  frontend-network:
+  prod-network:
     external: true
