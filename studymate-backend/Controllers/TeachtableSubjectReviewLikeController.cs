@@ -98,7 +98,7 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
     {
         try
         {
-            TeachtableSubjectReview review = SdmTeachtableSubjectReview.GetById(teachtableSubjectReviewId);
+            var review = SdmTeachtableSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
             
             // ไม่พบรีวิว
             if (review == null)
