@@ -2,7 +2,8 @@
 
 public class Curriculum(
     int id,
-    CurriculumType? curriculumType,
+    string kmitlId,
+    Program? program,
     int year,
     string nameTh,
     string nameEn,
@@ -10,7 +11,8 @@ public class Curriculum(
 ) : IBaseModel
 {
     public int Id { get; } = id;
-    public CurriculumType? CurriculumType { get; set; } = curriculumType;
+    public string KmitlId { get; set; } = kmitlId;
+    public Program? Program { get; set; } = program;
     public int Year { get; set; } = year;
     public string NameTh { get; set; } = nameTh;
     public string NameEn { get; set; } = nameEn;

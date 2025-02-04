@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmSubject : ISdmBaseMethod<Subject>
 {
-    public static string TableName => "Subject";
+    public static string TableName => "subject";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -19,7 +19,7 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
         while (query.Next())
         {
             result.Add(new Subject(
-                query.ToInt(0),
+                query.ToString(0),
                 query.ToString(1),
                 query.ToString(2),
                 query.ToInt(3),
@@ -42,7 +42,7 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
     public static Subject? GetBy(string subjectId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", subjectId);
+        select.WhereEqual("sbj_id", subjectId);
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];

@@ -6,7 +6,7 @@ public class SdmDateTime
 {
     private readonly DateTimeOffset _dateTimeOffset;
 
-    public SdmDateTime(DateTime dateTime)
+    private SdmDateTime(DateTime dateTime)
     {
         _dateTimeOffset = new DateTimeOffset(dateTime);
     }

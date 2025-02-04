@@ -7,7 +7,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
 {
-    public static string TableName => "Transcript";
+    public static string TableName => "transcript";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -22,8 +22,7 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
             result.Add(new Transcript(
                 query.ToInt(0),
                 SdmUser.GetBy(query.ToInt(1)),
-                SdmCurriculum.GetBy(query.ToInt(2)),
-                new SdmDateTime(query.ToDateTime(3))
+                new SdmDateTime(query.ToDateTime(2))
             ));
             if (!isArray) break;
         }
@@ -42,7 +41,7 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
     public static List<Transcript> GetAllBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("UserId", user.Id.ToString());
+        select.WhereEqual("ts_u_id", user.Id.ToString());
 
         var result = ProcessQuery(select, true);
         return result;
@@ -50,7 +49,7 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
     public static Transcript? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("ts_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -58,19 +57,22 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
     public static Transcript? GetBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("UserId", user.Id.ToString());
+        select.WhereEqual("ts_u_id", user.Id.ToString());
 
         var result = ProcessQuery(select);
-        return result.Count == 0 ? null : result[0];
+        var transcript = result.Count == 0 ? null : result[0];
+        if (transcript != null)
+            transcript.Details = SdmTranscriptDetail.GetAllBy(transcript);
+        return transcript;
     }
 
     public static Transcript Insert(Transcript transcript)
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("UserId", transcript.User?.Id.ToString());
-        insert.Insert("CurriculumId", transcript.User?.Curriculum?.Id.ToString());
-        insert.Insert("Created", transcript.Created.ToString());
+        insert.Insert("ts_u_id", transcript.User?.Id.ToString());
+        insert.Insert("ts_curr_id", transcript.User?.Curriculum?.Id.ToString());
+        insert.Insert("ts_date_created", transcript.DateCreated.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         transcript.Id = query.InsertedId;
@@ -82,7 +84,7 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
     {
         var delete = new SdmMysqlQueryDelete(TableName);
 
-        delete.WhereEqual("UserId", user.Id.ToString());
+        delete.WhereEqual("ts_u_id", user.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();

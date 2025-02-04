@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 {
-    public static string TableName => "CurriculumGroup";
+    public static string TableName => "curriculum_group";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -23,6 +23,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 query.ToInt(1),
                 query.ToString(2),
                 query.ToString(3),
+                query.ToInt(4),
                 GetAllBy(query.ToInt(0))
             ));
             if (!isArray) break;
@@ -32,17 +33,10 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return result;
     }
 
-    public static List<CurriculumGroup> GetAll()
-    {
-        var select = GetQueryObj();
-
-        var result = ProcessQuery(select, true);
-        return result;
-    }
     public static List<CurriculumGroup> GetAllBy(int parentId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("ParentGroupId", parentId.ToString());
+        select.WhereEqual("cg_cg_id", parentId.ToString());
 
         var result = ProcessQuery(select, true);
         return result;
@@ -50,7 +44,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     public static CurriculumGroup? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("cg_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -60,9 +54,10 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("ParentGroupId", curriculumGroup.ParentId == -1 ? null : curriculumGroup.ParentId.ToString());
-        insert.Insert("GroupType", curriculumGroup.Type);
-        insert.Insert("Name", curriculumGroup.Name);
+        insert.Insert("cg_cg_id", curriculumGroup.ParentId == -1 ? null : curriculumGroup.ParentId.ToString());
+        insert.Insert("cg_type", curriculumGroup.Type);
+        insert.Insert("cg_name", curriculumGroup.Name);
+        insert.Insert("cg_credit", curriculumGroup.Credit.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         curriculumGroup.Id = query.InsertedId;
@@ -73,11 +68,12 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("ParentGroupId", curriculumGroup.ParentId.ToString());
-        update.Set("GroupType", curriculumGroup.Type);
-        update.Set("Name", curriculumGroup.Name);
+        update.Set("cg_cg_id", curriculumGroup.ParentId.ToString());
+        update.Set("cg_type", curriculumGroup.Type);
+        update.Set("cg_name", curriculumGroup.Name);
+        update.Set("cg_credit", curriculumGroup.Credit.ToString());
 
-        update.WhereEqual("Id", curriculumGroup.Id.ToString());
+        update.WhereEqual("cg_id", curriculumGroup.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

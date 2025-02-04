@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmUser : ISdmBaseMethod<User>
 {
-    public static string TableName => "User";
+    public static string TableName => "user";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -35,17 +35,10 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         return result;
     }
 
-    public static List<User> GetAll()
-    {
-        var select = GetQueryObj();
-
-        var result = ProcessQuery(select, true);
-        return result;
-    }
     public static User? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("u_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -55,13 +48,13 @@ public abstract class SdmUser : ISdmBaseMethod<User>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("Id", user.Id.ToString());
-        insert.Insert("Password", user.Password);
-        insert.Insert("NameNick", user.NameNick);
-        insert.Insert("NameFirst", user.NameFirst);
-        insert.Insert("NameLast", user.NameLast);
-        insert.Insert("Profile", user.Profile);
-        insert.Insert("CurriculumId", user.Curriculum?.Id.ToString());
+        insert.Insert("u_id", user.Id.ToString());
+        insert.Insert("u_password", user.Password);
+        insert.Insert("u_nickname", user.Nickname);
+        insert.Insert("u_firstname", user.Firstname);
+        insert.Insert("u_lastname", user.Lastname);
+        insert.Insert("u_profile_pic", user.ProfilePicture);
+        insert.Insert("u_curr_id", user.Curriculum?.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
@@ -70,13 +63,13 @@ public abstract class SdmUser : ISdmBaseMethod<User>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("NameNick", user.NameNick);
-        update.Set("NameFirst", user.NameFirst);
-        update.Set("NameLast", user.NameLast);
-        update.Set("Profile", user.Profile);
-        update.Set("CurriculumId", user.Curriculum?.Id.ToString());
+        update.Set("u_nickname", user.Nickname);
+        update.Set("u_firstname", user.Firstname);
+        update.Set("u_lastname", user.Lastname);
+        update.Set("u_profile_pic", user.ProfilePicture);
+        update.Set("u_curr_id", user.Curriculum?.Id.ToString());
 
-        update.WhereEqual("Id", user.Id.ToString());
+        update.WhereEqual("u_id", user.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

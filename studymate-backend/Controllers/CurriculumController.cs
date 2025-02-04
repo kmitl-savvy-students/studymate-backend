@@ -9,7 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum")]
 public class CurriculumController : ControllerBase
 {
-    #region [PUT] Update Curriculum
+    #region [PUT] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPut("update")]
     public ActionResult<Curriculum> Update(Curriculum curriculum)
@@ -18,7 +18,7 @@ public class CurriculumController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [POST] Create Curriculum
+    #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
     public ActionResult<Curriculum> Create(Curriculum curriculum)
@@ -27,7 +27,7 @@ public class CurriculumController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [GET] Get Curriculum
+    #region [GET] Get
     [AllowAnonymous]
     [HttpGet("get")]
     public ActionResult<IEnumerable<Curriculum>> GetAll()
@@ -41,10 +41,10 @@ public class CurriculumController : ControllerBase
         return Ok(SdmCurriculum.GetBy(id));
     }
     [AllowAnonymous]
-    [HttpGet("get-by-curriculum-type/{curriculumTypeId:int}")]
-    public ActionResult<IEnumerable<Curriculum>> GetAllBy(int curriculumTypeId)
+    [HttpGet("get-by-program/{programId:int}")]
+    public ActionResult<IEnumerable<Curriculum>> GetAllBy(int programId)
     {
-        return Ok(SdmCurriculum.GetAllBy(curriculumTypeId));
+        return Ok(SdmCurriculum.GetAllBy(programId));
     }
     #endregion
 }

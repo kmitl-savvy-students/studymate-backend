@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
 {
-    public static string TableName => "Faculty";
+    public static string TableName => "faculty";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -21,7 +21,8 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
             result.Add(new Faculty(
                 query.ToInt(0),
                 query.ToString(1),
-                query.ToString(2)
+                query.ToString(2),
+                query.ToString(3)
             ));
             if (!isArray) break;
         }
@@ -40,7 +41,7 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
     public static Faculty? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("fac_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -50,8 +51,9 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("NameTh", faculty.NameTh);
-        insert.Insert("NameEn", faculty.NameEn);
+        insert.Insert("fac_kmitl_id", faculty.KmitlId);
+        insert.Insert("fac_name_th", faculty.NameTh);
+        insert.Insert("fac_name_en", faculty.NameEn);
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
@@ -60,10 +62,11 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("NameTh", faculty.NameTh);
-        update.Set("NameEn", faculty.NameEn);
+        update.Set("fac_kmitl_id", faculty.KmitlId);
+        update.Set("fac_name_th", faculty.NameTh);
+        update.Set("fac_name_en", faculty.NameEn);
 
-        update.WhereEqual("Id", faculty.Id.ToString());
+        update.WhereEqual("fac_id", faculty.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

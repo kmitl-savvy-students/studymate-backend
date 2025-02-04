@@ -81,10 +81,10 @@ public class AuthController : ControllerBase
 
         var user = SdmUser.GetBy(idInt);
         if (user == null)
-            return NotFound(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
+            return BadRequest(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
 
         if (!SdmAuthentication.PasswordVerify(password, user.Password))
-            return NotFound(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
+            return BadRequest(new { message = "ชื่อผู้ใช้หรือรหัสผ่านผิดพลาด" });
 
         var randomizeToken = SdmString.GenerateRandomToken();
         while (SdmUserToken.GetBy(randomizeToken) != null)
@@ -123,7 +123,7 @@ public class AuthController : ControllerBase
 
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
-            return NotFound(new { message = "ไม่พบเซสชัน" });
+            return BadRequest(new { message = "ไม่พบเซสชัน" });
 
         SdmUserToken.DeleteBy(userToken);
         return Ok();
@@ -143,11 +143,11 @@ public class AuthController : ControllerBase
         var userTokenId = SdmString.CleanAndTrim(dtoToken.UserTokenId);
 
         if (!SdmString.IsValid(userTokenId, 64, 64))
-            return BadRequest(new { message = "Invalid request data." });
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
 
         var userToken = SdmUserToken.GetBy(userTokenId);
         if (userToken == null)
-            return NotFound(new { message = "Incorrect user token." });
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
 
         return Ok(userToken);
     }

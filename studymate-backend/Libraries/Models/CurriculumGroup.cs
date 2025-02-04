@@ -5,6 +5,7 @@ public class CurriculumGroup(
     int? parentId,
     string type,
     string name,
+    int credit,
     List<CurriculumGroup> children
 ) : IBaseModel
 {
@@ -12,5 +13,6 @@ public class CurriculumGroup(
     public int? ParentId { get; set; } = parentId;
     public string Type { get; set; } = type;
     public string Name { get; set; } = name;
+    public int Credit { get; set; } = credit;
     public List<CurriculumGroup> Children { get; set; } = children;
 }

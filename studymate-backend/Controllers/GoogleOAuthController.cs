@@ -105,9 +105,9 @@ public class GoogleOAuthController : ControllerBase
             if (callback.RedirectUri == "sign-up")
                 return Conflict(new { message = "คุณได้สมัครสมาชิกไปแล้ว กรุณาเข้าสู่ระบบแทน" });
 
-            user.NameFirst = userInfo.GivenName;
-            user.NameLast = userInfo.FamilyName;
-            user.Profile = userInfo.Picture;
+            user.Firstname = userInfo.GivenName;
+            user.Lastname = userInfo.FamilyName;
+            user.ProfilePicture = userInfo.Picture;
             SdmUser.UpdateBy(user);
         }
 

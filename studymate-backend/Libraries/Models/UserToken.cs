@@ -5,12 +5,12 @@ namespace studymate_backend.Libraries.Models;
 public class UserToken(
     string id,
     User? user,
-    SdmDateTime created,
-    SdmDateTime expired
+    SdmDateTime dateCreated,
+    SdmDateTime dateExpired
 ) : IBaseModel
 {
-    public string id { get; set; } = id;
-    public User? user { get; set; } = user;
-    public SdmDateTime created { get; set; } = created;
-    public SdmDateTime expired { get; set; } = expired;
+    public string Id { get; set; } = id;
+    public User? User { get; set; } = user;
+    public SdmDateTime DateCreated { get; set; } = dateCreated;
+    public SdmDateTime DateExpired { get; set; } = dateExpired;
 }

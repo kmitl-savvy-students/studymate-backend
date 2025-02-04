@@ -1,6 +1,6 @@
 namespace studymate_backend.Libraries.Models;
 
-public class CurriculumType(
+public class Program(
     int id,
     Department? department,
     string nameTh,
