@@ -1,8 +1,8 @@
-﻿/* TEMP
+﻿
+/* TEMP
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
-
 namespace studymate_backend.Controllers;
 
 [ApiController]

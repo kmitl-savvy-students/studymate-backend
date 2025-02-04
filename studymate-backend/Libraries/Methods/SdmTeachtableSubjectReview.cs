@@ -1,4 +1,5 @@
-﻿/* TEMP
+﻿
+/* TEMP
 using Newtonsoft.Json.Linq;
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
@@ -266,7 +267,6 @@ public class SdmTeachtableSubjectReview
         {
             // แปลง JSON string เป็น JArray
             var jsonArray = JArray.Parse(apiResponse);
-
             foreach (var faculty in jsonArray)
             {
                 var teachTableArray = faculty["teachtable"];

@@ -1,4 +1,5 @@
-﻿/* TEMP
+﻿
+/* TEMP
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Database;
@@ -19,7 +20,6 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
             TeachtableSubjectReview existingReview = SdmTeachtableSubjectReview.GetById(reviewLikeDto.TeachtableSubjectReviewId);
 
             if (existingReview == null)

@@ -1,4 +1,5 @@
-﻿/* TEMP
+﻿
+/* TEMP
 using Google.Rpc.Context;
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
@@ -135,4 +136,3 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
 
 }
 */
-
