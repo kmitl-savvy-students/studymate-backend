@@ -9,7 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/user")]
 public class UserController : ControllerBase
 {
-    #region [POST] Update User
+    #region [POST] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPut("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
@@ -26,10 +26,10 @@ public class UserController : ControllerBase
             existingUser.Curriculum = newCurriculum;
         }
 
-        existingUser.NameNick = user.NameNick ?? existingUser.NameNick;
-        existingUser.NameFirst = user.NameFirst ?? existingUser.NameFirst;
-        existingUser.NameLast = user.NameLast ?? existingUser.NameLast;
-        existingUser.Profile = user.Profile ?? existingUser.Profile;
+        existingUser.Nickname = user.NameNick ?? existingUser.Nickname;
+        existingUser.Firstname = user.NameFirst ?? existingUser.Firstname;
+        existingUser.Lastname = user.NameLast ?? existingUser.Lastname;
+        existingUser.ProfilePicture = user.Profile ?? existingUser.ProfilePicture;
 
         SdmUser.UpdateBy(existingUser);
 

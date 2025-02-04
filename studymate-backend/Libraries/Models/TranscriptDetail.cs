@@ -5,8 +5,7 @@ public class TranscriptDetail(
     Transcript? transcript,
     Subject? subject,
     Teachtable? teachtable,
-    string grade,
-    int credit
+    string grade
 ) : IBaseModel
 {
     public int Id { get; set; } = id;
@@ -14,5 +13,4 @@ public class TranscriptDetail(
     public Subject? Subject { get; set; } = subject;
     public Teachtable? Teachtable { get; set; } = teachtable;
     public string Grade { get; set; } = grade;
-    public int Credit { get; set; } = credit;
 }

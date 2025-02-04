@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
 {
-    public static string TableName => "TranscriptDetail";
+    public static string TableName => "transcript_detail";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -23,8 +23,7 @@ public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
                 SdmTranscript.GetBy(query.ToInt(1)),
                 SdmSubject.GetBy(query.ToString(2)),
                 SdmTeachtable.GetBy(query.ToInt(3)),
-                query.ToString(4),
-                query.ToInt(5)
+                query.ToString(4)
             ));
             if (!isArray) break;
         }
@@ -51,7 +50,7 @@ public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
         foreach (var transcript in transcripts)
         {
             var select = GetQueryObj();
-            select.WhereEqual("TranscriptId", transcript.Id.ToString());
+            select.WhereEqual("tsd_ts_id", transcript.Id.ToString());
 
             var transcriptDatas = ProcessQuery(select, true);
             result.AddRange(transcriptDatas);
@@ -65,15 +64,17 @@ public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
             return [];
 
         var select = GetQueryObj();
-        select.WhereEqual("TranscriptId", transcript.Id.ToString());
+        select.WhereEqual("tsd_ts_id", transcript.Id.ToString());
 
-        var result = ProcessQuery(select, true);
-        return result;
+        var transcriptDetails = ProcessQuery(select, true);
+        foreach (var transcriptDetail in transcriptDetails)
+            transcriptDetail.Transcript = null;
+        return transcriptDetails;
     }
     public static TranscriptDetail? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("tsd_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -83,11 +84,10 @@ public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("TranscriptId", transcriptDetail.Transcript?.Id.ToString());
-        insert.Insert("SubjectId", transcriptDetail.Subject?.Id.ToString());
-        insert.Insert("TeachtableId", transcriptDetail.Teachtable?.Id.ToString());
-        insert.Insert("Grade", transcriptDetail.Grade);
-        insert.Insert("Credit", transcriptDetail.Credit.ToString());
+        insert.Insert("tsd_ts_id", transcriptDetail.Transcript?.Id.ToString());
+        insert.Insert("tsd_sbj_id", transcriptDetail.Subject?.Id);
+        insert.Insert("tsd_tt_id", transcriptDetail.Teachtable?.Id.ToString());
+        insert.Insert("tsd_grade", transcriptDetail.Grade);
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
@@ -96,7 +96,7 @@ public abstract class SdmTranscriptDetail : ISdmBaseMethod<TranscriptDetail>
     {
         var delete = new SdmMysqlQueryDelete(TableName);
 
-        delete.WhereEqual("TranscriptId", transcript.Id.ToString());
+        delete.WhereEqual("tsd_ts_id", transcript.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();

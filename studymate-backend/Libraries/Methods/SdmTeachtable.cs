@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
 {
-    public static string TableName => "Teachtable";
+    public static string TableName => "teachtable";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -40,18 +40,34 @@ public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
     public static Teachtable? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("tt_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
+    }
+    public static Teachtable? GetBy(int year, int term)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("tt_year", year.ToString());
+        select.WhereEqual("tt_term", term.ToString());
+
+        var result = ProcessQuery(select);
+        var teachtable = result.Count == 0 ? null : result[0];
+
+        if (teachtable != null) return teachtable;
+
+        Insert(new Teachtable(-1, year, term));
+        teachtable = GetBy(year, term);
+
+        return teachtable;
     }
 
     public static void Insert(Teachtable teachtable)
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("AcademicYear", teachtable.AcademicYear.ToString());
-        insert.Insert("AcademicTerm", teachtable.AcademicTerm.ToString());
+        insert.Insert("tt_year", teachtable.Year.ToString());
+        insert.Insert("tt_term", teachtable.Term.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();

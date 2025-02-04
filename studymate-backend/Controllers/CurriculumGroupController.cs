@@ -9,7 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-group")]
 public class CurriculumGroupController : ControllerBase
 {
-    #region [GET] Get Curriculum Group
+    #region [GET] Get
     [AllowAnonymous]
     [HttpGet("get-by-parent/{parentId:int}")]
     public ActionResult<IEnumerable<CurriculumGroup>> GetAllBy(int parentId)
@@ -17,7 +17,7 @@ public class CurriculumGroupController : ControllerBase
         return Ok(SdmCurriculumGroup.GetAllBy(parentId));
     }
     #endregion
-    #region [PUT] Update Curriculum Group
+    #region [PUT] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPut("update")]
     public ActionResult<Curriculum> Update(CurriculumGroup curriculumGroup)
@@ -26,7 +26,7 @@ public class CurriculumGroupController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [POST] Create Curriculum Group
+    #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
     public ActionResult<CurriculumGroup> Create(DtoCreate curriculumGroup)
@@ -36,6 +36,7 @@ public class CurriculumGroupController : ControllerBase
             curriculumGroup.ParentId,
             curriculumGroup.Type,
             curriculumGroup.Name,
+            curriculumGroup.Credit,
             []
         )));
     }
@@ -46,6 +47,7 @@ public class CurriculumGroupController : ControllerBase
         public required int ParentId { get; init; } = -1;
         public required string Type { get; init; } = string.Empty;
         public required string Name { get; init; } = string.Empty;
+        public required int Credit { get; init; } = -1;
     }
     #endregion
 }

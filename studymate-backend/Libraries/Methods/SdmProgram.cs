@@ -1,24 +1,23 @@
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
-using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public abstract class SdmCurriculumType : ISdmBaseMethod<CurriculumType>
+public abstract class SdmProgram : ISdmBaseMethod<Models.Program>
 {
-    public static string TableName => "CurriculumType";
+    public static string TableName => "program";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
-    public static List<CurriculumType> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Models.Program> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
 
-        var result = new List<CurriculumType>();
+        var result = new List<Models.Program>();
         while (query.Next())
         {
-            result.Add(new CurriculumType(
+            result.Add(new Models.Program(
                 query.ToInt(0),
                 SdmDepartment.GetBy(query.ToInt(1)),
                 query.ToString(2),
@@ -31,50 +30,50 @@ public abstract class SdmCurriculumType : ISdmBaseMethod<CurriculumType>
         return result;
     }
 
-    public static List<CurriculumType> GetAll()
+    public static List<Models.Program> GetAll()
     {
         var select = GetQueryObj();
 
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static List<CurriculumType> GetAllBy(int departmentId)
+    public static List<Models.Program> GetAllBy(int departmentId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("DepartmentId", departmentId.ToString());
+        select.WhereEqual("prog_dep_id", departmentId.ToString());
 
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static CurriculumType? GetBy(int id)
+    public static Models.Program? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("prog_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
     }
 
-    public static void Insert(CurriculumType curriculumType)
+    public static void Insert(Models.Program program)
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("DepartmentId", curriculumType.Department?.Id.ToString());
-        insert.Insert("NameTh", curriculumType.NameTh);
-        insert.Insert("NameEn", curriculumType.NameEn);
+        insert.Insert("prog_dep_id", program.Department?.Id.ToString());
+        insert.Insert("prog_name_th", program.NameTh);
+        insert.Insert("prog_name_en", program.NameEn);
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
-    public static void UpdateBy(CurriculumType curriculumType)
+    public static void UpdateBy(Models.Program program)
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("DepartmentId", curriculumType.Department?.Id.ToString());
-        update.Set("NameTh", curriculumType.NameTh);
-        update.Set("NameEn", curriculumType.NameEn);
+        update.Set("prog_dep_id", program.Department?.Id.ToString());
+        update.Set("prog_name_th", program.NameTh);
+        update.Set("prog_name_en", program.NameEn);
 
-        update.WhereEqual("Id", curriculumType.Id.ToString());
+        update.WhereEqual("prog_id", program.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

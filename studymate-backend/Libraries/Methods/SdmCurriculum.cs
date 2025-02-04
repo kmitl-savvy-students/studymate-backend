@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
 {
-    public static string TableName => "Curriculum";
+    public static string TableName => "curriculum";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -20,11 +20,12 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         {
             result.Add(new Curriculum(
                 query.ToInt(0),
-                SdmCurriculumType.GetBy(query.ToInt(1)),
-                query.ToInt(2),
-                query.ToString(3),
+                query.ToString(1),
+                SdmProgram.GetBy(query.ToInt(2)),
+                query.ToInt(3),
                 query.ToString(4),
-                SdmCurriculumGroup.GetBy(query.ToInt(5))
+                query.ToString(5),
+                SdmCurriculumGroup.GetBy(query.ToInt(6))
             ));
             if (!isArray) break;
         }
@@ -40,10 +41,10 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static List<Curriculum> GetAllBy(int curriculumTypeId)
+    public static List<Curriculum> GetAllBy(int programId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("CurriculumTypeId", curriculumTypeId.ToString());
+        select.WhereEqual("curr_prog_id", programId.ToString());
 
         var result = ProcessQuery(select, true);
         return result;
@@ -51,7 +52,7 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     public static Curriculum? GetBy(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id.ToString());
+        select.WhereEqual("curr_id", id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -61,11 +62,12 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("CurriculumTypeId", curriculum.CurriculumType?.Id.ToString());
-        insert.Insert("Year", curriculum.Year.ToString());
-        insert.Insert("NameTh", curriculum.NameTh);
-        insert.Insert("NameEn", curriculum.NameEn);
-        insert.Insert("CurriculumGroupId", curriculum.CurriculumGroup?.Id.ToString());
+        insert.Insert("curr_kmitl_id", curriculum.KmitlId);
+        insert.Insert("curr_prog_id", curriculum.Program?.Id.ToString());
+        insert.Insert("curr_year", curriculum.Year.ToString());
+        insert.Insert("curr_name_th", curriculum.NameTh);
+        insert.Insert("curr_name_en", curriculum.NameEn);
+        insert.Insert("curr_cg_id", curriculum.CurriculumGroup?.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
@@ -74,13 +76,14 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("CurriculumTypeId", curriculum.CurriculumType?.Id.ToString());
-        update.Set("Year", curriculum.Year.ToString());
-        update.Set("NameTh", curriculum.NameTh);
-        update.Set("NameEn", curriculum.NameEn);
-        update.Set("CurriculumGroupId", curriculum.CurriculumGroup?.Id.ToString());
+        update.Set("curr_kmitl_id", curriculum.KmitlId);
+        update.Set("curr_prog_id", curriculum.Program?.Id.ToString());
+        update.Set("curr_year", curriculum.Year.ToString());
+        update.Set("curr_name_th", curriculum.NameTh);
+        update.Set("curr_name_en", curriculum.NameEn);
+        update.Set("curr_cg_id", curriculum.CurriculumGroup?.Id.ToString());
 
-        update.WhereEqual("Id", curriculum.Id.ToString());
+        update.WhereEqual("curr_id", curriculum.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();

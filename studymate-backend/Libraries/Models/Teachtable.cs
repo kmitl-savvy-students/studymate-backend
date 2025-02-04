@@ -2,11 +2,11 @@
 
 public class Teachtable(
     int id,
-    int academicYear,
-    int academicTerm
+    int year,
+    int term
 ) : IBaseModel
 {
     public int Id { get; set; } = id;
-    public int AcademicYear { get; set; } = academicYear;
-    public int AcademicTerm { get; set; } = academicTerm;
+    public int Year { get; set; } = year;
+    public int Term { get; set; } = term;
 }

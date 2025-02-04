@@ -3,25 +3,25 @@
 public class User(
     int id,
     string password,
-    string nameNick,
-    string nameFirst,
-    string nameLast,
-    string profile,
+    string nickname,
+    string firstname,
+    string lastname,
+    string profilePicture,
     bool isAdmin,
     Curriculum? curriculum
 ) : IBaseModel
 {
     public int Id { get; } = id;
     public string Password { get; } = password;
-    public string NameNick { get; set; } = nameNick;
-    public string NameFirst { get; set; } = nameFirst;
-    public string NameLast { get; set; } = nameLast;
-    public string Profile { get; set; } = profile;
+    public string Nickname { get; set; } = nickname;
+    public string Firstname { get; set; } = firstname;
+    public string Lastname { get; set; } = lastname;
+    public string ProfilePicture { get; set; } = profilePicture;
     public bool IsAdmin { get; set; } = isAdmin;
     public Curriculum? Curriculum { get; set; } = curriculum;
 
     public string GetFullName()
     {
-        return NameFirst + " " + NameLast;
+        return Firstname + " " + Lastname;
     }
 }

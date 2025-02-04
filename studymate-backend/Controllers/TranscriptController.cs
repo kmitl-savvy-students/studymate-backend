@@ -14,309 +14,200 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public partial class TranscriptController : ControllerBase
 {
+    #region [GET] Get Transcript
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpGet("get/{userId:int}")]
+    public ActionResult GetTranscript(int userId)
+    {
+        var user = SdmUser.GetBy(userId);
+        if (user == null)
+            return Unauthorized();
+
+        var transcript = SdmTranscript.GetBy(user);
+        if (transcript == null)
+            return Ok(null);
+
+        transcript.User = null;
+        return Ok(transcript);
+    }
+    #endregion
+    #region [POST] Upload Transcript
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult> Upload([FromForm] DtoUploadTranscript dtoUploadTranscript)
+    public async Task<ActionResult> UploadTranscript([FromForm] DtoUploadTranscript transcriptData)
     {
-        Console.WriteLine("=== Starting Transcript Upload Process ===");
+        var file = transcriptData.File;
+        var userId = transcriptData.Id;
 
-        var file = dtoUploadTranscript.file;
-        var userId = SdmString.CleanAndTrim(dtoUploadTranscript.id);
-        var userIdInt = int.Parse(userId);
-
-        Console.WriteLine($"User ID: {userId}");
-
-        Console.WriteLine("Verifying files and permissions...");
-
-        var user = SdmUser.GetBy(userIdInt);
+        var user = SdmUser.GetBy(userId);
         if (user?.Curriculum == null)
         {
-            Console.WriteLine("User not allowed to upload transcript (no curriculum).");
-            return NotFound(new { message = "User is not allow to upload transcript." });
+            Console.WriteLine("Curriculum not found for user.");
+            return BadRequest(new { message = "ไม่พบหลักสูตรผู้ใช้งาน" });
         }
 
-        if (file.Length == 0)
+        if (file == null || file.Length == 0)
         {
             Console.WriteLine("File is empty.");
-            return BadRequest(new { message = "File is empty." });
+            return BadRequest(new { message = "ไม่พบไฟล์ Transcript" });
         }
 
-        const long maxFileSize = 15 * 1024 * 1024; // 15 MB Max
+        const long maxFileSize = 15 * 1024 * 1024;
         if (file.Length > maxFileSize)
         {
             Console.WriteLine("File is too large.");
-            return BadRequest(new { message = "File is too large." });
+            return BadRequest(new { message = "ขนาดไฟล์ใหญ่เกิน 15 MB" });
         }
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (extension != ".pdf")
         {
             Console.WriteLine("File is not a PDF file (invalid extension).");
-            return BadRequest(new { message = "File is not a PDF file." });
+            return BadRequest(new { message = "ไฟล์ดังกล่าวไม่ใช่ PDF" });
         }
 
         if (file.ContentType != "application/pdf")
         {
             Console.WriteLine("File is not a PDF file (invalid content type).");
-            return BadRequest(new { message = "File is not a PDF file." });
+            return BadRequest(new { message = "ไฟล์ดังกล่าวไม่ใช่ PDF" });
         }
 
         if (!await IsValidPdf(file))
         {
             Console.WriteLine("File is not a valid PDF file (failed PDF signature check).");
-            return BadRequest(new { message = "File is not a PDF file." });
+            return BadRequest(new { message = "ไฟล์ดังกล่าวไม่ใช่ PDF" });
         }
 
-        Console.WriteLine("Starting extract string from PDF using PDFPig...");
-        Console.WriteLine("=========== " + file.FileName + " ===========");
-
-        ParseData data;
+        string transcriptText;
         try
         {
-            data = ExtractTextFromPdf(file);
-
-            if (string.IsNullOrWhiteSpace(data.Data))
+            transcriptText = ExtractTextFromPdf(file);
+            if (string.IsNullOrWhiteSpace(transcriptText))
             {
                 Console.WriteLine("Extracted text is empty.");
-                return BadRequest(new { message = "File is empty." });
+                return BadRequest(new { message = "ไฟล์ดังกล่าวไม่ใช่ PDF" });
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing PDF file: {ex.Message}");
-            return BadRequest(new { message = "Cannot process PDF file." });
+            return BadRequest(new { message = "ไฟล์ดังกล่าวไม่ใช่ PDF" });
         }
 
-        Console.WriteLine("==== START PDFPig Transcript result ====");
-        Console.WriteLine(data.Data);
-        Console.WriteLine("==== END PDFPig Transcript result ====");
-
-        Console.WriteLine("Verifying result and permissions...");
-
-        if (string.IsNullOrEmpty(data.Id))
-        {
-            Console.WriteLine("No valid student ID found in transcript.");
-            return NotFound(new { message = "Not a valid transcript." });
-        }
-
-        var dataIdInt = int.Parse(data.Id);
-
-        var userTranscript = SdmUser.GetBy(dataIdInt);
-        if (userTranscript == null)
-        {
-            Console.WriteLine("User in transcript not found in database.");
-            return NotFound(new { message = "User doesn't exist." });
-        }
-
-        if (userTranscript.Id != user.Id)
-        {
-            Console.WriteLine("User in transcript does not match the current user (unauthorized).");
-            return Unauthorized(new { message = "Unauthorized." });
-        }
-
-        Console.WriteLine("User verified successfully.");
-
-        Console.WriteLine("Cleaning transcript text (removing boilerplate text)...");
-        var transcriptText = data.Data;
         transcriptText = transcriptText.Replace("Date Issued:", "");
         transcriptText = transcriptText.Replace("This document is", "");
+        transcriptText = transcriptText.Replace("Transfer Credit", "\n-1,-1\n");
 
-        var semesterHeaderPattern = SemesterHeaderRegex();
+        var regex = SplitToLineBySubjectIdRegex();
+        transcriptText = regex.Replace(transcriptText, m => "\n" + m.Value);
+        transcriptText = string.Join("\n", transcriptText.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)));
 
-        Console.WriteLine("Inserting new lines before Transfer Credit and semester headings...");
-        transcriptText = transcriptText.Replace("Transfer Credit", "\nTransfer Credit\n");
-        transcriptText = semesterHeaderPattern.Replace(transcriptText, m => "\n" + m.Value + "\n");
 
-        var subjectIdPattern = SubjectIdRegex();
-        transcriptText = subjectIdPattern.Replace(transcriptText, m => "\n" + m.Value);
-
-        Console.WriteLine("Splitting transcript text into lines...");
-        var lines = transcriptText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        var validGrades = new HashSet<string> { "A", "A+", "B", "B+", "C", "C+", "D", "D+", "F", "S" };
-
-        Console.WriteLine("Parsing lines...");
-
-        var currentSemester = -1;
-        var currentYear = -1;
-        var inTransferCreditSection = false;
-
-        var transferCredits = new List<(string subject_id, string grade)>();
-        var gradedCourses = new List<(int semester, int year, string subject_id, string grade)>();
-
-        foreach (var rawLine in lines)
+        regex = CleanTermYearHeader();
+        transcriptText = regex.Replace(transcriptText, m =>
         {
-            var line = rawLine.Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            var match = m.Value;
+            var semesterMatch = FindTermYearHeader().Match(match);
+            if (!semesterMatch.Success) return match;
+            var semester = semesterMatch.Groups[1].Value;
+            var year = semesterMatch.Groups[2].Value;
+            return $"\n{semester},{year}\n";
+        });
 
-            if (line.Equals("Transfer Credit", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine("Entering Transfer Credit section...");
-                inTransferCreditSection = true;
-                currentSemester = -1;
-                currentYear = -1;
-                continue;
-            }
+        var subjectLines = transcriptText.Split('\n')
+            .Select(ProcessSubjectLine)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .ToList();
 
-            var semesterMatch = semesterHeaderPattern.Match(line);
+        transcriptText = string.Join("\n", subjectLines);
+
+        var lines = transcriptText.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+
+        var extractedTerm = 0;
+        var extractedYear = 0;
+        var extractedSubjectId = string.Empty;
+        var extractedGrade = string.Empty;
+
+        Teachtable? currentTeachtable = null;
+
+        SdmTranscript.Insert(new Transcript(-1, user, SdmDateTime.Now()));
+        var transcript = SdmTranscript.GetBy(user);
+
+        if (transcript == null)
+        {
+            Console.WriteLine("Cannot create transcript.");
+            return BadRequest(new { message = "เกิดปัญหาการสร้างข้อมูล Transcript" });
+        }
+
+        foreach (var line in lines)
+        {
+            var semesterMatch = DetectTermYearLineRegex().Match(line);
             if (semesterMatch.Success)
             {
-                var semesterStr = semesterMatch.Groups[1].Value;
-                var yearRange = semesterMatch.Groups[2].Value;
-
-                var semNumStr = new string(semesterStr.Where(char.IsDigit).ToArray());
-                if (int.TryParse(semNumStr, out var semNum))
-                    currentSemester = semNum;
-                else
-                    currentSemester = -1;
-
-                var years = yearRange.Split('-');
-                if (years.Length > 0 && int.TryParse(years[0], out var yr))
-                    currentYear = yr;
-                else
-                    currentYear = -1;
-
-                Console.WriteLine($"Semester detected: {currentSemester}, Year: {currentYear}");
-                inTransferCreditSection = false;
-                continue;
-            }
-
-            var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length >= 2 && subjectIdPattern.IsMatch(tokens[0]))
-            {
-                var subjectId = tokens[0];
-                var grade = "X";
-
-                var creditIndex = -1;
-                for (var i = 1; i < tokens.Length; i++)
-                    if (int.TryParse(tokens[i].TrimEnd(','), out _))
-                    {
-                        creditIndex = i;
-                        break;
-                    }
-
-                if (creditIndex != -1)
-                    for (var j = creditIndex + 1; j < tokens.Length; j++)
-                    {
-                        var possibleGrade = tokens[j].TrimEnd(',');
-                        if (subjectIdPattern.IsMatch(possibleGrade))
-                            break;
-
-                        if (!validGrades.Contains(possibleGrade)) continue;
-                        grade = possibleGrade;
-                        break;
-                    }
-
-                Console.WriteLine($"Found course: {subjectId} with grade: {grade}");
-
-                if (inTransferCreditSection)
-                {
-                    transferCredits.Add((subjectId, grade));
-                }
-                else
-                {
-                    if (currentSemester == -1 || currentYear == -1)
-                        Console.WriteLine("Warning: Course found outside known semester/year. Using default -1, -1.");
-
-                    gradedCourses.Add((currentSemester, currentYear, subjectId, grade));
-                }
+                extractedTerm = int.Parse(semesterMatch.Groups[1].Value);
+                extractedYear = int.Parse(semesterMatch.Groups[2].Value);
 
                 continue;
             }
 
-            Console.WriteLine($"Unrecognized line, skipping: {line}");
-        }
-
-        Console.WriteLine("Saving data to database...");
-
-        try
-        {
-            var transcript = new Transcript(
-                0,
-                user,
-                user.Curriculum,
-                new SdmDateTime(DateTime.UtcNow)
-            );
-
-            transcript = SdmTranscript.Insert(transcript);
-
-            foreach (var (subject_id, grade) in transferCredits)
+            var subjectMatch = DetectSubjectLineRegex().Match(line);
+            if (subjectMatch.Success)
             {
-                var subject = SdmSubject.GetBy(subject_id);
-                if (subject == null)
-                {
-                    Console.WriteLine($"Subject {subject_id} not found in DB, skipping...");
-                    continue;
-                }
-
-                var dataEntry = new TranscriptDetail(
-                    0,
-                    transcript,
-                    subject,
-                    null,
-                    grade,
-                    subject.Credit
-                );
-                SdmTranscriptDetail.Insert(dataEntry);
-                Console.WriteLine($"Inserted Transfer Credit: {subject_id} Grade: {grade} Credit: {subject.Credit}");
+                extractedSubjectId = subjectMatch.Groups[1].Value;
+                extractedGrade = subjectMatch.Groups[2].Value;
             }
 
-            foreach (var (semester, year, subject_id, grade) in gradedCourses)
-            {
-                var subject = SdmSubject.GetBy(subject_id);
-                if (subject == null)
-                {
-                    Console.WriteLine($"Subject {subject_id} not found in DB, skipping...");
-                    continue;
-                }
-
-                var dataEntry = new TranscriptDetail(
-                    0,
+            if (extractedYear != 0 && extractedTerm != 0) currentTeachtable = SdmTeachtable.GetBy(extractedYear, extractedTerm);
+            if (currentTeachtable != null && extractedSubjectId != string.Empty && extractedGrade != string.Empty)
+                SdmTranscriptDetail.Insert(new TranscriptDetail(
+                    -1,
                     transcript,
-                    subject,
-                    null,
-                    grade,
-                    subject.Credit
-                );
-                SdmTranscriptDetail.Insert(dataEntry);
-                Console.WriteLine(
-                    $"Inserted Course: {subject_id} Semester: {semester}, Year: {year}, Grade: {grade}, Credit: {subject.Credit}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving transcript data: {ex.Message}");
-            return BadRequest(new { message = "Error saving data to database." });
+                    SdmSubject.GetBy(extractedSubjectId),
+                    currentTeachtable,
+                    extractedGrade
+                ));
+
+            extractedTerm = 0;
+            extractedYear = 0;
+            extractedSubjectId = string.Empty;
+            extractedGrade = string.Empty;
         }
 
-        Console.WriteLine("DONE!! Transcript uploaded and data saved successfully.");
-
-        return Ok(new { message = "Upload successfully." });
+        return Ok();
     }
 
-    private static async Task<bool> IsValidPdf(IFormFile file)
+    public class DtoUploadTranscript
     {
-        var pdfSignature = "%PDF-"u8.ToArray();
-        var fileHeader = new byte[5];
-
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            if (stream.Length < 5)
-                return false;
-
-            _ = await stream.ReadAsync(fileHeader.AsMemory(0, 5));
-
-            return !pdfSignature.Where((t, i) => fileHeader[i] != t).Any();
-        }
-        catch
-        {
-            return false;
-        }
+        public required int Id { get; init; } = 1;
+        public required IFormFile? File { get; init; } = null;
     }
+    #endregion
 
-    private static ParseData ExtractTextFromPdf(IFormFile file)
+    #region Helper Methods
+    private static string ProcessSubjectLine(string line)
+    {
+        var subjectMatch = FindSubjectIdRegex().Match(line);
+        if (!subjectMatch.Success)
+            return line;
+
+        var subjectId = subjectMatch.Groups[1].Value;
+
+        var gradeMatch = FindGradeRegex().Match(line);
+
+        var grade = "X";
+        if (gradeMatch.Success) grade = gradeMatch.Groups[1].Success ? gradeMatch.Groups[1].Value : gradeMatch.Groups[2].Value;
+
+        return $"{subjectId},{grade}";
+    }
+    private static bool IsWithinBounds(PdfRectangle wordBounds, PdfRectangle columnBounds)
+    {
+        return wordBounds.Left >= columnBounds.Left &&
+               wordBounds.Right <= columnBounds.Right &&
+               wordBounds.Bottom >= columnBounds.Bottom &&
+               wordBounds.Top <= columnBounds.Top;
+    }
+    private static string ExtractTextFromPdf(IFormFile file)
     {
         try
         {
@@ -356,8 +247,6 @@ public partial class TranscriptController : ControllerBase
                 textRight.Append(string.Join(" ", rightText)).Append(' ');
             }
 
-            var resultTop = ExtractStudentIdRegex().Match(textTop.ToString()).Value;
-
             var resultLeft = RemoveGpsGpaRegex().Replace(textLeft.ToString(), "");
             resultLeft = RemoveCheckedByRegex().Replace(resultLeft, "");
             resultLeft = RemoveTranscriptMarkersRegex().Replace(resultLeft, "");
@@ -370,7 +259,7 @@ public partial class TranscriptController : ControllerBase
             resultRight = RemoveCreditCumulativeRegex().Replace(resultRight, "");
             resultRight = RemoveAccessSpaceRegex().Replace(resultRight, " ");
 
-            return new ParseData(resultTop, (resultLeft + " " + resultRight).Trim());
+            return (resultLeft + " " + resultRight).Trim();
         }
         catch (Exception ex)
         {
@@ -379,26 +268,27 @@ public partial class TranscriptController : ControllerBase
         }
     }
 
-    private static bool IsWithinBounds(PdfRectangle wordBounds, PdfRectangle columnBounds)
+    private static async Task<bool> IsValidPdf(IFormFile file)
     {
-        return wordBounds.Left >= columnBounds.Left &&
-               wordBounds.Right <= columnBounds.Right &&
-               wordBounds.Bottom >= columnBounds.Bottom &&
-               wordBounds.Top <= columnBounds.Top;
-    }
+        var pdfSignature = "%PDF-"u8.ToArray();
+        var fileHeader = new byte[5];
 
-    private class ParseData(string id, string data)
-    {
-        public string Id { get; } = id;
-        public string Data { get; } = data;
-    }
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            if (stream.Length < 5)
+                return false;
 
-    public class DtoUploadTranscript(string id, IFormFile file)
-    {
-        public required string id { get; init; } = id;
-        public required IFormFile file { get; init; } = file;
-    }
+            _ = await stream.ReadAsync(fileHeader.AsMemory(0, 5));
 
+            return !pdfSignature.Where((t, i) => fileHeader[i] != t).Any();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    #endregion
     #region Regex
     [GeneratedRegex(@"Checked by\s+[\w\s\(\)]+")]
     private static partial Regex RemoveCheckedByRegex();
@@ -406,15 +296,23 @@ public partial class TranscriptController : ControllerBase
     private static partial Regex RemoveTranscriptMarkersRegex();
     [GeneratedRegex(@"GPS\s*:\s*\S+|GPA\s*:\s*\S+", RegexOptions.IgnoreCase)]
     private static partial Regex RemoveGpsGpaRegex();
-    [GeneratedRegex(@"\b\d{8}\b")]
-    private static partial Regex ExtractStudentIdRegex();
     [GeneratedRegex(@"Total number of credit earned: \d+ Cumulative")]
     private static partial Regex RemoveCreditCumulativeRegex();
     [GeneratedRegex(@"\s+")]
     private static partial Regex RemoveAccessSpaceRegex();
     [GeneratedRegex(@"(\d+(?:st|nd|rd|th)) Semester,\s*Year,\s*(\d{4}-\d{4})", RegexOptions.IgnoreCase, "en-US")]
-    private static partial Regex SemesterHeaderRegex();
+    private static partial Regex CleanTermYearHeader();
     [GeneratedRegex(@"\b\d{8}\b")]
-    private static partial Regex SubjectIdRegex();
+    private static partial Regex SplitToLineBySubjectIdRegex();
+    [GeneratedRegex(@"(\d+)(?:st|nd|rd|th) Semester,\s*Year,\s*(\d{4})-\d{4}")]
+    private static partial Regex FindTermYearHeader();
+    [GeneratedRegex(@"\b(\d{8})\b")]
+    private static partial Regex FindSubjectIdRegex();
+    [GeneratedRegex(@"\s(A\+?|B\+?|C\+?|D\+?|F|S)\s|\s(A\+?|B\+?|C\+?|D\+?|F|S)$", RegexOptions.RightToLeft)]
+    private static partial Regex FindGradeRegex();
+    [GeneratedRegex(@"^(\d{8}),(A\+?|B\+?|C\+?|D\+?|F|S|X)$")]
+    private static partial Regex DetectSubjectLineRegex();
+    [GeneratedRegex(@"^(\d),(\d{4})$")]
+    private static partial Regex DetectTermYearLineRegex();
     #endregion
 }

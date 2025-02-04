@@ -7,7 +7,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
 {
-    public static string TableName => "UserToken";
+    public static string TableName => "user_token";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
@@ -32,17 +32,10 @@ public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
         return result;
     }
 
-    public static List<UserToken> GetAll()
-    {
-        var select = GetQueryObj();
-
-        var result = ProcessQuery(select, true);
-        return result;
-    }
     public static UserToken? GetBy(string id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("Id", id);
+        select.WhereEqual("ut_id", id);
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -50,7 +43,7 @@ public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
     public static UserToken? GetBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("UserId", user.Id.ToString());
+        select.WhereEqual("ut_u_id", user.Id.ToString());
 
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
@@ -60,10 +53,10 @@ public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("Id", userToken.id);
-        insert.Insert("UserId", userToken.user?.Id.ToString());
-        insert.Insert("Created", userToken.created.ToString());
-        insert.Insert("Expired", userToken.expired.ToString());
+        insert.Insert("ut_id", userToken.Id);
+        insert.Insert("ut_u_id", userToken.User?.Id.ToString());
+        insert.Insert("ut_date_created", userToken.DateCreated.ToString());
+        insert.Insert("ut_date_expired", userToken.DateExpired.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
@@ -71,7 +64,7 @@ public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
     public static void DeleteBy(UserToken userToken)
     {
         var delete = new SdmMysqlQueryDelete(TableName);
-        delete.WhereEqual("Id", userToken.id);
+        delete.WhereEqual("ut_id", userToken.Id);
 
         var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();

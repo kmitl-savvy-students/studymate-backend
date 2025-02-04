@@ -45,7 +45,10 @@ public class SdmTokenHandler(
             return Task.FromResult(AuthenticateResult.Fail("Invalid or expired token"));
         }
 
-        var user = userToken.user;
+        var user = userToken.User;
+
+        if (user == null)
+            return Task.FromResult(AuthenticateResult.Fail("User not found."));
 
         var claims = new[]
         {

@@ -9,7 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/faculty")]
 public class FacultyController : ControllerBase
 {
-    #region [POST] Create Faculty
+    #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
     public ActionResult<Faculty> Create(Faculty faculty)
@@ -18,7 +18,7 @@ public class FacultyController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [PUT] Faculty
+    #region [PUT] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPut("update")]
     public ActionResult<Faculty> Update(Faculty faculty)
@@ -27,7 +27,7 @@ public class FacultyController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [GET] Faculty
+    #region [GET] Get
     [AllowAnonymous]
     [HttpGet("get")]
     public ActionResult<IEnumerable<Faculty>> GetAll()

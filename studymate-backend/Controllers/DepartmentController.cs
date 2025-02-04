@@ -9,7 +9,7 @@ namespace studymate_backend.Controllers;
 [Route("api/department")]
 public class DepartmentController : ControllerBase
 {
-    #region [POST] Create Department
+    #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
     public ActionResult<Department> Create(Department department)
@@ -18,7 +18,7 @@ public class DepartmentController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [Put] Update Department
+    #region [Put] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPut("update")]
     public ActionResult<Department> Update(Department department)
@@ -27,7 +27,7 @@ public class DepartmentController : ControllerBase
         return Ok();
     }
     #endregion
-    #region [GET] Department
+    #region [GET] Get
     [AllowAnonymous]
     [HttpGet("get")]
     public ActionResult<IEnumerable<Department>> GetAll()
