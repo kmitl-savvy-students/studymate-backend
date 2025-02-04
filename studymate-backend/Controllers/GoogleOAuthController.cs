@@ -102,9 +102,9 @@ public class GoogleOAuthController : ControllerBase
             if (callback.redirectUri == "sign-up")
                 return Conflict(new { message = "You already sign up, please sign in." });
 
-            user.nameFirst = userInfo.given_name;
-            user.nameLast = userInfo.family_name;
-            user.profile = userInfo.picture;
+            user.NameFirst = userInfo.given_name;
+            user.NameLast = userInfo.family_name;
+            user.Profile = userInfo.picture;
             SdmUser.Update(user);
         }
 

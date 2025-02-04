@@ -7,14 +7,14 @@ namespace studymate_backend.Libraries.Methods;
 public abstract class SdmCurriculumSubject : ISdmBaseMethod<CurriculumSubject>
 {
     public static string TableName => "curriculum_subject";
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<CurriculumSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<CurriculumSubject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
         var result = new List<CurriculumSubject>();
 
         while (query.Next())

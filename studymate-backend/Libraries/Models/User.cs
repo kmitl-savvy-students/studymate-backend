@@ -10,16 +10,16 @@ public class User(
     Curriculum? curriculum
 ) : IBaseModel
 {
-    public string id { get; set; } = id;
-    public string password { get; set; } = password;
-    public string nameNick { get; set; } = nameNick;
-    public string nameFirst { get; set; } = nameFirst;
-    public string nameLast { get; set; } = nameLast;
-    public string profile { get; set; } = profile;
-    public Curriculum? curriculum { get; set; } = curriculum;
+    public string Id { get; } = id;
+    public string Password { get; } = password;
+    public string NameNick { get; set; } = nameNick;
+    public string NameFirst { get; set; } = nameFirst;
+    public string NameLast { get; set; } = nameLast;
+    public string Profile { get; set; } = profile;
+    public Curriculum? Curriculum { get; set; } = curriculum;
 
     public string GetFullName()
     {
-        return nameFirst + " " + nameLast;
+        return NameFirst + " " + NameLast;
     }
 }

@@ -9,14 +9,14 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
 {
     public static string TableName => "teachtable";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<Teachtable> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Teachtable> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<Teachtable>();
 
@@ -61,25 +61,25 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
 
     public static void Insert(Teachtable teachtable)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
         
         insert.Insert("academic_year", teachtable.academic_year.ToString());
         insert.Insert("academic_term", teachtable.academic_term.ToString());
         
-        var query = SdmPgsqlQuery.Execute(insert);
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
 
     public static void Update(Teachtable teachtable)
     {
-        var update = new SdmPgsqlQueryUpdate(TableName);
+        var update = new SdmMysqlQueryUpdate(TableName);
         
         update.Set("academic_year", teachtable.academic_year.ToString());
         update.Set("academic_term", teachtable.academic_term.ToString());
         
         update.WhereEqual("id", teachtable.id.ToString());
         
-        var query = SdmPgsqlQuery.Execute(update);
+        var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
     }
     
@@ -89,7 +89,7 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
             !SdmNumber.IsAcademicYear(year))
             throw new ArgumentException("Invalid academic year or term.");
         // สร้าง Query Object พร้อมเงื่อนไข
-        var select = new SdmPgsqlQuerySelect("teachtable")
+        var select = new SdmMysqlQuerySelect("teachtable")
             .AddWhereCondition("academic_year", year.ToString())
             .AddWhereCondition("academic_term", term.ToString());
 
@@ -105,7 +105,7 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         Insert(newTeachtable);
 
         // Query ใหม่เพื่อดึงข้อมูลที่สร้าง
-        var selectAfterInsert = new SdmPgsqlQuerySelect("teachtable")
+        var selectAfterInsert = new SdmMysqlQuerySelect("teachtable")
             .AddWhereCondition("academic_year", year.ToString())
             .AddWhereCondition("academic_term", term.ToString());
 

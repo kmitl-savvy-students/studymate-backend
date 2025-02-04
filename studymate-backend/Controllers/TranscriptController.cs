@@ -1,15 +1,12 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using Google.Cloud.AIPlatform.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Core;
-using System.Linq;
 
 namespace studymate_backend.Controllers;
 
@@ -17,10 +14,6 @@ namespace studymate_backend.Controllers;
 [Route("api/transcript")]
 public partial class TranscriptController : ControllerBase
 {
-    // AI model constants (not used now, but kept for reference)
-    private const string AI_MODEL = "gemini-1.5-flash-002";
-    private const float AI_TEMPERATURE = 1.0f;
-
     // Regex patterns generated
     [GeneratedRegex(@"Checked by\s+[\w\s\(\)]+")]
     private static partial Regex RemoveCheckedByRegex();
@@ -56,7 +49,7 @@ public partial class TranscriptController : ControllerBase
         Console.WriteLine("Verifying files and permissions...");
 
         var user = SdmUser.GetBy(userId);
-        if (user?.curriculum == null)
+        if (user?.Curriculum == null)
         {
             Console.WriteLine("User not allowed to upload transcript (no curriculum).");
             return NotFound(new { message = "User is not allow to upload transcript." });
@@ -138,7 +131,7 @@ public partial class TranscriptController : ControllerBase
             return NotFound(new { message = "User doesn't exist." });
         }
 
-        if (userTranscript.id != user.id)
+        if (userTranscript.Id != user.Id)
         {
             Console.WriteLine("User in transcript does not match the current user (unauthorized).");
             return Unauthorized(new { message = "Unauthorized." });
@@ -306,7 +299,7 @@ public partial class TranscriptController : ControllerBase
             var transcript = new Transcript(
                 0,
                 user,
-                user.curriculum,
+                user.Curriculum,
                 new SdmDateTime(DateTime.UtcNow)
             );
 

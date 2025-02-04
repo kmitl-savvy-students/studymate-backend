@@ -1,8 +1,8 @@
 ﻿namespace studymate_backend.Libraries.Database.QueryBuilders;
 
-public class SdmPgsqlQueryInsert(
+public class SdmMysqlQueryInsert(
     string tableName
-) : ISdmPgsqlQueryBase
+) : ISdmMysqlQueryBase
 {
     private readonly List<string> _columns = [];
     private readonly List<string> _values = [];
@@ -17,12 +17,12 @@ public class SdmPgsqlQueryInsert(
         var columns = string.Join(", ", _columns);
         var values = string.Join(", ", _values);
 
-        return $"INSERT INTO \"{TableName}\" ({columns}) VALUES ({values}) RETURNING id;";
+        return $"INSERT INTO `{TableName}` ({columns}) VALUES ({values});";
     }
 
     public void Insert(string field, string? value)
     {
-        _columns.Add($"\"{field}\"");
+        _columns.Add($"`{field}`");
         _values.Add(value == null ? "NULL" : $"'{value.Replace("'", "''")}'");
     }
 }

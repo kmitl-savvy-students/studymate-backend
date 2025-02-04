@@ -55,7 +55,7 @@ public class SdmTokenHandler(
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, user.GetFullName()),
-            new Claim(ClaimTypes.NameIdentifier, user.id)
+            new Claim(ClaimTypes.NameIdentifier, user.Id)
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

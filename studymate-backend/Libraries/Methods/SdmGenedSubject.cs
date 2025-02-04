@@ -8,14 +8,14 @@ public class SdmGenedSubject : ISdmBaseMethod<GenedSubject>
 {
     public static string TableName => "gened_subject";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<GenedSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<GenedSubject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<GenedSubject>();
 

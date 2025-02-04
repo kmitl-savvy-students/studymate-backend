@@ -9,14 +9,14 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
 {
     public static string TableName => "transcript";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<Transcript> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Transcript> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<Transcript>();
 
@@ -56,7 +56,7 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
     public static Transcript? GetBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        select.WhereEqual("user_id", user.Id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -66,7 +66,7 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
     public static List<Transcript> GetAllBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        select.WhereEqual("user_id", user.Id);
 
         var result = ProcessQuery(select, true);
         return result;
@@ -74,14 +74,14 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
 
     public static Transcript Insert(Transcript transcript)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("user_id", transcript.user?.id);
-        insert.Insert("curriculum_id", transcript.user?.curriculum?.id.ToString());
+        insert.Insert("user_id", transcript.user?.Id);
+        insert.Insert("curriculum_id", transcript.user?.Curriculum?.id.ToString());
         insert.Insert("created", transcript.created.ToString());
 
-        var query = SdmPgsqlQuery.Execute(insert);
-        transcript.id = query.insertedId;
+        var query = SdmMysqlQuery.Execute(insert);
+        transcript.id = query.InsertedId;
         query.CleanUp();
 
         return transcript;
@@ -89,11 +89,11 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
 
     public static void DeleteByUser(User user)
     {
-        var delete = new SdmPgsqlQueryDelete(TableName);
+        var delete = new SdmMysqlQueryDelete(TableName);
 
-        delete.WhereEqual("user_id", user.id);
+        delete.WhereEqual("user_id", user.Id);
 
-        var query = SdmPgsqlQuery.Execute(delete);
+        var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
     }
 }

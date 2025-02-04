@@ -8,14 +8,14 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
 {
     public static string TableName => "teachtable_subject";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<TeachtableSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<TeachtableSubject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<TeachtableSubject>();
 
@@ -38,7 +38,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     
     public static void Insert(TeachtableSubject teachtableSubject)
     {
-        var insert = new SdmPgsqlQueryInsert("teachtable_subject");
+        var insert = new SdmMysqlQueryInsert("teachtable_subject");
 
         insert.Insert("teachtable_id", teachtableSubject.teachtable?.id.ToString());
         insert.Insert("subject_id", teachtableSubject.subject_id);
@@ -47,7 +47,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
         insert.Insert("count_of_review", teachtableSubject.count_of_review.ToString());
 
         Console.WriteLine($"Inserting TeachtableSubject: teachtable_id={teachtableSubject.teachtable?.id}, subject_id={teachtableSubject.subject_id}");
-        var query = SdmPgsqlQuery.Execute(insert);
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
 
@@ -76,7 +76,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             Console.WriteLine($"CheckOrCreate: Checking teachtable_subject with teachtable_id={teachtableId}, subject_id={subjectId}");
 
             // Query TeachtableSubject
-            var select = new SdmPgsqlQuerySelect("teachtable_subject")
+            var select = new SdmMysqlQuerySelect("teachtable_subject")
                 .AddWhereCondition("teachtable_id", teachtableId.ToString())
                 .AddWhereCondition("subject_id", subjectId);
 

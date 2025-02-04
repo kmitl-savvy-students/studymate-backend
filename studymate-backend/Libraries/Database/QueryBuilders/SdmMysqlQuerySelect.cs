@@ -1,8 +1,8 @@
 ﻿namespace studymate_backend.Libraries.Database.QueryBuilders;
 
-public class SdmPgsqlQuerySelect(
+public class SdmMysqlQuerySelect(
     string tableName
-) : ISdmPgsqlQueryBase
+) : ISdmMysqlQueryBase
 {
     private readonly List<string> _whereConditions = [];
     private string _whereRawQuery = string.Empty;
@@ -11,9 +11,9 @@ public class SdmPgsqlQuerySelect(
 
     public string Build()
     {
-        var command = $"SELECT * FROM \"{TableName}\"";
+        var command = $"SELECT * FROM `{TableName}`";
 
-        if (_whereRawQuery != string.Empty)
+        if (!string.IsNullOrEmpty(_whereRawQuery))
             command += " " + _whereRawQuery;
         else if (_whereConditions.Count > 0)
             command += " WHERE " + string.Join(" AND ", _whereConditions);
@@ -25,33 +25,30 @@ public class SdmPgsqlQuerySelect(
     {
         _whereRawQuery = rawQuery;
     }
+
     public void WhereEqual(string field, string value)
     {
-        var condition = $"\"{field}\" = '{value.Replace("'", "''")}'";
+        var condition = $"`{field}` = '{value.Replace("'", "''")}'";
         _whereConditions.Add(condition);
     }
 
-    // ฟังก์ชันใหม่สำหรับเพิ่มเงื่อนไขใน SQL Query
-    public SdmPgsqlQuerySelect AddWhereCondition(string field, string value)
+    public SdmMysqlQuerySelect AddWhereCondition(string field, string value)
     {
-        var condition = $"\"{field}\" = '{value.Replace("'", "''")}'";
+        var condition = $"`{field}` = '{value.Replace("'", "''")}'";
         _whereConditions.Add(condition);
-        return this; // คืนค่า this เพื่อให้รองรับ Method Chaining
+        return this;
     }
 
-    // ฟังก์ชันสำหรับนำเงื่อนไขทั้งหมดไปใช้ใน Query
     public string GetWhereClause()
     {
         return _whereConditions.Count > 0 ? "WHERE " + string.Join(" AND ", _whereConditions) : "";
     }
-    
+
     public string GetQuery()
     {
-        var query = $"SELECT * FROM \"{TableName}\"";
+        var query = $"SELECT * FROM `{TableName}`";
         if (_whereConditions.Count > 0)
             query += " WHERE " + string.Join(" AND ", _whereConditions);
         return query;
     }
-    
-    
 }

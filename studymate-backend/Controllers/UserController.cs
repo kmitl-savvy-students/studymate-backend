@@ -22,13 +22,13 @@ public class UserController : ControllerBase
             var newCurriculum = SdmCurriculum.GetBy(user.curriculumId ?? -1);
             if (newCurriculum == null)
                 return NotFound(new { message = "Curriculum not found" });
-            existingUser.curriculum = newCurriculum;
+            existingUser.Curriculum = newCurriculum;
         }
 
-        existingUser.nameNick = user.nameNick ?? existingUser.nameNick;
-        existingUser.nameFirst = user.nameFirst ?? existingUser.nameFirst;
-        existingUser.nameLast = user.nameLast ?? existingUser.nameLast;
-        existingUser.profile = user.profile ?? existingUser.profile;
+        existingUser.NameNick = user.nameNick ?? existingUser.NameNick;
+        existingUser.NameFirst = user.nameFirst ?? existingUser.NameFirst;
+        existingUser.NameLast = user.nameLast ?? existingUser.NameLast;
+        existingUser.Profile = user.profile ?? existingUser.Profile;
 
         SdmUser.Update(existingUser);
 

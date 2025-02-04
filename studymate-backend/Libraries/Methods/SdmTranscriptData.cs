@@ -8,14 +8,14 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
 {
     public static string TableName => "transcript_data";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<TranscriptData> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<TranscriptData> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<TranscriptData>();
 
@@ -88,7 +88,7 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
 
     public static void Insert(TranscriptData transcriptData)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
 
         insert.Insert("transcript_id", transcriptData.transcript?.id.ToString());
         insert.Insert("subject_id", transcriptData.subject?.id);
@@ -97,17 +97,17 @@ public class SdmTranscriptData : ISdmBaseMethod<TranscriptData>
         insert.Insert("grade", transcriptData.grade);
         insert.Insert("credit", transcriptData.credit.ToString());
 
-        var query = SdmPgsqlQuery.Execute(insert);
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
 
     public static void DeleteByTranscript(Transcript transcript)
     {
-        var delete = new SdmPgsqlQueryDelete(TableName);
+        var delete = new SdmMysqlQueryDelete(TableName);
 
         delete.WhereEqual("transcript_id", transcript.id.ToString());
 
-        var query = SdmPgsqlQuery.Execute(delete);
+        var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
     }
 }
