@@ -6,6 +6,8 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 {
+    private static Dictionary<int, CurriculumGroup> _cache = new();
+
     public static string TableName => "curriculum_group";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
@@ -50,11 +52,18 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     }
     public static CurriculumGroup? GetBy(int id)
     {
+        if (_cache.TryGetValue(id, out var value))
+            return value;
+
         var select = GetQueryObj();
         select.WhereEqual("cg_id", id.ToString());
 
         var result = ProcessQuery(select);
-        return result.Count == 0 ? null : result[0];
+        var curriculumGroup = result.Count == 0 ? null : result[0];
+        if (curriculumGroup == null)
+            return null;
+        _cache.Add(curriculumGroup.Id, curriculumGroup);
+        return curriculumGroup;
     }
 
     public static CurriculumGroup Insert(CurriculumGroup curriculumGroup)
