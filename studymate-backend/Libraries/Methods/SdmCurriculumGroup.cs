@@ -38,8 +38,15 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var select = GetQueryObj();
         select.WhereEqual("cg_cg_id", parentId.ToString());
 
-        var result = ProcessQuery(select, true);
-        return result;
+        var curriculumGroups = ProcessQuery(select, true);
+        foreach (var curriculumGroup in curriculumGroups)
+        {
+            var curriculumGroupSubjects = SdmCurriculumGroupSubject.GetAllBy(curriculumGroup.Id);
+            foreach (var curriculumGroupSubject in curriculumGroupSubjects)
+                curriculumGroupSubject.Group = null;
+            curriculumGroup.Subjects = curriculumGroupSubjects;
+        }
+        return curriculumGroups;
     }
     public static CurriculumGroup? GetBy(int id)
     {

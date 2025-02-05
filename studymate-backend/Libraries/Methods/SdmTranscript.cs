@@ -62,7 +62,6 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
         var result = ProcessQuery(select);
         var transcript = result.Count == 0 ? null : result[0];
         if (transcript == null) return transcript;
-        transcript.User = null;
         transcript.Details = SdmTranscriptDetail.GetAllBy(transcript);
         return transcript;
     }

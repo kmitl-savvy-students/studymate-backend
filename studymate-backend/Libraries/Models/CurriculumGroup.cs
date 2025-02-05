@@ -15,4 +15,5 @@ public class CurriculumGroup(
     public string Name { get; set; } = name;
     public int Credit { get; set; } = credit;
     public List<CurriculumGroup> Children { get; set; } = children;
+    public List<CurriculumGroupSubject> Subjects { get; set; }
 }

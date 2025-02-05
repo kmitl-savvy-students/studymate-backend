@@ -23,12 +23,7 @@ public partial class TranscriptController : ControllerBase
         if (user == null)
             return Unauthorized();
 
-        var transcript = SdmTranscript.GetBy(user);
-        if (transcript == null)
-            return Ok(null);
-
-        transcript.User = null;
-        return Ok(transcript);
+        return Ok(SdmTranscript.GetBy(user));
     }
     #endregion
     #region [POST] Upload Transcript
@@ -161,7 +156,7 @@ public partial class TranscriptController : ControllerBase
             }
 
             if (extractedYear != 0 && extractedTerm != 0) currentTeachtable = SdmTeachtable.GetBy(extractedYear, extractedTerm);
-            if (currentTeachtable != null && extractedSubjectId != string.Empty && extractedGrade != string.Empty)
+            if (extractedSubjectId != string.Empty && extractedGrade != string.Empty)
                 SdmTranscriptDetail.Insert(new TranscriptDetail(
                     -1,
                     transcript,
