@@ -6,6 +6,8 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmSubject : ISdmBaseMethod<Subject>
 {
+    private static Dictionary<string, Subject> _cache = new();
+
     public static string TableName => "subject";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
@@ -39,12 +41,19 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static Subject? GetBy(string subjectId)
+    public static Subject? GetBy(string id)
     {
+        if (_cache.TryGetValue(id, out var value))
+            return value;
+
         var select = GetQueryObj();
-        select.WhereEqual("sbj_id", subjectId);
+        select.WhereEqual("sbj_id", id);
 
         var result = ProcessQuery(select);
-        return result.Count == 0 ? null : result[0];
+        var subject = result.Count == 0 ? null : result[0];
+        if (subject == null)
+            return null;
+        _cache.Add(id, subject);
+        return subject;
     }
 }

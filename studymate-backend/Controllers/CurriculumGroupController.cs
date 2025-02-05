@@ -29,7 +29,7 @@ public class CurriculumGroupController : ControllerBase
     #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
-    public ActionResult<CurriculumGroup> Create(DtoCreate curriculumGroup)
+    public ActionResult<CurriculumGroup> Create(DtoCreateCurriculumGroup curriculumGroup)
     {
         return Ok(SdmCurriculumGroup.Insert(new CurriculumGroup(
             curriculumGroup.Id,
@@ -37,11 +37,12 @@ public class CurriculumGroupController : ControllerBase
             curriculumGroup.Type,
             curriculumGroup.Name,
             curriculumGroup.Credit,
+            [],
             []
         )));
     }
 
-    public class DtoCreate
+    public class DtoCreateCurriculumGroup
     {
         public required int Id { get; init; } = -1;
         public required int ParentId { get; init; } = -1;

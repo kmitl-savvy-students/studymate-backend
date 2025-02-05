@@ -6,8 +6,8 @@ public class CurriculumGroup(
     string type,
     string name,
     int credit,
-    List<CurriculumGroup> children
-) : IBaseModel
+    List<CurriculumGroup> children,
+    List<CurriculumGroupSubject> subjects) : IBaseModel
 {
     public int Id { get; set; } = id;
     public int? ParentId { get; set; } = parentId;
@@ -15,4 +15,5 @@ public class CurriculumGroup(
     public string Name { get; set; } = name;
     public int Credit { get; set; } = credit;
     public List<CurriculumGroup> Children { get; set; } = children;
+    public List<CurriculumGroupSubject> Subjects { get; set; } = subjects;
 }
