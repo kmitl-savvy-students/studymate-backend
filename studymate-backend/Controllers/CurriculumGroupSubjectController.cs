@@ -29,7 +29,7 @@ public class CurriculumGroupSubjectController : ControllerBase
     #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
-    public ActionResult<DtoCreate> Create(DtoCreate curriculumGroupSubject)
+    public ActionResult<DtoCreateCurriculumGroupSubject> Create(DtoCreateCurriculumGroupSubject curriculumGroupSubject)
     {
         var curriculumGroup = SdmCurriculumGroup.GetBy(curriculumGroupSubject.CurriculumGroupId);
         var subjectIds = curriculumGroupSubject.SubjectString.Split(',').ToList();
@@ -51,7 +51,7 @@ public class CurriculumGroupSubjectController : ControllerBase
         return Ok();
     }
 
-    public class DtoCreate
+    public class DtoCreateCurriculumGroupSubject
     {
         public required int CurriculumGroupId { get; init; } = -1;
         public required string SubjectString { get; init; } = string.Empty;

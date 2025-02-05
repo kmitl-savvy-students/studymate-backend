@@ -16,7 +16,7 @@ public partial class TranscriptController : ControllerBase
 {
     #region [GET] Get Transcript
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpGet("get/{userId:int}")]
+    [HttpGet("get-by-user/{userId:int}")]
     public ActionResult GetTranscript(int userId)
     {
         var user = SdmUser.GetBy(userId);
@@ -39,6 +39,8 @@ public partial class TranscriptController : ControllerBase
     {
         var file = transcriptData.File;
         var userId = transcriptData.Id;
+
+        DeleteTranscriptData(userId);
 
         var user = SdmUser.GetBy(userId);
         if (user?.Curriculum == null)
@@ -181,6 +183,27 @@ public partial class TranscriptController : ControllerBase
     {
         public required int Id { get; init; } = 1;
         public required IFormFile? File { get; init; } = null;
+    }
+    #endregion
+    #region [DELETE] Delete Transcript
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete/{userId:int}")]
+    public ActionResult DeleteTranscript(int userId)
+    {
+        DeleteTranscriptData(userId);
+        return Ok();
+    }
+    private void DeleteTranscriptData(int userId)
+    {
+        var user = SdmUser.GetBy(userId);
+        if (user == null)
+            return;
+
+        var transcript = SdmTranscript.GetBy(user);
+        if (transcript == null)
+            return;
+        SdmTranscriptDetail.DeleteBy(transcript);
+        SdmTranscript.DeleteBy(transcript);
     }
     #endregion
 

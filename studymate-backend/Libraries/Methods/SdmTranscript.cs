@@ -61,8 +61,9 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
 
         var result = ProcessQuery(select);
         var transcript = result.Count == 0 ? null : result[0];
-        if (transcript != null)
-            transcript.Details = SdmTranscriptDetail.GetAllBy(transcript);
+        if (transcript == null) return transcript;
+        transcript.User = null;
+        transcript.Details = SdmTranscriptDetail.GetAllBy(transcript);
         return transcript;
     }
 
@@ -71,7 +72,6 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
         var insert = new SdmMysqlQueryInsert(TableName);
 
         insert.Insert("ts_u_id", transcript.User?.Id.ToString());
-        insert.Insert("ts_curr_id", transcript.User?.Curriculum?.Id.ToString());
         insert.Insert("ts_date_created", transcript.DateCreated.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
@@ -85,6 +85,15 @@ public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
         var delete = new SdmMysqlQueryDelete(TableName);
 
         delete.WhereEqual("ts_u_id", user.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(delete);
+        query.CleanUp();
+    }
+    public static void DeleteBy(Transcript transcript)
+    {
+        var delete = new SdmMysqlQueryDelete(TableName);
+
+        delete.WhereEqual("ts_id", transcript.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
