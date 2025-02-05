@@ -8,6 +8,6 @@ public class TeachtableSubjectInterested(
 {
     public int id { get; set; } = id;
     public TeachtableSubject? teachtable_subject { get; set; } = teachtable_subject;
-    public string user_id { get; set; }
+    public string user_id { get; set; } = user_id.ToString();
 
 }
