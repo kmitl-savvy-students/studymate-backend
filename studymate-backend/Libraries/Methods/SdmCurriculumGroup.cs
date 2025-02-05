@@ -26,7 +26,8 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 query.ToString(2),
                 query.ToString(3),
                 query.ToInt(4),
-                GetAllBy(query.ToInt(0))
+                GetAllBy(query.ToInt(0)),
+                []
             ));
             if (!isArray) break;
         }
@@ -82,6 +83,8 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     }
     public static void UpdateBy(CurriculumGroup curriculumGroup)
     {
+        _cache.Clear();
+
         var update = new SdmMysqlQueryUpdate(TableName);
 
         update.Set("cg_cg_id", curriculumGroup.ParentId.ToString());

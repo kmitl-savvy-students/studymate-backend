@@ -37,6 +37,7 @@ public class CurriculumGroupController : ControllerBase
             curriculumGroup.Type,
             curriculumGroup.Name,
             curriculumGroup.Credit,
+            [],
             []
         )));
     }
