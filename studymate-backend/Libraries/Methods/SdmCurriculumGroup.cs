@@ -70,6 +70,8 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 
     public static CurriculumGroup Insert(CurriculumGroup curriculumGroup)
     {
+        _cache.Clear();
+
         var insert = new SdmMysqlQueryInsert(TableName);
 
         insert.Insert("cg_cg_id", curriculumGroup.ParentId == -1 ? null : curriculumGroup.ParentId.ToString());
