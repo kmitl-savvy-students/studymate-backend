@@ -6,6 +6,7 @@ public class CurriculumGroup(
     string type,
     string name,
     int credit,
+    string color,
     List<CurriculumGroup> children,
     List<CurriculumGroupSubject> subjects) : IBaseModel
 {
@@ -14,6 +15,7 @@ public class CurriculumGroup(
     public string Type { get; set; } = type;
     public string Name { get; set; } = name;
     public int Credit { get; set; } = credit;
+    public string Color { get; set; } = color;
     public List<CurriculumGroup> Children { get; set; } = children;
     public List<CurriculumGroupSubject> Subjects { get; set; } = subjects;
 }

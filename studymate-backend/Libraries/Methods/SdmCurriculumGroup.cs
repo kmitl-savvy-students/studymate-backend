@@ -26,6 +26,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 query.ToString(2),
                 query.ToString(3),
                 query.ToInt(4),
+                query.ToString(5),
                 GetAllBy(query.ToInt(0)),
                 []
             ));
@@ -74,6 +75,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         insert.Insert("cg_cg_id", curriculumGroup.ParentId == -1 ? null : curriculumGroup.ParentId.ToString());
         insert.Insert("cg_type", curriculumGroup.Type);
         insert.Insert("cg_name", curriculumGroup.Name);
+        insert.Insert("cg_color", curriculumGroup.Color);
         insert.Insert("cg_credit", curriculumGroup.Credit.ToString());
 
         var query = SdmMysqlQuery.Execute(insert);
@@ -90,6 +92,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         update.Set("cg_cg_id", curriculumGroup.ParentId.ToString());
         update.Set("cg_type", curriculumGroup.Type);
         update.Set("cg_name", curriculumGroup.Name);
+        update.Set("cg_color", curriculumGroup.Color);
         update.Set("cg_credit", curriculumGroup.Credit.ToString());
 
         update.WhereEqual("cg_id", curriculumGroup.Id.ToString());
