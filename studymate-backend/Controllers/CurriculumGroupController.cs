@@ -37,6 +37,7 @@ public class CurriculumGroupController : ControllerBase
             curriculumGroup.Type,
             curriculumGroup.Name,
             curriculumGroup.Credit,
+            curriculumGroup.Color,
             [],
             []
         )));
@@ -49,6 +50,7 @@ public class CurriculumGroupController : ControllerBase
         public required string Type { get; init; } = string.Empty;
         public required string Name { get; init; } = string.Empty;
         public required int Credit { get; init; } = -1;
+        public required string Color { get; init; } = string.Empty;
     }
     #endregion
 }
