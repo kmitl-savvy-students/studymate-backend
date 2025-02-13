@@ -20,12 +20,11 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         {
             result.Add(new Curriculum(
                 query.ToInt(0),
-                query.ToString(1),
-                SdmProgram.GetBy(query.ToInt(2)),
-                query.ToInt(3),
+                SdmProgram.GetBy(query.ToInt(1)),
+                query.ToInt(2),
+                query.ToString(3),
                 query.ToString(4),
-                query.ToString(5),
-                SdmCurriculumGroup.GetBy(query.ToInt(6))
+                SdmCurriculumGroup.GetBy(query.ToInt(5))
             ));
             if (!isArray) break;
         }
@@ -62,7 +61,6 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     {
         var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("curr_kmitl_id", curriculum.KmitlId);
         insert.Insert("curr_prog_id", curriculum.Program?.Id.ToString());
         insert.Insert("curr_year", curriculum.Year.ToString());
         insert.Insert("curr_name_th", curriculum.NameTh);
@@ -76,7 +74,6 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("curr_kmitl_id", curriculum.KmitlId);
         update.Set("curr_prog_id", curriculum.Program?.Id.ToString());
         update.Set("curr_year", curriculum.Year.ToString());
         update.Set("curr_name_th", curriculum.NameTh);
