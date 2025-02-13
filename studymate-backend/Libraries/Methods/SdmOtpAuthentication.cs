@@ -58,7 +58,7 @@ public class SdmOtpAuthentication
     }
     
     // ฟังก์ชัน Generate Random String 
-    private static string GenerateRandomString(int length)
+    private static string GenerateId(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length)
@@ -66,7 +66,7 @@ public class SdmOtpAuthentication
     }
     
     // ฟังก์ชัน Generate OTP 6 หลัก
-    public static string GenerateOTP()
+    public static string GenerateOTPCode()
     {
         var randomNumber = new byte[4];
         using (var rng = RandomNumberGenerator.Create())
@@ -97,7 +97,7 @@ public class SdmOtpAuthentication
         // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
         do
         {
-            referer = GenerateRandomString(4);
+            referer = GenerateId(4);
         } while (existingReferers.Contains(referer));
 
         return referer;
@@ -106,8 +106,8 @@ public class SdmOtpAuthentication
     // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
     public static OtpAuthentication RequestOtp(int userId)
     {
-        string otpaId = GenerateRandomString(64); // Unique 64 char
-        string otpaCode = GenerateOTP(); // 6-digit OTP
+        string otpaId = GenerateId(64); // Unique 64 char
+        string otpaCode = GenerateOTPCode(); // 6-digit OTP
         string otpaReferer = GenerateUniqueReferer(userId); // Unique referer
         string otpaStatus = "UNVERIFIED";
 
