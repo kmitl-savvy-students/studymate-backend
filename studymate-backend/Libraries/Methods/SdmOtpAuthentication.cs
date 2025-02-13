@@ -5,7 +5,11 @@ using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Helper;
+using System.Globalization;
 using System;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace studymate_backend.Libraries.Methods;
 
@@ -57,12 +61,34 @@ public class SdmOtpAuthentication
         query.CleanUp();
     }
     
-    // ฟังก์ชัน Generate Random String 
+    // ฟังก์ชัน Generate Unique Random String ที่ไม่ซ้ำใน Table otp_authentication
     private static string GenerateId(int length)
     {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
+        string id;
+        do
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            id = new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
+        } 
+        while (CheckExists(id)); // ตรวจสอบว่ามีค่า otpa_id ใน table แล้วหรือไม่
+
+        return id;
+    }
+    
+    // ฟังก์ชันตรวจสอบว่า ค่ามีอยู่ใน Table otp_authentication แล้วหรือไม่
+    public static bool CheckExists(string id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("otpa_id", id);
+        
+        var result = ProcessQuery(select);
+
+        if (result.Count == 0)
+        {
+            return false;
+        }
+        return true;
     }
     
     // ฟังก์ชัน Generate OTP 6 หลัก
@@ -77,21 +103,77 @@ public class SdmOtpAuthentication
     }
     
     // ฟังก์ชัน Generate Unique Referer โดยเช็คว่าซ้ำในของ userId หรือไม่
+    //  private static string GenerateUniqueReferer(int userId)
+    //  {
+    //      string referer;
+    //      var existingReferers = new HashSet<string>();
+    //
+    //      // ใช้ GetQueryObj() ตามโครงสร้างของ Query Builder
+    //      var selectQuery = SdmOtpAuthentication.GetQueryObj();
+    //      selectQuery.Where("otpa_user_id", "=", userId.ToString()); // ตรวจสอบ user_id
+    // /////////////////// น่าจะผิดตรงนี้ไม่ควรใช้ now
+    //      selectQuery.Where("otpa_date_expired", "<", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")); // ตรวจสอบวันหมดอายุ
+    //      // selectQuery.Where("otpa_date_expired", "<", DateTime.UtcNow.AddMinutes(-5).ToString("yyyy-MM-dd HH:mm:ss"));
+    //      
+    //      var expiryThreshold = DateTime.UtcNow.AddMinutes(-5);
+    //      selectQuery.Where("otpa_date_expired", ">", expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss"));
+    //      
+    //      Console.WriteLine($"Expiry Threshold: {expiryThreshold:yyyy-MM-dd HH:mm:ss} | Now: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+    //
+    //
+    //      
+    //      var queryResult = SdmOtpAuthentication.ProcessQuery(selectQuery, true);
+    //
+    //      foreach (var otp in queryResult)
+    //      {
+    //          existingReferers.Add(otp.Referer);
+    //          Console.WriteLine($"DB Referer: {otp.Referer} | OTP: {otp.Code} | Expired At: {otp.DateExpired} | Now: {DateTime.UtcNow}");
+    //      }
+    //
+    //      // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
+    //      do
+    //      {
+    //          referer = GenerateId(4);
+    //      } while (existingReferers.Contains(referer));
+    //
+    //      return referer;
+    //  }
+    
+    
+    
+    
+    
     private static string GenerateUniqueReferer(int userId)
     {
         string referer;
         var existingReferers = new HashSet<string>();
 
-        // ใช้ GetQueryObj() ตามโครงสร้างของ Query Builder
-        var selectQuery = SdmOtpAuthentication.GetQueryObj();
-        selectQuery.Where("otpa_user_id", "=", userId.ToString()); // ตรวจสอบ user_id
-        selectQuery.Where("otpa_date_expired", ">", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")); // ตรวจสอบวันหมดอายุ
+        // ใช้ DateTime ปัจจุบันเป็น UTC
+        var expiryThreshold = DateTime.UtcNow;
 
+        // สร้าง Query เพื่อดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
+        var selectQuery = SdmOtpAuthentication.GetQueryObj();
+        selectQuery.Where("otpa_user_id", "=", userId.ToString());
+        selectQuery.Where("otpa_date_expired", ">=", expiryThreshold); // เปรียบเทียบเป็น DateTime
+
+        Console.WriteLine($"Expiry Threshold: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+
+        // ประมวลผล Query
         var queryResult = SdmOtpAuthentication.ProcessQuery(selectQuery, true);
 
+        // เก็บ Referer ที่มีอยู่แล้ว
         foreach (var otp in queryResult)
         {
-            existingReferers.Add(otp.Referer);
+            // แปลง SdmDateTime เป็น System.DateTime
+            DateTime dateExpired = otp.DateExpired.ToDateTime(); // ถ้าใช้ไม่ได้ให้ลองวิธีอื่นด้านล่าง
+
+            Console.WriteLine($"DB Referer: {otp.Referer} | OTP: {otp.Code} | Expired At: {dateExpired:yyyy-MM-dd HH:mm:ss} | Now At: {expiryThreshold}");
+
+            if (dateExpired >= expiryThreshold) // เปรียบเทียบได้แล้ว
+            {
+                Console.WriteLine($"Add: {otp.Referer} | OTP: {otp.Code} | Expired At: {dateExpired:yyyy-MM-dd HH:mm:ss}");
+                existingReferers.Add(otp.Referer);
+            }
         }
 
         // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
@@ -102,6 +184,48 @@ public class SdmOtpAuthentication
 
         return referer;
     }
+
+    
+    
+    
+    
+    
+    
+    // private static string GenerateUniqueReferer(int userId)
+    // {
+    //     string referer;
+    //     var existingReferers = new HashSet<string>();
+    //
+    //     // ใช้ DateTime ปัจจุบัน แปลงเป็น string ตามรูปแบบ MySQL (YYYY-MM-DD HH:mm:ss)
+    //     var expiryThreshold = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+    //
+    //     // สร้าง Query เพื่อดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
+    //     var selectQuery = GetQueryObj();
+    //     selectQuery.Where("otpa_user_id", "=", userId.ToString());
+    //     selectQuery.Where("otpa_date_expired", ">=", expiryThreshold); // ใช้ Where() แทน WhereRaw()
+    //     
+    //     // Console.WriteLine($"Expiry Threshold: {expiryThreshold} | Now: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}");
+    //
+    //     // ประมวลผล Query
+    //     var queryResult = ProcessQuery(selectQuery, true);
+    //
+    //     Console.WriteLine($"Expiry Threshold: {expiryThreshold}");
+    //     // เก็บ Referer ที่มีอยู่แล้ว
+    //     foreach (var otp in queryResult)
+    //     {
+    //         Console.WriteLine($"DB Referer: {otp.Referer} | OTP: {otp.Code} | Expired At: {otp.DateExpired} | Now: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}");
+    //         existingReferers.Add(otp.Referer);
+    //     }
+    //
+    //     // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
+    //     do
+    //     {
+    //         referer = GenerateId(4);
+    //     } while (existingReferers.Contains(referer));
+    //
+    //     return referer;
+    // }
+
     
     // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
     public static OtpAuthentication RequestOtp(int userId)
@@ -129,14 +253,6 @@ public class SdmOtpAuthentication
 
         return otpAuthentication;
     }
-
-
-
-
-    
-    
-    
-    
     
     public static List<OtpAuthentication> GetAll()
     {
@@ -189,5 +305,81 @@ public class SdmOtpAuthentication
             throw new Exception("Failed to send OTP email.", ex);
         }
     }
+    
+    // public static List<OtpAuthentication> GetActiveOtps()
+    // {
+    //     var select = GetQueryObj();
+    //
+    //     // ใช้ DateTime.UtcNow เป็นค่าตั้งต้น
+    //     DateTime expiryThreshold = DateTime.UtcNow;
+    //     string now = expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+    //
+    //     // กรองเฉพาะ OTP ที่ยังไม่หมดอายุ
+    //     select.Where("otpa_date_expired", ">=", now);
+    //
+    //     var otps = ProcessQuery(select, true);
+    //
+    //     // ตรวจสอบว่า OTP ที่ได้มีวันหมดอายุที่ถูกต้อง
+    //     List<OtpAuthentication> activeOtps = new List<OtpAuthentication>();
+    //
+    //     Console.WriteLine($"[DEBUG] Now UTC: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+    //
+    //     foreach (var otp in otps)
+    //     {
+    //         DateTime otpExpiry = otp.DateExpired.ToDateTime(); // แปลงจาก SdmDateTime เป็น DateTime
+    //
+    //         Console.WriteLine($"[DEBUG] OTP Referer: {otp.Referer} | Expired At: {otpExpiry:yyyy-MM-dd HH:mm:ss} | Now: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+    //
+    //         // เช็คอีกครั้งว่าไม่เอา OTP ที่หมดอายุแล้ว
+    //         if (otpExpiry >= expiryThreshold)
+    //         {
+    //             activeOtps.Add(otp);
+    //         }
+    //     }
+    //
+    //     return activeOtps;
+    // }
+    
+    public static List<OtpAuthentication> GetActiveOtps()
+    {
+        var select = GetQueryObj();
+
+        // ใช้ DateTime.UtcNow เป็นค่าตั้งต้น
+        DateTime expiryThreshold = DateTime.UtcNow;
+
+        // ดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
+        select.Where("otpa_date_expired", ">=", expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
+
+        var otps = ProcessQuery(select, true);
+
+        // ตรวจสอบว่า OTP ที่ได้มีวันหมดอายุที่ถูกต้อง
+        List<OtpAuthentication> activeOtps = new List<OtpAuthentication>();
+    
+        Console.WriteLine($"[DEBUG] Now UTC: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+    
+        foreach (var otp in otps)
+        {
+            DateTime otpExpiry = otp.DateExpired.ToDateTime(); // ✅ แปลงจาก SdmDateTime เป็น DateTime
+
+            Console.WriteLine($"[DEBUG] OTP: {otp.Code} | Expired At: {otpExpiry:yyyy-MM-dd HH:mm:ss} | Now: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+
+            // ตรวจสอบว่าค่าที่ได้ถูกต้อง
+            if (otpExpiry >= expiryThreshold)
+            {
+                activeOtps.Add(otp);
+            }
+            else
+            {
+                Console.WriteLine($"[ERROR] ❌ OTP นี้หมดอายุแล้ว แต่ยังถูกดึงมา: {otp.Code}");
+            }
+        }
+
+        return activeOtps;
+    }
+
+
+
+
 
 }
+
