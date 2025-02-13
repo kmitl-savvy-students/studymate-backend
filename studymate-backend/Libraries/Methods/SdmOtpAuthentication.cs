@@ -1,0 +1,193 @@
+﻿using System.Net;
+using System.Net.Mail;
+using System.Security.Cryptography;
+using studymate_backend.Libraries.Database.QueryBuilders;
+using studymate_backend.Libraries.Models;
+using studymate_backend.Libraries.Database;
+using studymate_backend.Libraries.Helper;
+using System;
+
+namespace studymate_backend.Libraries.Methods;
+
+public class SdmOtpAuthentication
+{
+    public static string TableName => "otp_authentication";
+
+    public static SdmMysqlQuerySelect GetQueryObj()
+    {
+        return new SdmMysqlQuerySelect(TableName);
+    }
+
+    public static List<OtpAuthentication> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    {
+        var query = SdmMysqlQuery.Execute(queryBuilder);
+
+        var result = new List<OtpAuthentication>();
+        while (query.Next())
+        {
+            result.Add(new OtpAuthentication(
+                query.ToString(0),
+                query.ToInt(1),
+                query.ToInt(2),
+                query.ToString(3),
+                query.ToDateTime(4),
+                new SdmDateTime(query.ToDateTime(5)),
+                new SdmDateTime(query.ToDateTime(6))
+            ));
+            if (!isArray) break;
+        }
+
+        query.CleanUp();
+        return result;
+    }
+
+    public static void Insert(OtpAuthentication otpAuthentication)
+    {
+        var insert = new SdmMysqlQueryInsert(TableName);
+        
+        insert.Insert("otpa_id", otpAuthentication.Id);
+        insert.Insert("otpa_user_id", otpAuthentication.UserId.ToString());
+        insert.Insert("otpa_code", otpAuthentication.Code.ToString());
+        insert.Insert("otpa_referer", otpAuthentication.Referer);
+        insert.Insert("otpa_status", otpAuthentication.Status.ToString());
+        insert.Insert("otpa_date_created", otpAuthentication.DateCreated.ToString());
+        insert.Insert("otpa_date_expired", otpAuthentication.DateExpired.ToString());
+        
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
+    }
+    
+    // ฟังก์ชัน Generate Random String 
+    private static string GenerateRandomString(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
+    }
+    
+    // ฟังก์ชัน Generate OTP 6 หลัก
+    public static string GenerateOTP()
+    {
+        var randomNumber = new byte[4];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(randomNumber);
+        }
+        return (BitConverter.ToUInt32(randomNumber, 0) % 1000000).ToString("D6");
+    }
+    
+    // ฟังก์ชัน Generate Unique Referer โดยเช็คว่าซ้ำในของ userId หรือไม่
+    private static string GenerateUniqueReferer(int userId)
+    {
+        string referer;
+        var existingReferers = new HashSet<string>();
+
+        // ใช้ GetQueryObj() ตามโครงสร้างของ Query Builder
+        var selectQuery = SdmOtpAuthentication.GetQueryObj();
+        selectQuery.Where("otpa_user_id", "=", userId.ToString()); // ตรวจสอบ user_id
+        selectQuery.Where("otpa_date_expired", ">", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")); // ตรวจสอบวันหมดอายุ
+
+        var queryResult = SdmOtpAuthentication.ProcessQuery(selectQuery, true);
+
+        foreach (var otp in queryResult)
+        {
+            existingReferers.Add(otp.Referer);
+        }
+
+        // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
+        do
+        {
+            referer = GenerateRandomString(4);
+        } while (existingReferers.Contains(referer));
+
+        return referer;
+    }
+    
+    // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
+    public static OtpAuthentication RequestOtp(int userId)
+    {
+        string otpaId = GenerateRandomString(64); // Unique 64 char
+        string otpaCode = GenerateOTP(); // 6-digit OTP
+        string otpaReferer = GenerateUniqueReferer(userId); // Unique referer
+        string otpaStatus = "UNVERIFIED";
+
+        // ใช้ DateTime.UtcNow + ToString()
+        SdmDateTime dateCreated = new SdmDateTime(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+        SdmDateTime dateExpired = new SdmDateTime(DateTime.UtcNow.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss"));
+
+        // สร้าง Object OtpAuthentication
+        var otpAuthentication = new OtpAuthentication(
+            otpaId, userId, int.Parse(otpaCode), otpaReferer, otpaStatus, dateCreated, dateExpired
+        );
+
+        // ใช้เมธอด Insert() เพื่อบันทึกข้อมูลลงฐานข้อมูล
+        Insert(otpAuthentication);
+
+        // ส่งอีเมลไปที่ user_id@kmitl.ac.th
+        string email = $"{userId}@kmitl.ac.th";
+        SendEmail(email, otpaCode, otpaReferer);
+
+        return otpAuthentication;
+    }
+
+
+
+
+    
+    
+    
+    
+    
+    public static List<OtpAuthentication> GetAll()
+    {
+        var select = GetQueryObj();
+
+        var result = ProcessQuery(select, true);
+        return result;
+    }
+    
+    // ฟังก์ชันส่งอีเมล
+    public static void SendEmail(string toEmail, string otpCode, string referer)
+    {
+        var fromEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL");
+        var fromPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+
+        if (string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(fromPassword))
+        {
+            throw new Exception("❌ SMTP credentials are missing. Please set SMTP_EMAIL and SMTP_PASSWORD.");
+        }
+
+        try
+        {
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromEmail, fromPassword),
+                EnableSsl = true,
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromEmail),
+                Subject = "Your StudyMate OTP Code",
+                Body = $@"
+                    <h3>Your OTP Code</h3>
+                    <p><b>OTP:</b> {otpCode}</p>
+                    <p><b>Referer:</b> {referer}</p>
+                    <p>This code is valid for 5 minutes.</p>",
+                IsBodyHtml = true,
+            };
+            mailMessage.To.Add(toEmail);
+
+            smtpClient.Send(mailMessage);
+            Console.WriteLine("✅ OTP email sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to send OTP email: {ex.Message}");
+            throw new Exception("Failed to send OTP email.", ex);
+        }
+    }
+
+}
