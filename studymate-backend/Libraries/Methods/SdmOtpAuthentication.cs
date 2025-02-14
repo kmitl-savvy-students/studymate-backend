@@ -6,10 +6,6 @@ using studymate_backend.Libraries.Models;
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Helper;
 using System.Globalization;
-using System;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace studymate_backend.Libraries.Methods;
 
@@ -312,10 +308,9 @@ public class SdmOtpAuthentication
     //
     //     // ใช้ DateTime.UtcNow เป็นค่าตั้งต้น
     //     DateTime expiryThreshold = DateTime.UtcNow;
-    //     string now = expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
     //
-    //     // กรองเฉพาะ OTP ที่ยังไม่หมดอายุ
-    //     select.Where("otpa_date_expired", ">=", now);
+    //     // ดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
+    //     select.Where("otpa_date_expired", ">=", expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
     //
     //     var otps = ProcessQuery(select, true);
     //
@@ -326,14 +321,18 @@ public class SdmOtpAuthentication
     //
     //     foreach (var otp in otps)
     //     {
-    //         DateTime otpExpiry = otp.DateExpired.ToDateTime(); // แปลงจาก SdmDateTime เป็น DateTime
+    //         DateTime otpExpiry = otp.DateExpired.ToDateTime(); // ✅ แปลงจาก SdmDateTime เป็น DateTime
     //
-    //         Console.WriteLine($"[DEBUG] OTP Referer: {otp.Referer} | Expired At: {otpExpiry:yyyy-MM-dd HH:mm:ss} | Now: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+    //         Console.WriteLine($"[DEBUG] OTP: {otp.Code} | Expired At: {otpExpiry:yyyy-MM-dd HH:mm:ss} | Now: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
     //
-    //         // เช็คอีกครั้งว่าไม่เอา OTP ที่หมดอายุแล้ว
+    //         // ตรวจสอบว่าค่าที่ได้ถูกต้อง
     //         if (otpExpiry >= expiryThreshold)
     //         {
     //             activeOtps.Add(otp);
+    //         }
+    //         else
+    //         {
+    //             Console.WriteLine($"[ERROR] ❌ OTP นี้หมดอายุแล้ว แต่ยังถูกดึงมา: {otp.Code}");
     //         }
     //     }
     //
@@ -344,42 +343,24 @@ public class SdmOtpAuthentication
     {
         var select = GetQueryObj();
 
-        // ใช้ DateTime.UtcNow เป็นค่าตั้งต้น
-        DateTime expiryThreshold = DateTime.UtcNow;
-
-        // ดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
-        select.Where("otpa_date_expired", ">=", expiryThreshold.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
+        // ใช้ DateTime.UtcNow และให้ MySQL จัดการเปรียบเทียบโดยตรง
+        string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+    
+        // ใช้ WhereRaw() เพื่อให้ MySQL เปรียบเทียบค่าโดยตรง
+        select.WhereRaw($"otpa_date_expired >= STR_TO_DATE('{now}', '%Y-%m-%d %H:%i:%s')");
 
         var otps = ProcessQuery(select, true);
 
-        // ตรวจสอบว่า OTP ที่ได้มีวันหมดอายุที่ถูกต้อง
-        List<OtpAuthentication> activeOtps = new List<OtpAuthentication>();
-    
-        Console.WriteLine($"[DEBUG] Now UTC: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"[DEBUG] Now UTC: {now}");
     
         foreach (var otp in otps)
         {
-            DateTime otpExpiry = otp.DateExpired.ToDateTime(); // ✅ แปลงจาก SdmDateTime เป็น DateTime
-
-            Console.WriteLine($"[DEBUG] OTP: {otp.Code} | Expired At: {otpExpiry:yyyy-MM-dd HH:mm:ss} | Now: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
-
-            // ตรวจสอบว่าค่าที่ได้ถูกต้อง
-            if (otpExpiry >= expiryThreshold)
-            {
-                activeOtps.Add(otp);
-            }
-            else
-            {
-                Console.WriteLine($"[ERROR] ❌ OTP นี้หมดอายุแล้ว แต่ยังถูกดึงมา: {otp.Code}");
-            }
+            Console.WriteLine($"[DEBUG] OTP Referer: {otp.Referer} | Expired At: {otp.DateExpired.ToDateTime():yyyy-MM-dd HH:mm:ss}");
         }
 
-        return activeOtps;
+        return otps;
     }
 
-
-
-
-
+    
 }
 
