@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Helper;
@@ -53,18 +54,18 @@ public class GoogleOAuthController : ControllerBase
     [HttpPost("callback")]
     public async Task<ActionResult<UserToken>> Callback(DtoGoogleCallback callback)
     {
-        var authorizationCode = SdmString.CleanAndTrim(callback.code);
+        var authorizationCode = SdmString.CleanAndTrim(callback.Code);
 
         var googleAccessToken =
-            await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.redirect_uri);
+            await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.RedirectUri);
         if (googleAccessToken == null)
             return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้ A" });
-        if (string.IsNullOrEmpty(googleAccessToken.access_token))
+        if (string.IsNullOrEmpty(googleAccessToken.AccessToken))
             return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้ B" });
 
         var client = new HttpClient();
         var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, _oAuth2EndpointUserInfo);
-        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
+        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.AccessToken);
 
         var response = await client.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
@@ -76,8 +77,8 @@ public class GoogleOAuthController : ControllerBase
         if (userInfo == null)
             return Unauthorized(new { message = "ไม่สามารถเข้าถึงข้อมูลผู้ใช้ได้" });
 
-        var id = userInfo.email.Split('@')[0];
-        var domain = userInfo.hd;
+        var id = userInfo.Email.Split('@')[0];
+        var domain = userInfo.Hd;
 
         if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
             return Unauthorized(new { message = "กรุณาใช้บัญชีของสถาบันเท่านั้น" });
@@ -87,16 +88,16 @@ public class GoogleOAuthController : ControllerBase
         var user = SdmUser.GetBy(idInt);
         if (user == null)
         {
-            if (callback.redirect_uri == "sign-in")
+            if (callback.RedirectUri == "sign-in")
                 return NotFound(new { message = "ไม่พบข้อมูลผู้ใช้งาน กรุณาสมัครสมาชิก" });
 
             user = new User(
                 idInt,
                 SdmAuthentication.PasswordHash(SdmString.GenerateRandomToken()),
-                userInfo.given_name,
-                userInfo.given_name,
-                userInfo.family_name,
-                userInfo.picture,
+                userInfo.GivenName,
+                userInfo.GivenName,
+                userInfo.FamilyName,
+                userInfo.Picture,
                 false,
                 null
             );
@@ -104,12 +105,12 @@ public class GoogleOAuthController : ControllerBase
         }
         else
         {
-            if (callback.redirect_uri == "sign-up")
+            if (callback.RedirectUri == "sign-up")
                 return Conflict(new { message = "คุณได้สมัครสมาชิกไปแล้ว กรุณาเข้าสู่ระบบแทน" });
 
-            user.Firstname = userInfo.given_name;
-            user.Lastname = userInfo.family_name;
-            user.ProfilePicture = userInfo.picture;
+            user.Firstname = userInfo.GivenName;
+            user.Lastname = userInfo.FamilyName;
+            user.ProfilePicture = userInfo.Picture;
             SdmUser.UpdateBy(user);
         }
 
@@ -134,20 +135,20 @@ public class GoogleOAuthController : ControllerBase
 
     public class DtoUserInfo
     {
-        public required string id { get; init; }
-        public required string email { get; init; }
-        public required bool verified_email { get; init; }
-        public required string name { get; init; }
-        public required string given_name { get; init; }
-        public required string family_name { get; init; }
-        public required string picture { get; init; }
-        public required string hd { get; init; }
+        [JsonPropertyName("id")] public required string Id { get; init; }
+        [JsonPropertyName("email")] public required string Email { get; init; }
+        [JsonPropertyName("verified_email")] public required bool VerifiedEmail { get; init; }
+        [JsonPropertyName("name")] public required string Name { get; init; }
+        [JsonPropertyName("given_name")] public required string GivenName { get; init; }
+        [JsonPropertyName("family_name")] public required string FamilyName { get; init; }
+        [JsonPropertyName("picture")] public required string Picture { get; init; }
+        [JsonPropertyName("hd")] public required string Hd { get; init; }
     }
 
     public class DtoGoogleCallback
     {
-        public required string code { get; init; } = string.Empty;
-        public required string redirect_uri { get; init; } = string.Empty;
+        [JsonPropertyName("code")] public required string Code { get; init; } = string.Empty;
+        [JsonPropertyName("redirect_uri")] public required string RedirectUri { get; init; } = string.Empty;
     }
 
     private async Task<DtoGoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
@@ -171,12 +172,12 @@ public class GoogleOAuthController : ControllerBase
 
     public class DtoGoogleAccessToken
     {
-        public string? access_token { get; init; }
-        public int? expires_in { get; init; }
-        public string? refresh_token { get; init; }
-        public string? scope { get; init; }
-        public string? token_type { get; init; }
-        public string? id_token { get; init; }
+        [JsonPropertyName("access_token")] public string? AccessToken { get; init; }
+        [JsonPropertyName("expires_in")] public int? ExpiresIn { get; init; }
+        [JsonPropertyName("refresh_token")] public string? RefreshToken { get; init; }
+        [JsonPropertyName("scope")] public string? Scope { get; init; }
+        [JsonPropertyName("token_type")] public string? TokenType { get; init; }
+        [JsonPropertyName("id_token")] public string? IdToken { get; init; }
     }
     #endregion
 }
