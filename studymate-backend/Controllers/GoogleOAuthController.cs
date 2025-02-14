@@ -53,16 +53,18 @@ public class GoogleOAuthController : ControllerBase
     [HttpPost("callback")]
     public async Task<ActionResult<UserToken>> Callback(DtoGoogleCallback callback)
     {
-        var authorizationCode = SdmString.CleanAndTrim(callback.Code);
+        var authorizationCode = SdmString.CleanAndTrim(callback.code);
 
         var googleAccessToken =
-            await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.RedirectUri);
-        if (googleAccessToken == null || string.IsNullOrEmpty(googleAccessToken.AccessToken))
-            return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้" });
+            await GetAccessTokenAsync(authorizationCode, _oAuthRedirectUri + "/" + callback.redirect_uri);
+        if (googleAccessToken == null)
+            return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้ A" });
+        if (string.IsNullOrEmpty(googleAccessToken.access_token))
+            return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้ B" });
 
         var client = new HttpClient();
         var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, _oAuth2EndpointUserInfo);
-        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.AccessToken);
+        userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.access_token);
 
         var response = await client.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
@@ -74,8 +76,8 @@ public class GoogleOAuthController : ControllerBase
         if (userInfo == null)
             return Unauthorized(new { message = "ไม่สามารถเข้าถึงข้อมูลผู้ใช้ได้" });
 
-        var id = userInfo.Email.Split('@')[0];
-        var domain = userInfo.Hd;
+        var id = userInfo.email.Split('@')[0];
+        var domain = userInfo.hd;
 
         if (domain != "kmitl.ac.th" || !SdmNumber.IsValid(id) || !SdmString.IsValid(id, 8, 8))
             return Unauthorized(new { message = "กรุณาใช้บัญชีของสถาบันเท่านั้น" });
@@ -85,16 +87,16 @@ public class GoogleOAuthController : ControllerBase
         var user = SdmUser.GetBy(idInt);
         if (user == null)
         {
-            if (callback.RedirectUri == "sign-in")
+            if (callback.redirect_uri == "sign-in")
                 return NotFound(new { message = "ไม่พบข้อมูลผู้ใช้งาน กรุณาสมัครสมาชิก" });
 
             user = new User(
                 idInt,
                 SdmAuthentication.PasswordHash(SdmString.GenerateRandomToken()),
-                userInfo.GivenName,
-                userInfo.GivenName,
-                userInfo.FamilyName,
-                userInfo.Picture,
+                userInfo.given_name,
+                userInfo.given_name,
+                userInfo.family_name,
+                userInfo.picture,
                 false,
                 null
             );
@@ -102,12 +104,12 @@ public class GoogleOAuthController : ControllerBase
         }
         else
         {
-            if (callback.RedirectUri == "sign-up")
+            if (callback.redirect_uri == "sign-up")
                 return Conflict(new { message = "คุณได้สมัครสมาชิกไปแล้ว กรุณาเข้าสู่ระบบแทน" });
 
-            user.Firstname = userInfo.GivenName;
-            user.Lastname = userInfo.FamilyName;
-            user.ProfilePicture = userInfo.Picture;
+            user.Firstname = userInfo.given_name;
+            user.Lastname = userInfo.family_name;
+            user.ProfilePicture = userInfo.picture;
             SdmUser.UpdateBy(user);
         }
 
@@ -132,20 +134,20 @@ public class GoogleOAuthController : ControllerBase
 
     public class DtoUserInfo
     {
-        public required string Id { get; init; }
-        public required string Email { get; init; }
-        public required bool VerifiedEmail { get; init; }
-        public required string Name { get; init; }
-        public required string GivenName { get; init; }
-        public required string FamilyName { get; init; }
-        public required string Picture { get; init; }
-        public required string Hd { get; init; }
+        public required string id { get; init; }
+        public required string email { get; init; }
+        public required bool verified_email { get; init; }
+        public required string name { get; init; }
+        public required string given_name { get; init; }
+        public required string family_name { get; init; }
+        public required string picture { get; init; }
+        public required string hd { get; init; }
     }
 
     public class DtoGoogleCallback
     {
-        public required string Code { get; init; } = string.Empty;
-        public required string RedirectUri { get; init; } = string.Empty;
+        public required string code { get; init; } = string.Empty;
+        public required string redirect_uri { get; init; } = string.Empty;
     }
 
     private async Task<DtoGoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
@@ -169,12 +171,12 @@ public class GoogleOAuthController : ControllerBase
 
     public class DtoGoogleAccessToken
     {
-        public string? AccessToken { get; init; }
-        public int? ExpiresIn { get; init; }
-        public string? RefreshToken { get; init; }
-        public string? Scope { get; init; }
-        public string? TokenType { get; init; }
-        public string? IdToken { get; init; }
+        public string? access_token { get; init; }
+        public int? expires_in { get; init; }
+        public string? refresh_token { get; init; }
+        public string? scope { get; init; }
+        public string? token_type { get; init; }
+        public string? id_token { get; init; }
     }
     #endregion
 }
