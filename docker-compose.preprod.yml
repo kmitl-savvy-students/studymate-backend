@@ -11,7 +11,7 @@ services:
       - backend-network
     labels:
       traefik.enable: "true"
-      traefik.http.services.sdm-backend.loadbalancer.server.port: "8080"
+      traefik.http.services.sdm-backend.loadbalancer.server.port: "8000"
       traefik.http.services.sdm-backend.loadbalancer.server.scheme: "http"
       traefik.http.routers.sdm-backend-https.entrypoints: "websecure"
       traefik.http.routers.sdm-backend-https.rule: "Host(`preprod.backend.savvystudymate.com `) || Host(`backend.savvystudymate.com`)"
