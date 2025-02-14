@@ -7,6 +7,9 @@ public class SubjectClass(
     List<string> groupName,
 
     int section,
+    
+    string creditLPS,
+    
     string? buildingName,  // classbuilding
     string? roomNumber,    // room_no
 
@@ -30,6 +33,9 @@ public class SubjectClass(
     public List<string> GroupName { get; set; } = groupName;
 
     public int Section { get; set; } = section;
+    
+    public string CreditLPS { get; set; } = creditLPS;
+    
     public string? BuildingName { get; set; } = buildingName;
     public string? RoomNumber { get; set; } = roomNumber;
 
