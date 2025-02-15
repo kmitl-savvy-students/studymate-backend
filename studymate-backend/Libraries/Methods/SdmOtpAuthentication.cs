@@ -98,44 +98,33 @@ public class SdmOtpAuthentication
         return (BitConverter.ToUInt32(randomNumber, 0) % 1000000).ToString("D6");
     }
     
-    private static string GenerateUniqueReferer(int userId)
+    private static string GenerateUniqueReferer()
     {
+        var select = GetQueryObj();
         string referer;
-        var existingReferers = new HashSet<string>();
-
-        // ใช้ DateTime ปัจจุบันเป็น UTC
-        var expiryThreshold = DateTime.UtcNow;
-
-        // สร้าง Query เพื่อดึงเฉพาะ OTP ที่ยังไม่หมดอายุ
-        var selectQuery = SdmOtpAuthentication.GetQueryObj();
-        selectQuery.Where("otpa_user_id", "=", userId.ToString());
-        selectQuery.Where("otpa_date_expired", ">=", expiryThreshold); // เปรียบเทียบเป็น DateTime
-
-        Console.WriteLine($"Expiry Threshold: {expiryThreshold:yyyy-MM-dd HH:mm:ss}");
-
-        // ประมวลผล Query
-        var queryResult = SdmOtpAuthentication.ProcessQuery(selectQuery, true);
-
-        // เก็บ Referer ที่มีอยู่แล้ว
-        foreach (var otp in queryResult)
+        
+        var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        Console.WriteLine($"Now Datetime: {now}");
+        
+        select.WhereRaw($"WHERE otpa_date_expired >= '{now}'");
+        
+        // ดึงเฉพาะค่าที่ต้องการจาก OtpAuthentication
+        // var otpNotExpired = new HashSet<string>(
+        //     ProcessQuery(select, true).Select(data => data.Referer) // เปลี่ยนเป็น field ที่ใช้เก็บ referer จริงๆ
+        // );
+        var otpNotExpired = ProcessQuery(select, true);
+        
+        Console.WriteLine("🔍 Checking otpNotExpired contents:");
+        foreach (var otp in otpNotExpired)
         {
-            // แปลง SdmDateTime เป็น System.DateTime
-            DateTime dateExpired = otp.DateExpired.ToDateTime(); // ถ้าใช้ไม่ได้ให้ลองวิธีอื่นด้านล่าง
-
-            Console.WriteLine($"DB Referer: {otp.Referer} | OTP: {otp.Code} | Expired At: {dateExpired:yyyy-MM-dd HH:mm:ss} | Now At: {expiryThreshold}");
-
-            if (dateExpired >= expiryThreshold) // เปรียบเทียบได้แล้ว
-            {
-                Console.WriteLine($"Add: {otp.Referer} | OTP: {otp.Code} | Expired At: {dateExpired:yyyy-MM-dd HH:mm:ss}");
-                existingReferers.Add(otp.Referer);
-            }
+            Console.WriteLine($"✅ Referer: {otp.Referer} | Expired At: {otp.DateExpired:yyyy-MM-dd HH:mm:ss}");
         }
-
+        
         // วนลูปจนกว่าจะได้ referer ที่ไม่ซ้ำ
         do
         {
             referer = GenerateId(4);
-        } while (existingReferers.Contains(referer));
+        } while (otpNotExpired.Any(otp => otp.Referer == referer));
 
         return referer;
     }
@@ -145,7 +134,7 @@ public class SdmOtpAuthentication
     {
         string otpaId = GenerateId(64); // Unique 64 char
         string otpaCode = GenerateOTPCode(); // 6-digit OTP
-        string otpaReferer = GenerateUniqueReferer(userId); // Unique referer
+        string otpaReferer = GenerateUniqueReferer(); // Unique referer
         string otpaStatus = "UNVERIFIED";
 
         // ใช้ DateTime.UtcNow + ToString()
@@ -227,11 +216,12 @@ public class SdmOtpAuthentication
         string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
     
         // ใช้ WhereRaw() เพื่อให้ MySQL เปรียบเทียบค่าโดยตรง
-        select.WhereRaw($"otpa_date_expired >= STR_TO_DATE('{now}', '%Y-%m-%d %H:%i:%s')");
+        // select.WhereRaw($"otpa_date_expired >= STR_TO_DATE('{now}', '%Y-%m-%d %H:%i:%s')");
+        select.WhereRaw($"WHERE otpa_date_expired >= '{now}'");
 
         var otps = ProcessQuery(select, true);
 
-        Console.WriteLine($"[DEBUG] Now UTC: {now}");
+        // Console.WriteLine($"[DEBUG] Now UTC: {now}");
     
         foreach (var otp in otps)
         {
