@@ -21,6 +21,10 @@ public class OtpAuthenticationController : ControllerBase
     [HttpGet("request/{user_id}")]
     public IActionResult RequestOtp(int user_id)
     {
+        if (user_id < 100000 || user_id > 999999)
+        {
+            return BadRequest("User ID must be exactly 6 digits.");
+        }
         try
         {
             var otp = SdmOtpAuthentication.RequestOtp(user_id);
