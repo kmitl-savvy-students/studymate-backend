@@ -11,7 +11,7 @@ public class SubjectClassController : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet("get-by-class")]
-    public async Task<IActionResult> PublicAllTest(
+    public async Task<ActionResult<IEnumerable<SubjectClass>>> GetAllBy(
         [FromQuery(Name = "academic_year")] int academicYear,
         [FromQuery(Name = "academic_term")] int academicTerm,
         [FromQuery] string year,
@@ -28,5 +28,4 @@ public class SubjectClassController : ControllerBase
 
         return Ok(subjectClasses);
     }
-
 }
