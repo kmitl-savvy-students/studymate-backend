@@ -2,7 +2,6 @@
 
 public class Curriculum(
     int id,
-    string kmitlId,
     Program? program,
     int year,
     string nameTh,
@@ -11,7 +10,6 @@ public class Curriculum(
 ) : IBaseModel
 {
     public int Id { get; } = id;
-    public string KmitlId { get; set; } = kmitlId;
     public Program? Program { get; set; } = program;
     public int Year { get; set; } = year;
     public string NameTh { get; set; } = nameTh;
