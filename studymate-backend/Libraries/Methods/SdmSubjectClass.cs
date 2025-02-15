@@ -278,7 +278,7 @@ public abstract class SdmSubjectClass
         public string? limit { get; init; }
         public int pre_count { get; init; }
         public int queue_left { get; init; }
-        public int count { get; init; }
+        public object count { get; init; }
         public int class_group_display { get; init; }
     }
     
