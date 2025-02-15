@@ -63,8 +63,3 @@ public class OtpAuthenticationController : ControllerBase
 
     
 }
-
-public class OtpRequest
-{
-    public string Email { get; set; }
-}

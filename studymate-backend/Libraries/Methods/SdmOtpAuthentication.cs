@@ -90,12 +90,13 @@ public class SdmOtpAuthentication
     // ฟังก์ชัน Generate OTP 6 หลัก
     public static string GenerateOTPCode()
     {
-        var randomNumber = new byte[4];
         using (var rng = RandomNumberGenerator.Create())
         {
+            var randomNumber = new byte[4];
             rng.GetBytes(randomNumber);
+            uint otp = BitConverter.ToUInt32(randomNumber, 0) % 1000000;
+            return otp.ToString().PadRight(6, '0'); // เติม '0' ด้านหลังให้ครบ 6 หลัก
         }
-        return (BitConverter.ToUInt32(randomNumber, 0) % 1000000).ToString("D6");
     }
     
     private static string GenerateUniqueReferer()
@@ -109,9 +110,6 @@ public class SdmOtpAuthentication
         select.WhereRaw($"WHERE otpa_date_expired >= '{now}'");
         
         // ดึงเฉพาะค่าที่ต้องการจาก OtpAuthentication
-        // var otpNotExpired = new HashSet<string>(
-        //     ProcessQuery(select, true).Select(data => data.Referer) // เปลี่ยนเป็น field ที่ใช้เก็บ referer จริงๆ
-        // );
         var otpNotExpired = ProcessQuery(select, true);
         
         Console.WriteLine("🔍 Checking otpNotExpired contents:");
