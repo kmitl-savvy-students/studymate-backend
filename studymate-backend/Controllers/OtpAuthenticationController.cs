@@ -21,9 +21,9 @@ public class OtpAuthenticationController : ControllerBase
     [HttpGet("request/{user_id}")]
     public IActionResult RequestOtp(int user_id)
     {
-        if (user_id < 100000 || user_id > 999999)
+        if (user_id < 10000000 || user_id > 99999999)
         {
-            return BadRequest("User ID must be exactly 6 digits.");
+            return BadRequest("User ID must be exactly 8 digits.");
         }
         try
         {
