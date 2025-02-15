@@ -11,20 +11,21 @@ public class SubjectClassController : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet("get-by-class")]
-    public ActionResult<IEnumerable<SubjectClass>> GetAllBy(
-        [FromQuery(Name="academic_year")] string academicYear,
-        [FromQuery(Name="academic_term")] string academicTerm, 
-        [FromQuery] string year, 
-        [FromQuery] string program
-    ) {
-        return Ok(SdmSubjectClass.GetAllBy(
-            SdmTeachtable.GetBy(
-                Convert.ToInt32(academicYear), 
-                Convert.ToInt32(academicTerm)
-                ),
-            SdmProgram.GetBy(Convert.ToInt32(program)),
-            year
-            )
-        ); 
+    public async Task<ActionResult<IEnumerable<SubjectClass>>> GetAllBy(
+        [FromQuery(Name = "academic_year")] int academicYear,
+        [FromQuery(Name = "academic_term")] int academicTerm,
+        [FromQuery] string year,
+        [FromQuery] int program
+    )
+    {
+        var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
+        var programData = SdmProgram.GetBy(program);
+
+        if (teachtable == null || programData == null)
+            return BadRequest("Invalid academic year, term, or program.");
+
+        var subjectClasses = await SdmSubjectClass.GetAllBy(teachtable, programData, year);
+
+        return Ok(subjectClasses);
     }
 }
