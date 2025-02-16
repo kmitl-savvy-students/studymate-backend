@@ -136,6 +136,18 @@ public class SdmOtpAuthentication
     // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
     public static OtpAuthentication RequestOtp(int userId)
     {
+        // ดึง OTP ล่าสุดของ userId
+        var lastOtp = GetLastOtpForUser(userId);
+    
+        if (lastOtp != null)
+        {
+            var timeElapsed = (DateTime.UtcNow - lastOtp.DateCreated.ToDateTime()).TotalSeconds;
+            if (timeElapsed < 60)
+            {
+                throw new Exception("OTP request too frequent. Please wait before requesting again.");
+            }
+        }
+        
         string otpaId = GenerateId(64); // Unique 64 char
         string otpaCode = GenerateOTPCode(); // 6-digit OTP
         string otpaReferer = GenerateUniqueReferer(); // Unique referer
@@ -336,5 +348,26 @@ public class SdmOtpAuthentication
         Console.WriteLine("✅ OTP Verified Successfully!");
         return result;
     }
+    
+    public static OtpAuthentication? GetLastOtpForUser(int userId)
+    {
+        var select = GetQueryObj();
+    
+        // ✅ ใช้ WhereEqual() เพื่อป้องกัน SQL Syntax Error
+        select.WhereEqual("otpa_user_id", userId.ToString());
+    
+        var results = ProcessQuery(select, true);
+
+        // ✅ เรียงลำดับข้อมูลใน C# แทน ORDER BY ใน SQL
+        var lastOtp = results.OrderByDescending(o => o.DateCreated.ToDateTime()).FirstOrDefault();
+
+        return lastOtp;
+    }
+
+
+    
+
 
 }
+
+
