@@ -6,6 +6,7 @@ using studymate_backend.Libraries.Models;
 using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Helper;
 using System.Globalization;
+using System.Text;
 
 namespace studymate_backend.Libraries.Methods;
 
@@ -30,7 +31,7 @@ public class SdmOtpAuthentication
                 query.ToInt(1),
                 query.ToInt(2),
                 query.ToString(3),
-                query.ToDateTime(4),
+                query.ToString(4),
                 new SdmDateTime(query.ToDateTime(5)),
                 new SdmDateTime(query.ToDateTime(6))
             ));
@@ -49,7 +50,7 @@ public class SdmOtpAuthentication
         insert.Insert("otpa_user_id", otpAuthentication.UserId.ToString());
         insert.Insert("otpa_code", otpAuthentication.Code.ToString());
         insert.Insert("otpa_referer", otpAuthentication.Referer);
-        insert.Insert("otpa_status", otpAuthentication.Status.ToString());
+        insert.Insert("otpa_status", otpAuthentication.Status);
         insert.Insert("otpa_date_created", otpAuthentication.DateCreated.ToString());
         insert.Insert("otpa_date_expired", otpAuthentication.DateExpired.ToString());
         
@@ -57,22 +58,29 @@ public class SdmOtpAuthentication
         query.CleanUp();
     }
     
-    // ฟังก์ชัน Generate Unique Random String ที่ไม่ซ้ำใน Table otp_authentication
     private static string GenerateId(int length)
     {
+        if (length <= 0) throw new ArgumentException("Length must be greater than 0");
+
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         string id;
+    
         do
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            id = new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
-        } 
-        while (CheckExists(id)); // ตรวจสอบว่ามีค่า otpa_id ใน table แล้วหรือไม่
-        
+            var sb = new StringBuilder(length);
+            for (int i = 0; i < length; i++)
+            {
+                sb.Append(chars[RandomNumberGenerator.GetInt32(chars.Length)]);
+            }
+            id = sb.ToString();
+
+            Console.WriteLine($"🔍 Generated ID: {id} (Length: {id.Length})"); // ✅ Debug เพื่อเช็คความยาว
+
+        } while (CheckExists(id)); 
+
         return id;
     }
     
-    // ฟังก์ชันตรวจสอบว่า ค่ามีอยู่ใน Table otp_authentication แล้วหรือไม่
     public static bool CheckExists(string id)
     {
         var select = GetQueryObj();
@@ -87,7 +95,6 @@ public class SdmOtpAuthentication
         return true;
     }
     
-    // ฟังก์ชัน Generate OTP 6 หลัก
     public static string GenerateOTPCode()
     {
         using (var rng = RandomNumberGenerator.Create())
@@ -108,8 +115,7 @@ public class SdmOtpAuthentication
         Console.WriteLine($"Now Datetime: {now}");
         
         select.WhereRaw($"WHERE otpa_date_expired >= '{now}'");
-        
-        // ดึงเฉพาะค่าที่ต้องการจาก OtpAuthentication
+
         var otpNotExpired = ProcessQuery(select, true);
         
         Console.WriteLine("🔍 Checking otpNotExpired contents:");
@@ -134,20 +140,20 @@ public class SdmOtpAuthentication
         string otpaCode = GenerateOTPCode(); // 6-digit OTP
         string otpaReferer = GenerateUniqueReferer(); // Unique referer
         string otpaStatus = "UNVERIFIED";
-
-        // ใช้ DateTime.UtcNow + ToString()
+        
         SdmDateTime dateCreated = new SdmDateTime(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
         SdmDateTime dateExpired = new SdmDateTime(DateTime.UtcNow.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss"));
-
-        // สร้าง Object OtpAuthentication
+        
+        // var otpAuthentication = new OtpAuthentication(
+        //     otpaId, userId, int.Parse(otpaCode), otpaReferer, otpaStatus, dateCreated, dateExpired
+        // );
+        
         var otpAuthentication = new OtpAuthentication(
             otpaId, userId, int.Parse(otpaCode), otpaReferer, otpaStatus, dateCreated, dateExpired
         );
-
-        // ใช้เมธอด Insert() เพื่อบันทึกข้อมูลลงฐานข้อมูล
+        
         Insert(otpAuthentication);
-
-        // ส่งอีเมลไปที่ user_id@kmitl.ac.th
+        
         string email = $"{userId}@kmitl.ac.th";
         SendEmail(email, otpaCode, otpaReferer);
 
@@ -209,17 +215,11 @@ public class SdmOtpAuthentication
     public static List<OtpAuthentication> GetActiveOtps()
     {
         var select = GetQueryObj();
-
-        // ใช้ DateTime.UtcNow และให้ MySQL จัดการเปรียบเทียบโดยตรง
         string now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-    
-        // ใช้ WhereRaw() เพื่อให้ MySQL เปรียบเทียบค่าโดยตรง
-        // select.WhereRaw($"otpa_date_expired >= STR_TO_DATE('{now}', '%Y-%m-%d %H:%i:%s')");
+        
         select.WhereRaw($"WHERE otpa_date_expired >= '{now}'");
 
         var otps = ProcessQuery(select, true);
-
-        // Console.WriteLine($"[DEBUG] Now UTC: {now}");
     
         foreach (var otp in otps)
         {
@@ -229,4 +229,112 @@ public class SdmOtpAuthentication
         return otps;
     }
     
+    // public static OtpAuthentication? VerifyOTP(string id, string otpaCode)
+    // {
+    //     var select = GetQueryObj();
+    //     select.WhereEqual("otpa_id", id);
+    //
+    //     var results = ProcessQuery(select);
+    //     var result = results.FirstOrDefault();
+    //     
+    //     var expiredDateTime = result.DateExpired.ToDateTime(); 
+    //     var nowDateTime = DateTime.UtcNow;
+    //
+    //     if (results == null || results.Count == 0)
+    //     {
+    //         Console.WriteLine("❌ This id is not found");
+    //         return null;
+    //     }
+    //     
+    //     if (expiredDateTime < nowDateTime || result.Code.ToString() != otpaCode)
+    //     {
+    //         Console.WriteLine("❌ Invalid OTP or expired.");
+    //         return null;
+    //     }
+    //
+    //     Console.WriteLine($"✅ Final result.Status = '{result.Status}'");
+    //     
+    //     if (result.Status == "VERIFIED")
+    //     {
+    //         Console.WriteLine("❌ OTP status is VERIFIED already.");
+    //         return result;
+    //     }
+    //
+    //     Console.WriteLine($"🔍 result.DateExpired (converted) = {expiredDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
+    //     Console.WriteLine($"🔍 nowDateTime = {nowDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
+    //
+    //     Console.WriteLine("🔍 OTP Record Found:");
+    //     Console.WriteLine($"   ✅ otpa_id = {result.Id}");
+    //     Console.WriteLine($"   ✅ otpa_code = {result.Code}");
+    //     Console.WriteLine($"   ✅ otpa_date_expired = {expiredDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
+    //     
+    //     var update = new SdmMysqlQueryUpdate("otp_authentication");
+    //     update.Set("otpa_status", "VERIFIED");
+    //     update.WhereEqual("otpa_id", result.Id);
+    //
+    //     var query = SdmMysqlQuery.Execute(update);
+    //     query.CleanUp();
+    //     Console.WriteLine("✅ OTP Verified Successfully!");
+    //     return result;
+    // }
+    //
+    
+    public static OtpAuthentication? VerifyOTP(string id, string otpaCode)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("otpa_id", id);
+
+        var results = ProcessQuery(select);
+
+        // ✅ ป้องกัน `results` เป็น `null`
+        if (results == null || results.Count == 0)
+        {
+            Console.WriteLine("❌ Id not found.");
+            return null;
+        }
+
+        var result = results.FirstOrDefault();
+
+        // ✅ ป้องกัน `result` เป็น `null`
+        if (result == null)
+        {
+            Console.WriteLine("❌ OTP record is missing.");
+            return null;
+        }
+
+        var expiredDateTime = result.DateExpired.ToDateTime();
+        var nowDateTime = DateTime.UtcNow;
+
+        if (expiredDateTime < nowDateTime || result.Code.ToString() != otpaCode)
+        {
+            Console.WriteLine("❌ Invalid OTP or expired.");
+            return null;
+        }
+
+        Console.WriteLine($"✅ Final result.Status = '{result.Status}'");
+
+        if (result.Status == "VERIFIED")
+        {
+            Console.WriteLine("❌ OTP status is VERIFIED already.");
+            return result;
+        }
+
+        Console.WriteLine($"🔍 result.DateExpired (converted) = {expiredDateTime:yyyy-MM-dd HH:mm:ss}");
+        Console.WriteLine($"🔍 nowDateTime = {nowDateTime:yyyy-MM-dd HH:mm:ss}");
+
+        Console.WriteLine("🔍 OTP Record Found:");
+        Console.WriteLine($"   ✅ otpa_id = {result.Id}");
+        Console.WriteLine($"   ✅ otpa_code = {result.Code}");
+        Console.WriteLine($"   ✅ otpa_date_expired = {expiredDateTime:yyyy-MM-dd HH:mm:ss}");
+
+        var update = new SdmMysqlQueryUpdate("otp_authentication");
+        update.Set("otpa_status", "VERIFIED");
+        update.WhereEqual("otpa_id", result.Id);
+
+        var query = SdmMysqlQuery.Execute(update);
+        query.CleanUp();
+        Console.WriteLine("✅ OTP Verified Successfully!");
+        return result;
+    }
+
 }

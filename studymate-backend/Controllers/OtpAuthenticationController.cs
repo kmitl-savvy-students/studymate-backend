@@ -64,6 +64,32 @@ public class OtpAuthenticationController : ControllerBase
 
         return Ok(activeOtps);
     }
-
     
+    [AllowAnonymous]
+    [HttpPost("verify")]
+    public ActionResult Verify([FromBody] DtoVerify verify)
+    {
+        var activeOtp = SdmOtpAuthentication.VerifyOTP(verify.OtpaId, verify.OtpaCode.ToString());
+    
+        if (activeOtp == null)
+        {
+            return BadRequest(new { message = "Id not found or Invalid OTP or expired." });
+        }
+        
+        if (activeOtp.Status == "VERIFIED")
+        {
+            return Conflict(new { message = "VERIFIED already exists." });
+        }
+        
+        return Ok(new { message = "OTP verified successfully." });
+    }
+
 }
+
+    public class DtoVerify
+    {
+        public required string OtpaId { get; set; }
+        public required int OtpaCode { get; set; }
+    }
+
+
