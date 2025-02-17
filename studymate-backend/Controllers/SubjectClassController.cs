@@ -28,4 +28,24 @@ public class SubjectClassController : ControllerBase
 
         return Ok(subjectClasses);
     }
+    [AllowAnonymous]
+    [HttpGet("get-by-subject-id")]
+    public async Task<ActionResult<IEnumerable<SubjectClass>>> GetAllBy(
+        [FromQuery(Name = "academic_year")] int academicYear,
+        [FromQuery(Name = "academic_term")] int academicTerm,
+        [FromQuery] int program,
+        [FromQuery] string subjectId,
+        [FromQuery] string section
+    )
+    {
+        var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
+        var programData = SdmProgram.GetBy(program);
+
+        if (teachtable == null || programData == null)
+            return BadRequest("Invalid academic year, term, or program.");
+
+        var subjectClasses = await SdmSubjectClass.GetAllBy(teachtable, programData, subjectId, section);
+
+        return Ok(subjectClasses);
+    }
 }

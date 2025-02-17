@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmSubject : ISdmBaseMethod<Subject>
 {
-    private static Dictionary<string, Subject> _cache = new();
+    private static readonly Dictionary<string, Subject> _cache = new();
 
     public static string TableName => "subject";
     public static SdmMysqlQuerySelect GetQueryObj()
@@ -41,8 +41,11 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static Subject? GetBy(string id)
+    public static Subject? GetBy(string? id)
     {
+        if (id == null)
+            return null;
+
         if (_cache.TryGetValue(id, out var value))
             return value;
 
