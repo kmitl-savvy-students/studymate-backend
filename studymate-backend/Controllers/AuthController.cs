@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
         if (!SdmUser.Verify(newUser, otpId))
             return BadRequest(new { message = "otpa_id ไม่ถูกต้องหรือหมดอายุหรือไม่ได้รับการยืนยัน" });
 
-        return Ok();
+        return Ok(new { message = "Sign Up Successful" });
     }
     
     public class DtoSignUp
