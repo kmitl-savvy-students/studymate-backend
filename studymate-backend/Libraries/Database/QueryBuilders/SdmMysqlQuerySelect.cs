@@ -6,6 +6,7 @@ public class SdmMysqlQuerySelect(
 {
     private readonly List<string> _whereConditions = [];
     private string _whereRawQuery = string.Empty;
+    private List<string> _whereClauses = new List<string>();
 
     public string TableName { get; } = tableName;
 
@@ -50,5 +51,12 @@ public class SdmMysqlQuerySelect(
         if (_whereConditions.Count > 0)
             query += " WHERE " + string.Join(" AND ", _whereConditions);
         return query;
+    }
+    
+    public SdmMysqlQuerySelect Where(string column, string @operator, object value)
+    {
+        string formattedValue = value is string ? $"'{value}'" : value.ToString();
+        _whereClauses.Add($"{column} {@operator} {formattedValue}");
+        return this;
     }
 }

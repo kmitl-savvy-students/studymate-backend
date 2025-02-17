@@ -74,4 +74,30 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
     }
+
+    public static bool Verify(User user, string otpId)
+    {
+        var otpAuth = SdmOtpAuthentication.GetById(otpId);
+        if (otpAuth == null || otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow) 
+        { 
+            Console.WriteLine("❌ Not found OTP or expired"); 
+            return false;
+        }
+
+        if (otpAuth.UserId != user.Id)
+        {
+            Console.WriteLine("❌ Not Your OTP");
+            return false;
+        }
+        
+        if (otpAuth.Status != "VERIFIED")
+        {
+            Console.WriteLine("❌ OTP is not verified");
+            return false;
+        }
+        
+        Insert(user);
+        return true;
+    }
+
 }
