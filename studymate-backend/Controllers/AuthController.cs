@@ -197,7 +197,7 @@ public class AuthController : ControllerBase
         );
 
         if (!SdmUser.Verify(newUser, otpId))
-            return BadRequest(new { message = "OTP ไม่ถูกต้องหรือหมดอายุ" });
+            return BadRequest(new { message = "otpa_id ไม่ถูกต้องหรือหมดอายุหรือไม่ได้รับการยืนยัน" });
 
         return Ok();
     }
