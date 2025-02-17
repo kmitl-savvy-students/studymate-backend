@@ -156,10 +156,6 @@ public class SdmOtpAuthentication
         SdmDateTime dateCreated = new SdmDateTime(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
         SdmDateTime dateExpired = new SdmDateTime(DateTime.UtcNow.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss"));
         
-        // var otpAuthentication = new OtpAuthentication(
-        //     otpaId, userId, int.Parse(otpaCode), otpaReferer, otpaStatus, dateCreated, dateExpired
-        // );
-        
         var otpAuthentication = new OtpAuthentication(
             otpaId, userId, int.Parse(otpaCode), otpaReferer, otpaStatus, dateCreated, dateExpired
         );
@@ -241,56 +237,6 @@ public class SdmOtpAuthentication
         return otps;
     }
     
-    // public static OtpAuthentication? VerifyOTP(string id, string otpaCode)
-    // {
-    //     var select = GetQueryObj();
-    //     select.WhereEqual("otpa_id", id);
-    //
-    //     var results = ProcessQuery(select);
-    //     var result = results.FirstOrDefault();
-    //     
-    //     var expiredDateTime = result.DateExpired.ToDateTime(); 
-    //     var nowDateTime = DateTime.UtcNow;
-    //
-    //     if (results == null || results.Count == 0)
-    //     {
-    //         Console.WriteLine("❌ This id is not found");
-    //         return null;
-    //     }
-    //     
-    //     if (expiredDateTime < nowDateTime || result.Code.ToString() != otpaCode)
-    //     {
-    //         Console.WriteLine("❌ Invalid OTP or expired.");
-    //         return null;
-    //     }
-    //
-    //     Console.WriteLine($"✅ Final result.Status = '{result.Status}'");
-    //     
-    //     if (result.Status == "VERIFIED")
-    //     {
-    //         Console.WriteLine("❌ OTP status is VERIFIED already.");
-    //         return result;
-    //     }
-    //
-    //     Console.WriteLine($"🔍 result.DateExpired (converted) = {expiredDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
-    //     Console.WriteLine($"🔍 nowDateTime = {nowDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
-    //
-    //     Console.WriteLine("🔍 OTP Record Found:");
-    //     Console.WriteLine($"   ✅ otpa_id = {result.Id}");
-    //     Console.WriteLine($"   ✅ otpa_code = {result.Code}");
-    //     Console.WriteLine($"   ✅ otpa_date_expired = {expiredDateTime.ToString("yyyy-MM-dd HH:mm:ss")}");
-    //     
-    //     var update = new SdmMysqlQueryUpdate("otp_authentication");
-    //     update.Set("otpa_status", "VERIFIED");
-    //     update.WhereEqual("otpa_id", result.Id);
-    //
-    //     var query = SdmMysqlQuery.Execute(update);
-    //     query.CleanUp();
-    //     Console.WriteLine("✅ OTP Verified Successfully!");
-    //     return result;
-    // }
-    //
-    
     public static OtpAuthentication? VerifyOTP(string id, string otpaCode)
     {
         var select = GetQueryObj();
@@ -364,10 +310,4 @@ public class SdmOtpAuthentication
         return lastOtp;
     }
 
-
-    
-
-
 }
-
-
