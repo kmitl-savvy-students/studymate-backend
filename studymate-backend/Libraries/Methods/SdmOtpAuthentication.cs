@@ -310,4 +310,13 @@ public class SdmOtpAuthentication
         return lastOtp;
     }
 
+    public static OtpAuthentication? GetById(string id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("otpa_id", id);
+        
+        var results = ProcessQuery(select);
+        return results.Count == 0 ? null : results[0];
+    }
+
 }
