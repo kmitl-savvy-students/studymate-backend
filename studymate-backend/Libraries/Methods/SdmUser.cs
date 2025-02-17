@@ -78,27 +78,21 @@ public abstract class SdmUser : ISdmBaseMethod<User>
     public static bool Verify(User user, string otpId)
     {
         var otpAuth = SdmOtpAuthentication.GetById(otpId);
-        if (otpAuth == null) 
+        if (otpAuth == null || otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow) 
         { 
-            Console.WriteLine("❌ ไม่พบ OTP หรือ OTP หมดอายุแล้ว"); 
+            Console.WriteLine("❌ Not found OTP or expired"); 
             return false;
         }
 
         if (otpAuth.UserId != user.Id)
         {
-            Console.WriteLine("❌ OTP นี้ไม่ใช่ของคุณ");
-            return false;
-        }
-        
-        if (otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow) 
-        { 
-            Console.WriteLine("❌ OTP หมดอายุแล้ว"); 
+            Console.WriteLine("❌ Not Your OTP");
             return false;
         }
         
         if (otpAuth.Status != "VERIFIED")
         {
-            Console.WriteLine("❌ OTP ยังไม่ได้รับการยืนยัน");
+            Console.WriteLine("❌ OTP is not verified");
             return false;
         }
         
