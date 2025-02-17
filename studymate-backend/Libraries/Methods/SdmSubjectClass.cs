@@ -12,7 +12,64 @@ public abstract partial class SdmSubjectClass
 
     private static readonly HttpClient HttpClient = new();
 
-    public static async Task<SubjectClass?> GetAllBy(
+    public static async Task<bool> GetBy(
+        Teachtable? inputTeachtable,
+        Models.Program? program,
+        string subjectId
+    )
+    {
+        if (inputTeachtable == null || program == null)
+            return false;
+
+        var apiUrl = $"{KmitlPublicApiUrl}?" +
+                     $"function=get-teach-table-show" +
+                     $"&mode=by_subject_id" +
+                     $"&selected_year={inputTeachtable.Year + 543}" +
+                     $"&selected_semester={inputTeachtable.Term}" +
+                     $"&selected_faculty={program.Department?.Faculty?.KmitlId}" +
+                     $"&selected_department={program.Department?.KmitlId}" +
+                     $"&selected_curriculum={program.KmitlId}" +
+                     $"&search_all_faculty=false" +
+                     $"&search_all_department=false" +
+                     $"&search_all_curriculum=false" +
+                     $"&search_all_class_year=true" +
+                     $"&selected_subject_id={subjectId}";
+        try
+        {
+            var response = await HttpClient.GetAsync(apiUrl);
+            response.EnsureSuccessStatusCode();
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var kmitlResponses = JsonSerializer.Deserialize<List<DtoKmitlResponse>>(
+                responseContent,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            if (kmitlResponses == null || kmitlResponses.Count == 0)
+                return false;
+
+            foreach (var faculty in kmitlResponses)
+            {
+                if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                    continue;
+
+                foreach (var teachtable in faculty.Teachtables)
+                {
+                    if (teachtable.Data == null || teachtable.Data.Count == 0)
+                        continue;
+
+                    return true;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return false;
+    }
+    public static async Task<SubjectClass?> GetBy(
         Teachtable? inputTeachtable,
         Models.Program? program,
         string subjectId, string section
