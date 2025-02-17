@@ -74,4 +74,42 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
     }
+
+    public static bool Verify(User user, string otpId)
+    {
+        // ดึง OTP จากฐานข้อมูล
+        var otpAuth = SdmOtpAuthentication.GetById(otpId);
+
+        if (otpAuth.UserId != user.Id)
+        {
+            Console.WriteLine("❌ Not Your Otp Token");
+            return false;
+        }
+
+        if (otpAuth == null)
+        {
+            Console.WriteLine("❌ ไม่พบ OTP หรือหมดอายุแล้ว");
+            return false;
+        }
+
+        if (otpAuth.Status != "VERIFIED")
+        {
+            Console.WriteLine("❌ OTP ยังไม่ได้รับการยืนยัน");
+            return false;
+        }
+
+        if (otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow)
+        {
+            Console.WriteLine("❌ OTP หมดอายุแล้ว");
+            return false;
+        }
+
+        // ถ้าทุกอย่างถูกต้อง ให้เพิ่มผู้ใช้
+        Insert(user);
+        return true;
+    }
+
+
+
+
 }
