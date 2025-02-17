@@ -9,14 +9,6 @@ namespace studymate_backend.Controllers;
 [Route("api/otp")]
 public class OtpAuthenticationController : ControllerBase
 {
-    
-    [AllowAnonymous]
-    [HttpGet("get")]
-    public ActionResult<IEnumerable<OtpAuthentication>> GetAll()
-    {
-        return Ok(SdmOtpAuthentication.GetAll());
-    }
-    
     [AllowAnonymous]
     [HttpGet("request/{user_id}")]
     public IActionResult RequestOtp(int user_id)
@@ -41,31 +33,6 @@ public class OtpAuthenticationController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpGet("checkId/{otpa_id}")]
-    public ActionResult<IEnumerable<OtpAuthentication>> CheckOtpaId(string otpa_id)
-    {
-        if (SdmOtpAuthentication.CheckExists(otpa_id))
-        {
-            return Conflict(new { message = "OTP is already in use." });
-        }
-        return Ok(new { message = "OTP is can use." });
-    }
-    
-    [AllowAnonymous]
-    [HttpGet("active")]
-    public ActionResult<IEnumerable<OtpAuthentication>> GetActiveOtps()
-    {
-        var activeOtps = SdmOtpAuthentication.GetActiveOtps();
-    
-        if (activeOtps.Count == 0)
-        {
-            return NotFound(new { message = "No active OTPs found." });
-        }
-
-        return Ok(activeOtps);
-    }
-    
-    [AllowAnonymous]
     [HttpPost("verify")]
     public ActionResult Verify([FromBody] DtoVerify verify)
     {
@@ -83,7 +50,38 @@ public class OtpAuthenticationController : ControllerBase
         
         return Ok(new { message = "OTP verified successfully." });
     }
-
+    
+    // [AllowAnonymous]
+    // [HttpGet("get")]
+    // public ActionResult<IEnumerable<OtpAuthentication>> GetAll()
+    // {
+    //     return Ok(SdmOtpAuthentication.GetAll());
+    // }
+    // [AllowAnonymous]
+    // [HttpGet("checkId/{otpa_id}")]
+    // public ActionResult<IEnumerable<OtpAuthentication>> CheckOtpaId(string otpa_id)
+    // {
+    //     if (SdmOtpAuthentication.CheckExists(otpa_id))
+    //     {
+    //         return Conflict(new { message = "OTP is already in use." });
+    //     }
+    //     return Ok(new { message = "OTP is can use." });
+    // }
+    //
+    // [AllowAnonymous]
+    // [HttpGet("active")]
+    // public ActionResult<IEnumerable<OtpAuthentication>> GetActiveOtps()
+    // {
+    //     var activeOtps = SdmOtpAuthentication.GetActiveOtps();
+    //
+    //     if (activeOtps.Count == 0)
+    //     {
+    //         return NotFound(new { message = "No active OTPs found." });
+    //     }
+    //
+    //     return Ok(activeOtps);
+    // }
+    
 }
 
     public class DtoVerify
