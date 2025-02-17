@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using studymate_backend.Libraries.Methods;
-using studymate_backend.Libraries.Models;
+using System.Text.RegularExpressions;
 
 namespace studymate_backend.Controllers;
 
@@ -13,10 +13,11 @@ public class OtpAuthenticationController : ControllerBase
     [HttpGet("request/{user_id}")]
     public IActionResult RequestOtp(int user_id)
     {
-        if (user_id < 10000000 || user_id > 99999999)
+        if (string.IsNullOrWhiteSpace(user_id.ToString()) || user_id.ToString().Length != 8 || !Regex.IsMatch(user_id.ToString(), @"^\d{8}$"))
         {
-            return BadRequest("User ID must be exactly 8 digits.");
+            return BadRequest("User ID must be exactly 8 digits and contain only numbers.");
         }
+        
         try
         {
             var otp = SdmOtpAuthentication.RequestOtp(user_id);
@@ -37,7 +38,7 @@ public class OtpAuthenticationController : ControllerBase
     public ActionResult Verify([FromBody] DtoVerify verify)
     {
         var activeOtp = SdmOtpAuthentication.VerifyOTP(verify.OtpaId, verify.OtpaCode.ToString());
-    
+        
         if (activeOtp == null)
         {
             return BadRequest(new { message = "Id not found or Invalid OTP or expired." });
@@ -89,5 +90,4 @@ public class OtpAuthenticationController : ControllerBase
         public required string OtpaId { get; set; }
         public required int OtpaCode { get; set; }
     }
-
-
+    
