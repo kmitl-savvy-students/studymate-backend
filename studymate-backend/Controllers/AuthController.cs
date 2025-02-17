@@ -151,6 +151,68 @@ public class AuthController : ControllerBase
 
         return Ok(userToken);
     }
+    
+    [HttpPost("sign-up-test")]
+    public ActionResult SignUpTest([FromBody] DtoSignUpTest dtoSignUp)
+    {
+        var id = SdmString.CleanAndTrim(dtoSignUp.Id);
+        var password = SdmString.CleanAndTrim(dtoSignUp.Password);
+        var passwordConfirm = SdmString.CleanAndTrim(dtoSignUp.PasswordConfirm);
+        var nameNick = SdmString.CleanAndTrim(dtoSignUp.NameNick);
+        var nameFirst = SdmString.CleanAndTrim(dtoSignUp.NameFirst);
+        var nameLast = SdmString.CleanAndTrim(dtoSignUp.NameLast);
+        var otpId = SdmString.CleanAndTrim(dtoSignUp.OtpId);
+
+        if (!SdmNumber.IsValid(id) ||
+            !SdmString.IsValid(id, 8, 8) ||
+            !SdmString.IsValid(password, 64) ||
+            !SdmString.IsValid(passwordConfirm, 64) ||
+            !SdmString.IsValid(nameNick, 256) ||
+            !SdmString.IsValid(nameFirst, 256) ||
+            !SdmString.IsValid(nameLast, 256) ||
+            !SdmString.IsValid(otpId, 64, 64))
+        {
+            return BadRequest(new { message = "ข้อมูลไม่ถูกต้อง" });
+        }
+
+        var idInt = int.Parse(id);
+        if (SdmUser.GetBy(idInt) != null)
+            return Conflict(new { message = "รหัสผู้ใช้งานถูกสมัครสมาชิกไว้อยู่แล้ว" });
+
+        if (password != passwordConfirm)
+            return BadRequest(new { message = "ยืนยันรหัสผ่านไม่ถูกต้อง" });
+
+        if (!SdmAuthentication.IsPasswordStrong(password))
+            return BadRequest(new { message = "รหัสผ่านไม่แข็งแรงพอ" });
+
+        var newUser = new User(
+            idInt,
+            SdmAuthentication.PasswordHash(password),
+            nameNick,
+            nameFirst,
+            nameLast,
+            "",
+            false,
+            null
+        );
+
+        if (!SdmUser.Verify(newUser, otpId))
+            return BadRequest(new { message = "OTP ไม่ถูกต้องหรือหมดอายุ" });
+
+        return Ok();
+    }
+    
+    public class DtoSignUpTest
+    {
+        public required string Id { get; init; } = string.Empty;
+        public required string Password { get; init; } = string.Empty;
+        public required string PasswordConfirm { get; init; } = string.Empty;
+        public required string NameNick { get; init; } = string.Empty;
+        public required string NameFirst { get; init; } = string.Empty;
+        public required string NameLast { get; init; } = string.Empty;
+        public required string OtpId { get; init; } = string.Empty;
+    }
+
 
     public class DtoToken
     {
