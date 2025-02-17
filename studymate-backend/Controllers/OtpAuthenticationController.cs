@@ -15,9 +15,9 @@ public class OtpAuthenticationController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(user_id.ToString()) || user_id.ToString().Length != 8 || !Regex.IsMatch(user_id.ToString(), @"^\d{8}$"))
         {
-            return BadRequest("User ID must be exactly 8 digits and contain only numbers.");
+            return BadRequest("รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น");
         }
-        
+
         try
         {
             var otp = SdmOtpAuthentication.RequestOtp(user_id);
@@ -29,29 +29,29 @@ public class OtpAuthenticationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Failed to generate OTP.", error = ex.Message });
+            return StatusCode(500, new { message = "คุณขอ OTP บ่อยเกินไป กรุณารอสักครู่ก่อนลองใหม่อีกครั้งค่ะ", error = ex.Message });
         }
     }
-    
+
     [AllowAnonymous]
     [HttpPost("verify")]
     public ActionResult Verify([FromBody] DtoVerify verify)
     {
         var activeOtp = SdmOtpAuthentication.VerifyOTP(verify.OtpaId, verify.OtpaCode.ToString());
-        
+
         if (activeOtp == null)
         {
-            return BadRequest(new { message = "Id not found or Invalid OTP or expired." });
+            return BadRequest(new { message = "รหัส OTP ไม่ถูกต้องหรือหมดอายุ กรุณาลองใหม่อีกครั้งค่ะ" });
         }
-        
+
         if (activeOtp.Status == "VERIFIED")
         {
             return Conflict(new { message = "VERIFIED already exists." });
         }
-        
+
         return Ok(new { message = "OTP verified successfully." });
     }
-    
+
     // [AllowAnonymous]
     // [HttpGet("get")]
     // public ActionResult<IEnumerable<OtpAuthentication>> GetAll()
@@ -82,12 +82,11 @@ public class OtpAuthenticationController : ControllerBase
     //
     //     return Ok(activeOtps);
     // }
-    
+
 }
 
-    public class DtoVerify
-    {
-        public required string OtpaId { get; set; }
-        public required int OtpaCode { get; set; }
-    }
-    
+public class DtoVerify
+{
+    public required string OtpaId { get; set; }
+    public required int OtpaCode { get; set; }
+}
