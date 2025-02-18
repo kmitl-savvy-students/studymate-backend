@@ -5,12 +5,11 @@ namespace studymate_backend.Libraries.Models;
 public class Transcript(
     int id,
     User? user,
-    Curriculum? curriculum,
-    SdmDateTime created
+    SdmDateTime dateCreated
 ) : IBaseModel
 {
-    public int id { get; set; } = id;
-    public User? user { get; set; } = user;
-    public Curriculum? curriculum { get; set; } = curriculum;
-    public SdmDateTime created { get; set; } = created;
+    public int Id { get; set; } = id;
+    public User? User { get; set; } = user;
+    public SdmDateTime DateCreated { get; set; } = dateCreated;
+    public List<TranscriptDetail> Details { get; set; } = [];
 }

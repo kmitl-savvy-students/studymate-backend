@@ -9,33 +9,48 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-group")]
 public class CurriculumGroupController : ControllerBase
 {
+    #region [GET] Get
     [AllowAnonymous]
-    [HttpGet("get/{categoryId:int}/{groupId:int}/{uniqueId}/{year}")]
-    public ActionResult<CurriculumGroup> GetBy(int categoryId, int groupId, string uniqueId, string year)
+    [HttpGet("get-by-parent/{parentId:int}")]
+    public ActionResult<IEnumerable<CurriculumGroup>> GetAllBy(int parentId)
     {
-        var curriculumGroup = SdmCurriculumGroup.GetBy(categoryId, groupId, uniqueId, year);
-
-        if (curriculumGroup == null)
-            return NotFound(new { message = "Curriculum group not found." });
-        return Ok(curriculumGroup);
+        return Ok(SdmCurriculumGroup.GetAllBy(parentId));
+    }
+    #endregion
+    #region [PUT] Update
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPut("update")]
+    public ActionResult<Curriculum> Update(CurriculumGroup curriculumGroup)
+    {
+        SdmCurriculumGroup.UpdateBy(curriculumGroup);
+        return Ok();
+    }
+    #endregion
+    #region [POST] Create
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPost("create")]
+    public ActionResult<CurriculumGroup> Create(DtoCreateCurriculumGroup curriculumGroup)
+    {
+        return Ok(SdmCurriculumGroup.Insert(new CurriculumGroup(
+            curriculumGroup.Id,
+            curriculumGroup.ParentId,
+            curriculumGroup.Type,
+            curriculumGroup.Name,
+            curriculumGroup.Credit,
+            curriculumGroup.Color,
+            [],
+            []
+        )));
     }
 
-    [AllowAnonymous]
-    [HttpGet("get/{uniqueId}/{year}")]
-    public ActionResult<IEnumerable<CurriculumGroup>> GetAllBy(string uniqueId, string year)
+    public class DtoCreateCurriculumGroup
     {
-        var curriculumGroups = SdmCurriculumGroup.GetAllBy(uniqueId, year);
-
-        if (curriculumGroups.Count == 0)
-            return NotFound(new { message = "Curriculum group not found." });
-        return Ok(curriculumGroups);
+        public required int Id { get; init; } = -1;
+        public required int ParentId { get; init; } = -1;
+        public required string Type { get; init; } = string.Empty;
+        public required string Name { get; init; } = string.Empty;
+        public required int Credit { get; init; } = -1;
+        public required string Color { get; init; } = string.Empty;
     }
-    
-    [AllowAnonymous]
-    [HttpGet("query/{uniqueId}/{year}/{categoryId}")]
-    public ActionResult<List<CurriculumGroup>> QueryBy(string uniqueId, string year, string categoryId)
-    {
-        var curriculumGroups = SdmCurriculumGroup.QueryBy(uniqueId, year, categoryId);
-        return Ok(curriculumGroups);
-    }
+    #endregion
 }

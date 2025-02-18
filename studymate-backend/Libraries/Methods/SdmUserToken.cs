@@ -5,26 +5,23 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmUserToken : ISdmBaseMethod<UserToken>
+public abstract class SdmUserToken : ISdmBaseMethod<UserToken>
 {
     public static string TableName => "user_token";
-
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
-
-    public static List<UserToken> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<UserToken> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<UserToken>();
-
         while (query.Next())
         {
             result.Add(new UserToken(
                 query.ToString(0),
-                SdmUser.GetBy(query.ToString(1)),
+                SdmUser.GetBy(query.ToInt(1)),
                 new SdmDateTime(query.ToDateTime(2)),
                 new SdmDateTime(query.ToDateTime(3))
             ));
@@ -35,54 +32,41 @@ public class SdmUserToken : ISdmBaseMethod<UserToken>
         return result;
     }
 
-    public static List<UserToken> GetAll()
-    {
-        var select = GetQueryObj();
-
-        var result = ProcessQuery(select, true);
-        return result;
-    }
-
     public static UserToken? GetBy(string id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("id", id);
+        select.WhereEqual("ut_id", id);
 
         var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        return result.Count == 0 ? null : result[0];
     }
     public static UserToken? GetBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        select.WhereEqual("ut_u_id", user.Id.ToString());
 
         var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        return result.Count == 0 ? null : result[0];
     }
 
     public static void Insert(UserToken userToken)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("id", userToken.id);
-        insert.Insert("user_id", userToken.user?.id);
-        insert.Insert("created", userToken.created.ToString());
-        insert.Insert("expired", userToken.expired.ToString());
+        insert.Insert("ut_id", userToken.Id);
+        insert.Insert("ut_u_id", userToken.User?.Id.ToString());
+        insert.Insert("ut_date_created", userToken.DateCreated.ToString());
+        insert.Insert("ut_date_expired", userToken.DateExpired.ToString());
 
-        var query = SdmPgsqlQuery.Execute(insert);
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
-
-    public static void Delete(UserToken userToken)
+    public static void DeleteBy(UserToken userToken)
     {
-        var delete = new SdmPgsqlQueryDelete(TableName);
-        delete.WhereEqual("id", userToken.id);
+        var delete = new SdmMysqlQueryDelete(TableName);
+        delete.WhereEqual("ut_id", userToken.Id);
 
-        var query = SdmPgsqlQuery.Execute(delete);
+        var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
     }
 }

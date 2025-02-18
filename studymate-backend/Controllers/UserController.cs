@@ -9,39 +9,41 @@ namespace studymate_backend.Controllers;
 [Route("api/user")]
 public class UserController : ControllerBase
 {
+    #region [POST] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPatch("update")]
+    [HttpPut("update")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
-        var existingUser = SdmUser.GetBy(user.id);
+        var existingUser = SdmUser.GetBy(user.Id);
         if (existingUser == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound();
 
-        if (user.curriculumId != null)
+        if (user.CurriculumId != null)
         {
-            var newCurriculum = SdmCurriculum.GetBy(user.curriculumId ?? -1);
+            var newCurriculum = SdmCurriculum.GetBy(user.CurriculumId ?? -1);
             if (newCurriculum == null)
-                return NotFound(new { message = "Curriculum not found" });
-            existingUser.curriculum = newCurriculum;
+                return NotFound();
+            existingUser.Curriculum = newCurriculum;
         }
 
-        existingUser.nameNick = user.nameNick ?? existingUser.nameNick;
-        existingUser.nameFirst = user.nameFirst ?? existingUser.nameFirst;
-        existingUser.nameLast = user.nameLast ?? existingUser.nameLast;
-        existingUser.profile = user.profile ?? existingUser.profile;
+        existingUser.Nickname = user.NameNick ?? existingUser.Nickname;
+        existingUser.Firstname = user.NameFirst ?? existingUser.Firstname;
+        existingUser.Lastname = user.NameLast ?? existingUser.Lastname;
+        existingUser.ProfilePicture = user.Profile ?? existingUser.ProfilePicture;
 
-        SdmUser.Update(existingUser);
+        SdmUser.UpdateBy(existingUser);
 
         return Ok(user);
     }
 
-    public class DtoUpdateUser
+    public class DtoUpdateUser(int id, string? nameNick, string? nameFirst, string? nameLast, string? profile, int? curriculumId)
     {
-        public required string id { get; set; }
-        public string? nameNick { get; set; }
-        public string? nameFirst { get; set; }
-        public string? nameLast { get; set; }
-        public string? profile { get; set; }
-        public int? curriculumId { get; set; }
+        public required int Id { get; init; } = id;
+        public string? NameNick { get; } = nameNick;
+        public string? NameFirst { get; } = nameFirst;
+        public string? NameLast { get; } = nameLast;
+        public string? Profile { get; } = profile;
+        public int? CurriculumId { get; } = curriculumId;
     }
+    #endregion
 }

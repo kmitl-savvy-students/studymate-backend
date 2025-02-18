@@ -135,22 +135,22 @@ public class TeachtableSubjectReviewController : ControllerBase
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
     
-            Console.WriteLine($"[User Info] UserId: {user.id}, Curriculum: {user.curriculum?.uniqueId}, Year: {user.curriculum?.year}, Pid: {user.curriculum?.pid}");
+            Console.WriteLine($"[User Info] UserId: {user.Id}, Year: {user.Curriculum?.Year}");
     
             // ตรวจสอบว่า User มี Curriculum หรือไม่
-            if (user.curriculum == null)
+            if (user.Curriculum == null)
             {
                 return NotFound(new { message = "You must login and select curriculum." });
             }
     
-            var publicId = user.curriculum.pid;
+            var publicId = user.Curriculum.Program.KmitlId;
     
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
+            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(user);
             
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
             var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
-
+    
             return Ok(reviews);
         }
         catch (Exception ex)
@@ -164,7 +164,7 @@ public class TeachtableSubjectReviewController : ControllerBase
 
 public class TeachtableSubjectReviewDto
 {
-    public string StudentId { get; set; } = string.Empty;
+    public int StudentId { get; set; }
     public int Year { get; set; }
     public int Term { get; set; }
     public string SubjectId { get; set; } = string.Empty;

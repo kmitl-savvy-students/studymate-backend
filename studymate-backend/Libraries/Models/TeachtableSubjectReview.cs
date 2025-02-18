@@ -1,8 +1,8 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class TeachtableSubjectReview(
-    TeachtableSubject? teachtable_subject,
-    string user_id,
+    TeachtableSubject? teachtableSubject,
+    string userId,
     string review,
     float rating,
     int like,
@@ -10,14 +10,14 @@ public class TeachtableSubjectReview(
     int id = 0
 ) : IBaseModel
 {
-    public int id { get; set; } = id;
-    public TeachtableSubject? teachtable_subject { get; set; } = teachtable_subject;
-    public string user_id { get; set; } = user_id;
-    public string review { get; set; } = review;
-    public float rating { get; set; } = rating;
-    public int like { get; set; } = like;
-    public DateOnly created { get; set; } = created ?? DateOnly.FromDateTime(DateTime.Now); // ถ้าไม่กำหนด ใช้วันที่ปัจจุบัน
+    public int Id { get; set; } = id;
+    public TeachtableSubject? TeachtableSubject { get; set; } = teachtableSubject;
+    public string UserId { get; set; } = userId;
+    public string Review { get; set; } = review;
+    public float Rating { get; set; } = rating;
+    public int Like { get; set; } = like;
+    public DateOnly Created { get; set; } = created ?? DateOnly.FromDateTime(DateTime.Now); // ถ้าไม่กำหนด ใช้วันที่ปัจจุบัน
     // Dynamic Property
-    public string subject_name_en { get; set; } = ""; // This is populated dynamically
+    public string SubjectNameEn { get; set; } = ""; // This is populated dynamically
 
 }

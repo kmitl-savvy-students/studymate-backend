@@ -21,10 +21,10 @@ public class SubjectController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("{subject_id}")]
-    public ActionResult<Subject> Get(string subject_id)
+    [HttpGet("{subjectId}")]
+    public ActionResult<Subject> Get(string subjectId)
     {
-        var subjects = SdmSubject.GetBy(subject_id);
+        var subjects = SdmSubject.GetBy(subjectId);
 
         if (subjects == null)
             return NotFound(new { message = "Subject not found." });

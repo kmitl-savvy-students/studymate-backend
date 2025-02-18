@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 using studymate_backend.Libraries.Core;
-using studymate_backend.Libraries.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +46,8 @@ app.UseCors(policyBuilder =>
 {
     policyBuilder.WithOrigins(
         "http://localhost:4200",
+        "https://kmitl.savvystudymate.com",
+        "https://prod.savvystudymate.com",
         "https://preprod.savvystudymate.com",
         "https://test.savvystudymate.com",
         "https://savvystudymate.com",
@@ -61,7 +62,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.Lifetime.ApplicationStopping.Register(SdmDataSource.Dispose);
 
 await app.RunAsync();

@@ -8,21 +8,21 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
 {
     public static string TableName => "teachtable_subject";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<TeachtableSubject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<TeachtableSubject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<TeachtableSubject>();
 
         while (query.Next())
         {
             result.Add(new TeachtableSubject(
-                SdmTeachtable.GetById(query.ToInt(1)),
+                SdmTeachtable.GetBy(query.ToInt(1)),
                 query.ToString(2),
                 query.ToInt(3),
                 query.ToFloat(4),
@@ -38,24 +38,23 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     
     public static void Insert(TeachtableSubject teachtableSubject)
     {
-        var insert = new SdmPgsqlQueryInsert("teachtable_subject");
+        var insert = new SdmMysqlQueryInsert("teachtable_subject");
 
-        insert.Insert("teachtable_id", teachtableSubject.teachtable?.id.ToString());
-        insert.Insert("subject_id", teachtableSubject.subject_id);
-        insert.Insert("interested", teachtableSubject.interested.ToString());
-        insert.Insert("rating", teachtableSubject.rating.ToString());
-        insert.Insert("count_of_review", teachtableSubject.count_of_review.ToString());
+        insert.Insert("tts_tt_id", teachtableSubject.Teachtable?.Id.ToString());
+        insert.Insert("tts_sbj_id", teachtableSubject.SubjectId);
+        insert.Insert("tts_int", teachtableSubject.Interested.ToString());
+        insert.Insert("tts_rat", teachtableSubject.Rating.ToString());
+        insert.Insert("tts_cor", teachtableSubject.CountOfReview.ToString());
 
-        Console.WriteLine($"Inserting TeachtableSubject: teachtable_id={teachtableSubject.teachtable?.id}, subject_id={teachtableSubject.subject_id}");
-        var query = SdmPgsqlQuery.Execute(insert);
+        Console.WriteLine($"Inserting TeachtableSubject: teachtable_id={teachtableSubject.Teachtable?.Id}, subject_id={teachtableSubject.SubjectId}");
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
-
     
     public static TeachtableSubject? GetById(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
+        select.WhereEqual("tts_id", id.ToString());
         
         var  result = ProcessQuery(select);
         if (result.Count == 0)
@@ -76,25 +75,25 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             Console.WriteLine($"CheckOrCreate: Checking teachtable_subject with teachtable_id={teachtableId}, subject_id={subjectId}");
 
             // Query TeachtableSubject
-            var select = new SdmPgsqlQuerySelect("teachtable_subject")
-                .AddWhereCondition("teachtable_id", teachtableId.ToString())
-                .AddWhereCondition("subject_id", subjectId);
+            var select = new SdmMysqlQuerySelect("teachtable_subject")
+                .AddWhereCondition("tts_tt_id", teachtableId.ToString())
+                .AddWhereCondition("tts_sbj_id", subjectId);
 
             var result = ProcessQuery(select);
             if (result.Count > 0)
             {
-                Console.WriteLine($"Found TeachtableSubject: id={result[0].id}");
+                Console.WriteLine($"Found TeachtableSubject: id={result[0].Id}");
                 return result[0];
             }
 
             // Create New TeachtableSubject
             Console.WriteLine($"Creating new TeachtableSubject for teachtable_id={teachtableId}, subject_id={subjectId}");
             var newTeachtableSubject = new TeachtableSubject(
-                teachtable: SdmTeachtable.GetById(teachtableId),
-                subject_id: subjectId,
+                teachtable: SdmTeachtable.GetBy(teachtableId),
+                subjectId: subjectId,
                 interested: 0,
                 rating: 0.0f,
-                count_of_review: 0
+                countOfReview: 0
             );
             Insert(newTeachtableSubject);
 
@@ -102,7 +101,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             var newResult = ProcessQuery(select);
             if (newResult.Count > 0)
             {
-                Console.WriteLine($"Created TeachtableSubject: id={newResult[0].id}");
+                Console.WriteLine($"Created TeachtableSubject: id={newResult[0].Id}");
                 return newResult[0];
             }
 

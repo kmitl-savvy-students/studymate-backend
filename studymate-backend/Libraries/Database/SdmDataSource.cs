@@ -1,40 +1,36 @@
-﻿using Npgsql;
-using System;
+﻿using MySql.Data.MySqlClient;
 
-namespace studymate_backend.Libraries.Database
+namespace studymate_backend.Libraries.Database;
+
+public static class SdmDataSource
 {
-    public class SdmDataSource
+    public static MySqlConnection? Get()
     {
-        private static NpgsqlDataSource? DataSource { get; set; }
+        var server = Environment.GetEnvironmentVariable("MYSQL_SERVER");
+        var user = Environment.GetEnvironmentVariable("MYSQL_USER");
+        var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
+        var database = Environment.GetEnvironmentVariable("MYSQL_DATABASE");
 
-        public static NpgsqlDataSource? Get()
+        if (string.IsNullOrEmpty(server) ||
+            string.IsNullOrEmpty(user) ||
+            string.IsNullOrEmpty(password) ||
+            string.IsNullOrEmpty(database))
         {
-            if (DataSource != null)
-                return DataSource;
-
-            try
-            {
-                var server = Environment.GetEnvironmentVariable("DB_SERVER");
-                var database = Environment.GetEnvironmentVariable("DB_NAME");
-                var userId = Environment.GetEnvironmentVariable("DB_USER");
-                var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
-
-                var connectionString = $"Host={server};Database={database};Username={userId};Password={password};";
-
-                DataSource = NpgsqlDataSource.Create(connectionString);
-            }
-            catch (NpgsqlException ex)
-            {
-                Console.WriteLine("ERROR: SdmDataSource.get(): " + ex.Message);
-            }
-
-            return DataSource;
+            Console.WriteLine("ERROR: Database connection environment variables are not set.");
+            return null;
         }
 
-        public static void Dispose()
+        try
         {
-            DataSource?.Dispose();
-            DataSource = null;
+            var connectionString = $"server={server};uid={user};pwd={password};database={database};";
+            var newConnection = new MySqlConnection(connectionString);
+
+            return newConnection;
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine("ERROR: Database connection failed: " + ex.Message);
+            return null;
         }
     }
 }

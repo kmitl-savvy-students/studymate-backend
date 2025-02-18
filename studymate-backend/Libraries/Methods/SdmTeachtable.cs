@@ -5,27 +5,24 @@ using studymate_backend.Libraries.Helper;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmTeachtable : ISdmBaseMethod<Teachtable>
+public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
 {
     public static string TableName => "teachtable";
-
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
-
-    public static List<Teachtable> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Teachtable> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<Teachtable>();
-
         while (query.Next())
         {
             result.Add(new Teachtable(
+                query.ToInt(0),
                 query.ToInt(1),
-                query.ToInt(2),
-                query.ToInt(0)
+                query.ToInt(2)
             ));
             if (!isArray) break;
         }
@@ -33,53 +30,47 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         query.CleanUp();
         return result;
     }
-    
+
     public static List<Teachtable> GetAll()
     {
         var select = GetQueryObj();
 
         var result = ProcessQuery(select, true);
-
-        // ใช้ LINQ เพื่อเรียงลำดับตาม id
-        return result.OrderBy(t => t.id).ToList();
+        return result;
     }
-
-
-    public static Teachtable? GetById(int id)
+    public static Teachtable? GetBy(int id)
     {
-        // if (id == null)
-        //     return null;
-        
         var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
-        
-        var  result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
+        select.WhereEqual("tt_id", id.ToString());
+
+        var result = ProcessQuery(select);
+        return result.Count == 0 ? null : result[0];
+    }
+    public static Teachtable? GetBy(int year, int term)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("tt_year", year.ToString());
+        select.WhereEqual("tt_term", term.ToString());
+
+        var result = ProcessQuery(select);
+        var teachtable = result.Count == 0 ? null : result[0];
+
+        if (teachtable != null) return teachtable;
+
+        Insert(new Teachtable(-1, year, term));
+        teachtable = GetBy(year, term);
+
+        return teachtable;
     }
 
     public static void Insert(Teachtable teachtable)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
-        
-        insert.Insert("academic_year", teachtable.academic_year.ToString());
-        insert.Insert("academic_term", teachtable.academic_term.ToString());
-        
-        var query = SdmPgsqlQuery.Execute(insert);
-        query.CleanUp();
-    }
+        var insert = new SdmMysqlQueryInsert(TableName);
 
-    public static void Update(Teachtable teachtable)
-    {
-        var update = new SdmPgsqlQueryUpdate(TableName);
-        
-        update.Set("academic_year", teachtable.academic_year.ToString());
-        update.Set("academic_term", teachtable.academic_term.ToString());
-        
-        update.WhereEqual("id", teachtable.id.ToString());
-        
-        var query = SdmPgsqlQuery.Execute(update);
+        insert.Insert("tt_year", teachtable.Year.ToString());
+        insert.Insert("tt_term", teachtable.Term.ToString());
+
+        var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
     
@@ -88,12 +79,13 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         if (!SdmNumber.IsAcademicTerm(term) ||
             !SdmNumber.IsAcademicYear(year))
             throw new ArgumentException("Invalid academic year or term.");
+        
         // สร้าง Query Object พร้อมเงื่อนไข
-        var select = new SdmPgsqlQuerySelect("teachtable")
-            .AddWhereCondition("academic_year", year.ToString())
-            .AddWhereCondition("academic_term", term.ToString());
+        var select = new SdmMysqlQuerySelect("teachtable")
+            .AddWhereCondition("tt_year", year.ToString())
+            .AddWhereCondition("tt_term", term.ToString());
 
-        // ตรวจสอบผลลัพธ์
+        // ตรวจสอบว่ามี Teachtable อยู่แล้วหรือไม่
         var result = ProcessQuery(select);
         if (result.Count > 0)
         {
@@ -101,13 +93,13 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
         }
 
         // ถ้าไม่มี Teachtable ให้สร้างใหม่
-        var newTeachtable = new Teachtable(year, term);
+        var newTeachtable = new Teachtable(-1, year, term);
         Insert(newTeachtable);
 
         // Query ใหม่เพื่อดึงข้อมูลที่สร้าง
-        var selectAfterInsert = new SdmPgsqlQuerySelect("teachtable")
-            .AddWhereCondition("academic_year", year.ToString())
-            .AddWhereCondition("academic_term", term.ToString());
+        var selectAfterInsert = new SdmMysqlQuerySelect("teachtable")
+            .AddWhereCondition("tt_year", year.ToString())
+            .AddWhereCondition("tt_term", term.ToString());
 
         var newResult = ProcessQuery(selectAfterInsert);
         if (newResult.Count > 0)
@@ -117,5 +109,5 @@ public class SdmTeachtable : ISdmBaseMethod<Teachtable>
 
         throw new Exception("Failed to create or retrieve Teachtable.");
     }
-
+    
 }
