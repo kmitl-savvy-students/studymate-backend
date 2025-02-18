@@ -40,11 +40,11 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     {
         var insert = new SdmMysqlQueryInsert("teachtable_subject");
 
-        insert.Insert("teachtable_id", teachtableSubject.Teachtable?.Id.ToString());
-        insert.Insert("subject_id", teachtableSubject.SubjectId);
-        insert.Insert("interested", teachtableSubject.Interested.ToString());
-        insert.Insert("rating", teachtableSubject.Rating.ToString());
-        insert.Insert("count_of_review", teachtableSubject.CountOfReview.ToString());
+        insert.Insert("tts_id", teachtableSubject.Teachtable?.Id.ToString());
+        insert.Insert("tts_sbj_id", teachtableSubject.SubjectId);
+        insert.Insert("tts_int", teachtableSubject.Interested.ToString());
+        insert.Insert("tts_rat", teachtableSubject.Rating.ToString());
+        insert.Insert("tts_cor", teachtableSubject.CountOfReview.ToString());
 
         Console.WriteLine($"Inserting TeachtableSubject: teachtable_id={teachtableSubject.Teachtable?.Id}, subject_id={teachtableSubject.SubjectId}");
         var query = SdmMysqlQuery.Execute(insert);
@@ -54,7 +54,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     public static TeachtableSubject? GetById(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
+        select.WhereEqual("tts_id", id.ToString());
         
         var  result = ProcessQuery(select);
         if (result.Count == 0)
@@ -76,8 +76,8 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
 
             // Query TeachtableSubject
             var select = new SdmMysqlQuerySelect("teachtable_subject")
-                .AddWhereCondition("teachtable_id", teachtableId.ToString())
-                .AddWhereCondition("subject_id", subjectId);
+                .AddWhereCondition("tts_tt_id", teachtableId.ToString())
+                .AddWhereCondition("tts_sbj_id", subjectId);
 
             var result = ProcessQuery(select);
             if (result.Count > 0)
