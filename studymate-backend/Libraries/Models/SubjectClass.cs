@@ -1,28 +1,46 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class SubjectClass(
-    string id,
-    Subject subject,
-    
-    string buildingId,
-    string buildingName,
-    string className,
-    string roomName,
-    string section,
-    
-    string remark,
-    string rule
-) :IBaseModel
+    Subject? subject,
+    string classLevel,
+    List<string> groupName,
+    int section,
+    string creditLPS,
+    string? buildingName, // classbuilding
+    string? roomNumber, // room_no
+    List<string> teacherListTh,
+    List<string> teacherListEn,
+    List<string> classDatetime, // classdatetime
+    List<string> midtermDatetime, // midterm_date_time
+    List<string> finalDatetime, // final_date_time
+    double rating,
+    string sessionType, // Previously lect_or_prac
+    string? rule,
+    string? remark
+) : IBaseModel
 {
-    public string Id { get; } = id;
     public Subject Subject { get; set; } = subject;
 
-    public string BuildingId { get; set; } = buildingId;
-    public string BuildingName { get; set; } = buildingName;
-    public string ClassName { get; set; } = className;
-    public string RoomName { get; set; } = roomName;
-    public string Section { get; set; } = section;
-    
-    public string Remark { get; set; } = remark;
-    public string Rule { get; set; } = rule;
+    public string ClassLevel { get; set; } = classLevel;
+    public List<string> GroupName { get; set; } = groupName;
+
+    public int Section { get; set; } = section;
+
+    public string CreditLPS { get; set; } = creditLPS;
+
+    public string? BuildingName { get; set; } = buildingName;
+    public string? RoomNumber { get; set; } = roomNumber;
+
+    public List<string> TeacherListTh { get; set; } = teacherListTh;
+    public List<string> TeacherListEn { get; set; } = teacherListEn;
+
+    public List<string> ClassDatetime { get; set; } = classDatetime;
+    public List<string> MidtermDatetime { get; set; } = midtermDatetime;
+    public List<string> FinalDatetime { get; set; } = finalDatetime;
+
+    public double Rating { get; set; } = rating;
+
+    public string SessionType { get; set; } = sessionType; // Improved naming from lect_or_prac
+    public string? Rule { get; set; } = rule;
+    public string? Remark { get; set; } = remark;
 }

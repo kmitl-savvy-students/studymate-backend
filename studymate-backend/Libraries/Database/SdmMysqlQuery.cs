@@ -26,20 +26,24 @@ public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
 
     private void ExecuteScalar()
     {
-        var connection = SdmDataSource.Get();
-        if (connection is not { State: ConnectionState.Open })
-            throw new InvalidOperationException("Database connection is not available.");
+        using var connection = SdmDataSource.Get()
+                               ?? throw new InvalidOperationException("Database connection is not available.");
+
+        connection.Open();
 
         using var command = new MySqlCommand(queryBase.Build(), connection);
         command.ExecuteNonQuery();
+
         InsertedId = (int)command.LastInsertedId;
     }
 
     private void LoadAllRows()
     {
-        var connection = SdmDataSource.Get();
+        using var connection = SdmDataSource.Get();
         if (connection == null)
             return;
+
+        connection.Open();
 
         using var command = new MySqlCommand(queryBase.Build(), connection);
         using var reader = command.ExecuteReader(CommandBehavior.CloseConnection);
@@ -54,6 +58,7 @@ public class SdmMysqlQuery(ISdmMysqlQueryBase queryBase)
             _rows.Add(values);
         }
     }
+
 
     public bool Next()
     {

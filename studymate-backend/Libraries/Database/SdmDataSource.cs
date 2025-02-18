@@ -25,8 +25,6 @@ public static class SdmDataSource
             var connectionString = $"server={server};uid={user};pwd={password};database={database};";
             var newConnection = new MySqlConnection(connectionString);
 
-            newConnection.Open();
-
             return newConnection;
         }
         catch (MySqlException ex)

@@ -157,13 +157,22 @@ public partial class TranscriptController : ControllerBase
 
             if (extractedYear != 0 && extractedTerm != 0) currentTeachtable = SdmTeachtable.GetBy(extractedYear, extractedTerm);
             if (extractedSubjectId != string.Empty && extractedGrade != string.Empty)
+            {
+                var subject = await SdmSubjectClass.GetBy(extractedSubjectId);
+                if (subject == null)
+                {
+                    Console.WriteLine($"Subject {extractedSubjectId} not found.");
+                    continue;
+                }
+
                 SdmTranscriptDetail.Insert(new TranscriptDetail(
                     -1,
                     transcript,
-                    SdmSubject.GetBy(extractedSubjectId),
+                    subject,
                     currentTeachtable,
                     extractedGrade
                 ));
+            }
 
             extractedTerm = 0;
             extractedYear = 0;

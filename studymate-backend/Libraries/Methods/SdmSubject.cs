@@ -6,7 +6,7 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmSubject : ISdmBaseMethod<Subject>
 {
-    private static Dictionary<string, Subject> _cache = new();
+    private static readonly Dictionary<string, Subject> _cache = new();
 
     public static string TableName => "subject";
     public static SdmMysqlQuerySelect GetQueryObj()
@@ -41,8 +41,11 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
         var result = ProcessQuery(select, true);
         return result;
     }
-    public static Subject? GetBy(string id)
+    public static Subject? GetBy(string? id)
     {
+        if (id == null)
+            return null;
+
         if (_cache.TryGetValue(id, out var value))
             return value;
 
@@ -51,12 +54,22 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
 
         var result = ProcessQuery(select);
         var subject = result.Count == 0 ? null : result[0];
-        if (subject != null)
-        {
+        if (subject == null)
+            return null;
         _cache.Add(id, subject);
         return subject;
-        }
+    }
+    public static void Insert(Subject subject)
+    {
+        var insert = new SdmMysqlQueryInsert(TableName);
 
-        var publicSubject = SdmSubjectClass.
+        insert.Insert("sbj_id", subject.Id);
+        insert.Insert("sbj_name_th", subject.NameTh);
+        insert.Insert("sbj_name_en", subject.NameEn);
+        insert.Insert("sbj_credit", subject.Credit.ToString());
+        insert.Insert("sbj_detail", subject.Detail);
+
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
     }
 }
