@@ -51,9 +51,12 @@ public abstract class SdmSubject : ISdmBaseMethod<Subject>
 
         var result = ProcessQuery(select);
         var subject = result.Count == 0 ? null : result[0];
-        if (subject == null)
-            return null;
+        if (subject != null)
+        {
         _cache.Add(id, subject);
         return subject;
+        }
+
+        var publicSubject = SdmSubjectClass.
     }
 }
