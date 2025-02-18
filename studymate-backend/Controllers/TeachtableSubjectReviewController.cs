@@ -119,46 +119,46 @@ public class TeachtableSubjectReviewController : ControllerBase
         }
     }
     
-    // [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    // [HttpGet("current")]
-    // public async Task<IActionResult> GetLatestSubjects()
-    // {
-    //     try
-    //     {
-    //         // ดึง Token จาก Header
-    //         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-    //
-    //         // ดึงข้อมูลผู้ใช้จาก Token
-    //         var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
-    //         if (user == null)
-    //         {
-    //             return Unauthorized(new { message = "Invalid or expired token." });
-    //         }
-    //
-    //         Console.WriteLine($"[User Info] UserId: {user.Id}, Year: {user.Curriculum?.Year}");
-    //
-    //         // ตรวจสอบว่า User มี Curriculum หรือไม่
-    //         if (user.Curriculum == null)
-    //         {
-    //             return NotFound(new { message = "You must login and select curriculum." });
-    //         }
-    //
-    //         var publicId = user.Curriculum.Program.KmitlId;
-    //
-    //         // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-    //         var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(publicId);
-    //         
-    //         // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
-    //         var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
-    //
-    //         return Ok(reviews);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"[Controller Error] {ex.Message}");
-    //         return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
-    //     }
-    // }
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpGet("current")]
+    public async Task<IActionResult> GetLatestSubjects()
+    {
+        try
+        {
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+    
+            Console.WriteLine($"[User Info] UserId: {user.Id}, Year: {user.Curriculum?.Year}");
+    
+            // ตรวจสอบว่า User มี Curriculum หรือไม่
+            if (user.Curriculum == null)
+            {
+                return NotFound(new { message = "You must login and select curriculum." });
+            }
+    
+            var publicId = user.Curriculum.Program.KmitlId;
+    
+            // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
+            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(user);
+            
+            // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
+            var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
+    
+            return Ok(reviews);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Controller Error] {ex.Message}");
+            return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
+        }
+    }
     
 }
 
