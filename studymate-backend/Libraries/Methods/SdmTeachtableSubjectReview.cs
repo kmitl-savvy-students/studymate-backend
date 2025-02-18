@@ -331,12 +331,13 @@ public class SdmTeachtableSubjectReview
         return allSubjects;
     }
     
-    public static async Task<List<string>> GetAllSubjectInFacultyAndGened(string curriculum)
+    public static async Task<List<string>> GetAllSubjectInFacultyAndGened(User user)
     {
         int currentYear = DateTime.Now.Year + 543; // คำนวณปี พ.ศ.
         int[] terms = { 3, 2, 1 };
     
         using var client = new HttpClient();
+        Console.WriteLine($"faculty: {user.Curriculum.Program.Department.Faculty.KmitlId}, department: {user.Curriculum.Program.Department.KmitlId}, curriculum: {user.Curriculum.Program.KmitlId}");
     
         while (currentYear >= 2560) // กำหนดปีต่ำสุด
         {
@@ -345,9 +346,9 @@ public class SdmTeachtableSubjectReview
                 var responseFaculty = await client.GetAsync($"https://regis.reg.kmitl.ac.th/api/?function=get-teach-table-show&mode=by_class" +
                                                      $"&selected_year={currentYear}" +
                                                      $"&selected_semester={currentTerm}" +
-                                                     $"&selected_faculty=01" +
-                                                     $"&selected_department=05" +
-                                                     $"&selected_curriculum={curriculum}" +
+                                                     $"&selected_faculty={user.Curriculum.Program.Department.Faculty.KmitlId}"+
+                                                     $"&selected_department={user.Curriculum.Program.Department.KmitlId}" +
+                                                     $"&selected_curriculum={user.Curriculum.Program.KmitlId}" +
                                                      $"&selected_class_year=0" +
                                                      $"&search_all_faculty=false" +
                                                      $"&search_all_department=false" +
