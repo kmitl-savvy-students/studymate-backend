@@ -1,0 +1,117 @@
+﻿using studymate_backend.Libraries.Database;
+using studymate_backend.Libraries.Database.QueryBuilders;
+using studymate_backend.Libraries.Models;
+
+namespace studymate_backend.Libraries.Methods;
+
+public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
+{
+    public static string TableName => "teachtable_subject";
+
+    public static SdmMysqlQuerySelect GetQueryObj()
+    {
+        return new SdmMysqlQuerySelect(TableName);
+    }
+
+    public static List<TeachtableSubject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    {
+        var query = SdmMysqlQuery.Execute(queryBuilder);
+
+        var result = new List<TeachtableSubject>();
+
+        while (query.Next())
+        {
+            result.Add(new TeachtableSubject(
+                SdmTeachtable.GetBy(query.ToInt(1)),
+                query.ToString(2),
+                query.ToInt(3),
+                query.ToFloat(4),
+                query.ToInt(5),
+                query.ToInt(0)
+                
+            ));
+            if (!isArray) break;
+        }
+        query.CleanUp();
+        return result;
+    }
+    
+    public static void Insert(TeachtableSubject teachtableSubject)
+    {
+        var insert = new SdmMysqlQueryInsert("teachtable_subject");
+
+        insert.Insert("tts_tt_id", teachtableSubject.Teachtable?.Id.ToString());
+        insert.Insert("tts_sbj_id", teachtableSubject.SubjectId);
+        insert.Insert("tts_int", teachtableSubject.Interested.ToString());
+        insert.Insert("tts_rat", teachtableSubject.Rating.ToString());
+        insert.Insert("tts_cor", teachtableSubject.CountOfReview.ToString());
+
+        Console.WriteLine($"Inserting TeachtableSubject: teachtable_id={teachtableSubject.Teachtable?.Id}, subject_id={teachtableSubject.SubjectId}");
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
+    }
+    
+    public static TeachtableSubject? GetById(int id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("tts_id", id.ToString());
+        
+        var  result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
+    
+    public static TeachtableSubject CheckOrCreate(int teachtableId, string subjectId)
+    {
+        
+        if (string.IsNullOrWhiteSpace(subjectId))
+        {
+            throw new ArgumentException("Invalid subjectId. SubjectId cannot be empty or null.");
+        }
+        
+        try
+        {
+            Console.WriteLine($"CheckOrCreate: Checking teachtable_subject with teachtable_id={teachtableId}, subject_id={subjectId}");
+
+            // Query TeachtableSubject
+            var select = new SdmMysqlQuerySelect("teachtable_subject")
+                .AddWhereCondition("tts_tt_id", teachtableId.ToString())
+                .AddWhereCondition("tts_sbj_id", subjectId);
+
+            var result = ProcessQuery(select);
+            if (result.Count > 0)
+            {
+                Console.WriteLine($"Found TeachtableSubject: id={result[0].Id}");
+                return result[0];
+            }
+
+            // Create New TeachtableSubject
+            Console.WriteLine($"Creating new TeachtableSubject for teachtable_id={teachtableId}, subject_id={subjectId}");
+            var newTeachtableSubject = new TeachtableSubject(
+                teachtable: SdmTeachtable.GetBy(teachtableId),
+                subjectId: subjectId,
+                interested: 0,
+                rating: 0.0f,
+                countOfReview: 0
+            );
+            Insert(newTeachtableSubject);
+
+            // Re-query after Insert
+            var newResult = ProcessQuery(select);
+            if (newResult.Count > 0)
+            {
+                Console.WriteLine($"Created TeachtableSubject: id={newResult[0].Id}");
+                return newResult[0];
+            }
+
+            throw new Exception("Failed to retrieve TeachtableSubject after Insert.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in CheckOrCreate: {ex.Message}");
+            throw;
+        }
+    }
+
+}

@@ -1,6 +1,7 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
+using studymate_backend.Libraries.Helper;
 
 namespace studymate_backend.Libraries.Methods;
 
@@ -72,4 +73,41 @@ public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
+    
+    public static Teachtable CheckOrCreate(int year, int term)
+    {
+        if (!SdmNumber.IsAcademicTerm(term) ||
+            !SdmNumber.IsAcademicYear(year))
+            throw new ArgumentException("Invalid academic year or term.");
+        
+        // สร้าง Query Object พร้อมเงื่อนไข
+        var select = new SdmMysqlQuerySelect("teachtable")
+            .AddWhereCondition("tt_year", year.ToString())
+            .AddWhereCondition("tt_term", term.ToString());
+
+        // ตรวจสอบว่ามี Teachtable อยู่แล้วหรือไม่
+        var result = ProcessQuery(select);
+        if (result.Count > 0)
+        {
+            return result[0]; // Return Teachtable ที่มีอยู่
+        }
+
+        // ถ้าไม่มี Teachtable ให้สร้างใหม่
+        var newTeachtable = new Teachtable(-1, year, term);
+        Insert(newTeachtable);
+
+        // Query ใหม่เพื่อดึงข้อมูลที่สร้าง
+        var selectAfterInsert = new SdmMysqlQuerySelect("teachtable")
+            .AddWhereCondition("tt_year", year.ToString())
+            .AddWhereCondition("tt_term", term.ToString());
+
+        var newResult = ProcessQuery(selectAfterInsert);
+        if (newResult.Count > 0)
+        {
+            return newResult[0];
+        }
+
+        throw new Exception("Failed to create or retrieve Teachtable.");
+    }
+    
 }
