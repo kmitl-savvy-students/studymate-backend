@@ -40,7 +40,7 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
     {
         var insert = new SdmMysqlQueryInsert("teachtable_subject");
 
-        insert.Insert("tts_id", teachtableSubject.Teachtable?.Id.ToString());
+        insert.Insert("tts_tt_id", teachtableSubject.Teachtable?.Id.ToString());
         insert.Insert("tts_sbj_id", teachtableSubject.SubjectId);
         insert.Insert("tts_int", teachtableSubject.Interested.ToString());
         insert.Insert("tts_rat", teachtableSubject.Rating.ToString());

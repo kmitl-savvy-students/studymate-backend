@@ -79,12 +79,13 @@ public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
         if (!SdmNumber.IsAcademicTerm(term) ||
             !SdmNumber.IsAcademicYear(year))
             throw new ArgumentException("Invalid academic year or term.");
+        
         // สร้าง Query Object พร้อมเงื่อนไข
         var select = new SdmMysqlQuerySelect("teachtable")
             .AddWhereCondition("tt_year", year.ToString())
             .AddWhereCondition("tt_term", term.ToString());
 
-        // ตรวจสอบผลลัพธ์
+        // ตรวจสอบว่ามี Teachtable อยู่แล้วหรือไม่
         var result = ProcessQuery(select);
         if (result.Count > 0)
         {
@@ -97,8 +98,8 @@ public abstract class SdmTeachtable : ISdmBaseMethod<Teachtable>
 
         // Query ใหม่เพื่อดึงข้อมูลที่สร้าง
         var selectAfterInsert = new SdmMysqlQuerySelect("teachtable")
-            .AddWhereCondition("academic_year", year.ToString())
-            .AddWhereCondition("academic_term", term.ToString());
+            .AddWhereCondition("tt_year", year.ToString())
+            .AddWhereCondition("tt_term", term.ToString());
 
         var newResult = ProcessQuery(selectAfterInsert);
         if (newResult.Count > 0)

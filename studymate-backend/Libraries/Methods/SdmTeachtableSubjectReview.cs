@@ -113,6 +113,7 @@ public class SdmTeachtableSubjectReview
             insert.Insert("tsr_rv", review.Review);  //✅
             insert.Insert("tsr_rt", review.Rating.ToString());  //✅
             insert.Insert("tsr_like", review.Like.ToString());  //✅
+            insert.Insert("tsr_date_created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
@@ -182,9 +183,7 @@ public class SdmTeachtableSubjectReview
             foreach (var teachtableSubject in subjectResult)
             {
                 var selectReview = GetQueryObj();
-                //ยังไม่ได้แก้
-                //
-                //กำลังแก้
+           
                 selectReview.AddWhereCondition("tsr_tts_id", teachtableSubject.Id.ToString()); //✅
                 selectReview.AddWhereCondition("tsr_user_id", studentId); //✅
 
@@ -259,6 +258,8 @@ public class SdmTeachtableSubjectReview
             {
                 throw new Exception("TeachtableSubject is null or has invalid id.");
             }
+            
+            Console.WriteLine($"Debug: teachableSubject.Id={teachableSubject?.Id}");
             Console.WriteLine($"TeachtableSubject: id={teachableSubject.Id}, subject_id={teachableSubject.SubjectId}");
     
             var user = SdmUser.GetBy(studentId);
@@ -275,6 +276,8 @@ public class SdmTeachtableSubjectReview
                 rating: rating,
                 like: 0
             );
+            Console.WriteLine($"Before Insert: TeachtableSubjectReview tts_tt_id={newReview.TeachtableSubject?.Id}");
+
             Console.WriteLine($"TeachtableSubjectReview Created: teachtable_subject_id={newReview.TeachtableSubject?.Id}, user_id={newReview.UserId}, review={newReview.Review}, rating={newReview.Rating}, like={newReview.Like}");
             Insert(newReview);
         }
