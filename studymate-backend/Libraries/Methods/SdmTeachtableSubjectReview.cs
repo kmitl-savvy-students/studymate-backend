@@ -446,15 +446,18 @@ public class SdmTeachtableSubjectReview
         {
             // ดึงจำนวน Like ของรีวิวนี้
             var select = new SdmMysqlQuerySelect("teachtable_subject_review_like");
-            select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+            // select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+            select.WhereEqual("tsrl_tsr_id", reviewId.ToString());
         
             // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
             var countLike = ProcessQuery(select).Count;
 
             // อัปเดตจำนวนไลค์ใน teachtable_subject_review
             var update = new SdmMysqlQueryUpdate("teachtable_subject_review");
-            update.Set("like", countLike.ToString());
-            update.WhereEqual("id", reviewId.ToString());
+            // update.Set("like", countLike.ToString());
+            // update.WhereEqual("id", reviewId.ToString());
+            update.Set("tsr_like", countLike.ToString());
+            update.WhereEqual("tsr_id", reviewId.ToString());
 
             var query = SdmMysqlQuery.Execute(update);
             query.CleanUp();
