@@ -6,13 +6,14 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public abstract partial class SdmSubjectClass
+public partial class SdmSubjectClass
 {
     private const string KmitlPublicApiUrl = "https://regis.reg.kmitl.ac.th/api/";
     private const string KmitlSubjectApiUrl = "https://api.reg.kmitl.ac.th/subject/";
 
     private static readonly HttpClient HttpClient = new();
 
+    #region Get Subjects
     public static async Task<Subject?> GetBy(string subjectId)
     {
         var apiUrl = $"{KmitlSubjectApiUrl}?" +
@@ -20,257 +21,251 @@ public abstract partial class SdmSubjectClass
                      $"&level_id=1" +
                      $"&subject_id={subjectId}";
 
-        Console.WriteLine(apiUrl);
-
         var subject = SdmSubject.GetBy(subjectId);
         if (subject != null)
             return subject;
 
-        try
-        {
-            var response = await HttpClient.GetAsync(apiUrl);
-            response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            var kmitlSubjects = JsonSerializer.Deserialize<List<DtoKmitlSubject>>(
-                responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (kmitlSubjects == null || kmitlSubjects.Count == 0)
-                return null;
-
-            subject = new Subject(
-                subjectId,
-                kmitlSubjects[0].SubjectNameTh ?? "",
-                kmitlSubjects[0].SubjectNameEn ?? "",
-                int.Parse(kmitlSubjects[0].Credit ?? "0"),
-                kmitlSubjects[0].Detail ?? ""
-            );
-            SdmSubject.Insert(subject);
-            return subject;
-        }
-        catch (Exception)
-        {
+        var responses = await GetDeserializedObjects<List<DtoKmitlSubject>>(apiUrl);
+        if (responses == null || responses.Count == 0)
             return null;
-        }
+
+        var teachtableSubject = responses[0];
+
+        subject = new Subject(
+            subjectId,
+            teachtableSubject.SubjectNameTh ?? "ไม่มี",
+            teachtableSubject.SubjectNameEn ?? "ไม่มี",
+            int.Parse(teachtableSubject.Credit ?? "0"),
+            teachtableSubject.Detail ?? "ไม่มี"
+        );
+        SdmSubject.Insert(subject);
+
+        return subject;
     }
     public static async Task<bool> GetBy(
-        Teachtable? inputTeachtable,
-        Models.Program? program,
+        Teachtable inputTeachtable,
+        Curriculum curriculum,
         string subjectId
     )
     {
-        if (inputTeachtable == null || program == null)
-            return false;
-
         var apiUrl = $"{KmitlPublicApiUrl}?" +
                      $"function=get-teach-table-show" +
                      $"&mode=by_subject_id" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
-                     $"&selected_faculty={program.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={program.Department?.KmitlId}" +
-                     $"&selected_curriculum={program.KmitlId}" +
+                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
+                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
                      $"&search_all_class_year=true" +
                      $"&selected_subject_id={subjectId}";
-        try
+
+        var responses = await GetDeserializedObjects<List<DtoKmitlResponse>>(apiUrl);
+        if (responses == null || responses.Count == 0)
+            return false;
+
+        foreach (var faculty in responses)
         {
-            var response = await HttpClient.GetAsync(apiUrl);
-            response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync();
+            if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                continue;
 
-            var kmitlResponses = JsonSerializer.Deserialize<List<DtoKmitlResponse>>(
-                responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (kmitlResponses == null || kmitlResponses.Count == 0)
-                return false;
-
-            foreach (var faculty in kmitlResponses)
+            foreach (var teachtable in faculty.Teachtables)
             {
-                if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                if (teachtable.Data == null || teachtable.Data.Count == 0)
                     continue;
 
-                foreach (var teachtable in faculty.Teachtables)
-                {
-                    if (teachtable.Data == null || teachtable.Data.Count == 0)
-                        continue;
-
-                    return true;
-                }
+                return true;
             }
-        }
-        catch (Exception)
-        {
-            return false;
         }
 
         return false;
     }
     public static async Task<SubjectClass?> GetBy(
-        Teachtable? inputTeachtable,
-        Models.Program? program,
+        Teachtable inputTeachtable,
+        Curriculum curriculum,
         string subjectId, string section
     )
     {
-        if (inputTeachtable == null || program == null)
-            return null;
-
         var apiUrl = $"{KmitlPublicApiUrl}?" +
                      $"function=get-teach-table-show" +
                      $"&mode=by_subject_id" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
-                     $"&selected_faculty={program.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={program.Department?.KmitlId}" +
-                     $"&selected_curriculum={program.KmitlId}" +
+                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
+                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
                      $"&search_all_class_year=true" +
                      $"&selected_subject_id={subjectId}";
-        try
+
+        var responses = await GetDeserializedObjects<List<DtoKmitlResponse>>(apiUrl);
+        if (responses == null || responses.Count == 0)
+            return null;
+
+        foreach (var faculty in responses)
         {
-            var response = await HttpClient.GetAsync(apiUrl);
-            response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync();
+            if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                continue;
 
-            var kmitlResponses = JsonSerializer.Deserialize<List<DtoKmitlResponse>>(
-                responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (kmitlResponses == null || kmitlResponses.Count == 0)
-                return null;
-
-            foreach (var faculty in kmitlResponses)
+            foreach (var teachtable in faculty.Teachtables)
             {
-                if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                if (teachtable.Data == null || teachtable.Data.Count == 0)
                     continue;
 
-                foreach (var teachtable in faculty.Teachtables)
+                foreach (var teachtableSubject in teachtable.Data)
                 {
-                    if (teachtable.Data == null || teachtable.Data.Count == 0)
+                    if (teachtableSubject.Section != section)
                         continue;
 
-                    foreach (var teachtableSubject in teachtable.Data.Where(teachtableSubject => teachtableSubject.Section == section))
-                        return new SubjectClass(
-                            SdmSubject.GetBy(teachtableSubject.SubjectId),
-                            faculty.Class ?? "ไม่ระบุ", [],
-                            int.Parse(teachtableSubject.Section ?? "0"),
-                            teachtableSubject.CreditLps ?? "ไม่ระบุ",
-                            teachtableSubject.ClassBuilding ?? "ไม่ระบุ",
-                            teachtableSubject.RoomNumber ?? "ไม่ระบุ",
-                            TransformTeacherList(teachtableSubject.TeacherListTh),
-                            TransformTeacherList(teachtableSubject.TeacherListEn),
-                            TransformClassDatetime(teachtableSubject.ClassDateTime),
-                            TransformDateTime(teachtableSubject.MidtermStartDateTime, teachtableSubject.MidtermEndDateTime, "กลางภาค"),
-                            TransformDateTime(teachtableSubject.FinalStartDateTime, teachtableSubject.FinalEndDateTime, "ปลายภาค"),
-                            0,
-                            teachtableSubject.SessionType switch
-                            {
-                                "ท" => "ทฤษฎี",
-                                "ป" => "ปฏิบัติ",
-                                _ => teachtableSubject.SessionType ?? "ไม่ระบุ"
-                            },
-                            teachtableSubject.Rule, teachtableSubject.Remark
-                        );
+                    var subjectClass = CreateSubjectClass(
+                        teachtableSubject,
+                        faculty.Class,
+                        curriculum.CurriculumGroup
+                    );
+                    if (subjectClass == null)
+                        continue;
+
+                    return subjectClass;
                 }
             }
-        }
-        catch (Exception)
-        {
-            return null;
         }
 
         return null;
     }
-
     public static async Task<List<SubjectClass>> GetAllBy(
-        Teachtable? inputTeachtable,
-        Models.Program? program,
+        Teachtable inputTeachtable,
+        Curriculum curriculum,
         string year
     )
     {
-        if (inputTeachtable == null || program == null)
-            return [];
-
         var apiUrl = $"{KmitlPublicApiUrl}?" +
                      $"function=get-teach-table-show" +
                      $"&mode=by_class" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
                      $"&selected_class_year={year}" +
-                     $"&selected_faculty={program.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={program.Department?.KmitlId}" +
-                     $"&selected_curriculum={program.KmitlId}" +
+                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
+                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
                      $"&search_all_class_year={(year == "0" ? "true" : "false")}";
+
+        var responses = await GetDeserializedObjects<List<DtoKmitlResponse>>(apiUrl);
+        if (responses == null || responses.Count == 0)
+            return [];
+
+        var results = new List<SubjectClass>();
+        foreach (var faculty in responses)
+        {
+            if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
+                continue;
+
+            foreach (var teachtable in faculty.Teachtables)
+            {
+                if (teachtable.Data == null || teachtable.Data.Count == 0)
+                    continue;
+
+                foreach (var teachtableSubject in teachtable.Data)
+                {
+                    var subjectClass = CreateSubjectClass(
+                        teachtableSubject,
+                        faculty.Class,
+                        curriculum.CurriculumGroup
+                    );
+                    if (subjectClass == null)
+                        continue;
+
+                    results.Add(subjectClass);
+                }
+            }
+        }
+
+        return results;
+    }
+    #endregion
+    #region Helper Functions
+    private static SubjectClass? CreateSubjectClass(
+        DtoKmitlTeachtableSubject teachtableSubject,
+        string? classYear,
+        CurriculumGroup? curriculumGroup
+    )
+    {
+        var subjectClassSubject = SdmSubject.GetBy(teachtableSubject.SubjectId);
+        if (subjectClassSubject == null)
+            return null;
+
+        var subjectClassGroupNames = SdmCurriculumGroup.GetAllBy(subjectClassSubject, curriculumGroup);
+
+        var subjectClassSection = int.Parse(teachtableSubject.Section ?? "0");
+
+        var subjectClassClassYear = classYear ?? "ไม่ระบุ";
+        var subjectClassCreditLps = teachtableSubject.CreditLps ?? "ไม่ระบุ";
+        var subjectClassClassBuilding = teachtableSubject.ClassBuilding ?? "ไม่ระบุ";
+        var subjectClassRoomNumber = teachtableSubject.RoomNumber ?? "ไม่ระบุ";
+        var subjectClassRule = teachtableSubject.Rule ?? "ไม่ระบุ";
+        var subjectClassRemark = teachtableSubject.Remark ?? "ไม่ระบุ";
+
+        var subjectClassRating = 0;
+
+        var subjectClassTeacherListTh = TransformTeacherList(teachtableSubject.TeacherListTh);
+        var subjectClassTeacherListEn = TransformTeacherList(teachtableSubject.TeacherListEn);
+
+        var subjectClassClassDatetime = TransformClassDatetime(teachtableSubject.ClassDateTime);
+        var subjectClassMidtermDatetime = TransformDatetime(teachtableSubject.MidtermStartDatetime, teachtableSubject.MidtermEndDatetime, "กลางภาค");
+        var subjectClassFinaltermDatetime = TransformDatetime(teachtableSubject.FinaltermStartDatetime, teachtableSubject.FinaltermEndDatetime, "ปลายภาค");
+
+        var subjectClassSessionType = teachtableSubject.SessionType switch
+        {
+            "ท" => "ทฤษฎี",
+            "ป" => "ปฏิบัติ",
+            _ => teachtableSubject.SessionType ?? "ไม่ระบุ"
+        };
+
+        return new SubjectClass(
+            subjectClassSubject, subjectClassClassYear, subjectClassGroupNames,
+            subjectClassSection, subjectClassCreditLps, subjectClassClassBuilding,
+            subjectClassRoomNumber, subjectClassTeacherListTh, subjectClassTeacherListEn,
+            subjectClassClassDatetime, subjectClassMidtermDatetime, subjectClassFinaltermDatetime,
+            subjectClassRating, subjectClassSessionType, subjectClassRule, subjectClassRemark
+        );
+    }
+    private static async Task<T?> GetDeserializedObjects<T>(string apiUrl)
+    {
         try
         {
             var response = await HttpClient.GetAsync(apiUrl);
             response.EnsureSuccessStatusCode();
+
             var responseContent = await response.Content.ReadAsStringAsync();
 
-            var kmitlResponses = JsonSerializer.Deserialize<List<DtoKmitlResponse>>(
+            var deserializedObject = JsonSerializer.Deserialize<T>(
                 responseContent,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
 
-            if (kmitlResponses == null || kmitlResponses.Count == 0)
-                return [];
-
-            var subjectClasses = new List<SubjectClass>();
-            foreach (var faculty in kmitlResponses)
-            {
-                if (faculty.Teachtables == null || faculty.Teachtables.Count == 0)
-                    continue;
-
-                foreach (var teachtable in faculty.Teachtables)
-                {
-                    if (teachtable.Data == null || teachtable.Data.Count == 0)
-                        continue;
-
-                    subjectClasses.AddRange(
-                        teachtable.Data.Select(teachtableSubject => new SubjectClass(
-                            SdmSubject.GetBy(teachtableSubject.SubjectId),
-                            faculty.Class ?? "ไม่ระบุ", [],
-                            int.Parse(teachtableSubject.Section ?? "0"),
-                            teachtableSubject.CreditLps ?? "ไม่ระบุ",
-                            teachtableSubject.ClassBuilding ?? "ไม่ระบุ",
-                            teachtableSubject.RoomNumber ?? "ไม่ระบุ",
-                            TransformTeacherList(teachtableSubject.TeacherListTh),
-                            TransformTeacherList(teachtableSubject.TeacherListEn),
-                            TransformClassDatetime(teachtableSubject.ClassDateTime),
-                            TransformDateTime(teachtableSubject.MidtermStartDateTime, teachtableSubject.MidtermEndDateTime, "กลางภาค"),
-                            TransformDateTime(teachtableSubject.FinalStartDateTime, teachtableSubject.FinalEndDateTime, "ปลายภาค"),
-                            0,
-                            teachtableSubject.SessionType switch
-                            {
-                                "ท" => "ทฤษฎี",
-                                "ป" => "ปฏิบัติ",
-                                _ => teachtableSubject.SessionType ?? "ไม่ระบุ"
-                            }, teachtableSubject.Rule, teachtableSubject.Remark)
-                        )
-                    );
-                }
-            }
-
-            return subjectClasses;
+            return deserializedObject;
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            return [];
+            Console.WriteLine($"[ERROR] HTTP Request Error: {ex.Message}");
         }
-    }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"[ERROR] JSON Parsing Error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Unexpected Error: {ex.Message}");
+        }
 
+        return default;
+    }
     private static List<string> TransformTeacherList(string? rawTeacherList)
     {
         if (string.IsNullOrWhiteSpace(rawTeacherList))
@@ -280,7 +275,6 @@ public abstract partial class SdmSubjectClass
         var teachers = cleanTeacherList.Split(["\n"], StringSplitOptions.RemoveEmptyEntries);
         return teachers.Select(t => t.Trim()).Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
     }
-
     private static List<string> TransformClassDatetime(string? rawDatetime)
     {
         if (string.IsNullOrWhiteSpace(rawDatetime))
@@ -335,8 +329,7 @@ public abstract partial class SdmSubjectClass
 
         return result;
     }
-
-    private static List<string> TransformDateTime(string? startDateTime, string? endDateTime, string phase)
+    private static List<string> TransformDatetime(string? startDateTime, string? endDateTime, string phase)
     {
         if (string.IsNullOrWhiteSpace(startDateTime) || string.IsNullOrWhiteSpace(endDateTime))
             return [phase, "ไม่ระบุ", "ไม่ระบุ"];
@@ -350,10 +343,10 @@ public abstract partial class SdmSubjectClass
 
         return [phase, $"{dayOfWeek} {date}", timeRange];
     }
-
     [GeneratedRegex("<.*?>")]
     private static partial Regex RegexCleanTeacherList();
-
+    #endregion
+    #region Dto Classes
     public class DtoKmitlResponse
     {
         [JsonPropertyName("class")] public required string? Class { get; init; } = string.Empty;
@@ -378,16 +371,16 @@ public abstract partial class SdmSubjectClass
         [JsonPropertyName("teacher_list_en")] public required string? TeacherListEn { get; init; } = string.Empty;
 
         [JsonPropertyName("midterm_start_date_time")]
-        public required string? MidtermStartDateTime { get; init; } = string.Empty;
+        public required string? MidtermStartDatetime { get; init; } = string.Empty;
 
         [JsonPropertyName("midterm_end_date_time")]
-        public required string? MidtermEndDateTime { get; init; } = string.Empty;
+        public required string? MidtermEndDatetime { get; init; } = string.Empty;
 
         [JsonPropertyName("final_start_date_time")]
-        public required string? FinalStartDateTime { get; init; } = string.Empty;
+        public required string? FinaltermStartDatetime { get; init; } = string.Empty;
 
         [JsonPropertyName("final_end_date_time")]
-        public required string? FinalEndDateTime { get; init; } = string.Empty;
+        public required string? FinaltermEndDatetime { get; init; } = string.Empty;
 
         [JsonPropertyName("rule")] public required string? Rule { get; init; } = string.Empty;
         [JsonPropertyName("remark")] public required string? Remark { get; init; } = string.Empty;
@@ -400,4 +393,5 @@ public abstract partial class SdmSubjectClass
         [JsonPropertyName("credit")] public required string? Credit { get; init; } = string.Empty;
         [JsonPropertyName("detail")] public required string? Detail { get; init; } = string.Empty;
     }
+    #endregion
 }

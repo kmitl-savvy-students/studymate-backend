@@ -6,8 +6,6 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 {
-    private static Dictionary<int, CurriculumGroup> _cache = new();
-
     public static string TableName => "curriculum_group";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
@@ -50,11 +48,35 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 curriculumGroupSubject.Group = null;
             curriculumGroup.Subjects = curriculumGroupSubjects;
         }
+
         return curriculumGroups;
+    }
+    public static List<CurriculumGroup> GetAllBy(Subject subject, CurriculumGroup? currentNode)
+    {
+        if (currentNode == null)
+            return [];
+
+        var result = new List<CurriculumGroup>();
+        foreach (var currentNodeSubject in currentNode.Subjects)
+            if (currentNodeSubject.Subject == subject)
+                result.Add(new CurriculumGroup(
+                    currentNode.Id,
+                    null,
+                    currentNode.Type,
+                    currentNode.Name,
+                    currentNode.Credit,
+                    currentNode.Color,
+                    [], []
+                ));
+
+        foreach (var child in currentNode.Children)
+            result.AddRange(GetAllBy(subject, child));
+
+        return result;
     }
     public static CurriculumGroup? GetBy(int id)
     {
-        if (_cache.TryGetValue(id, out var value))
+        if (Cache.TryGetValue(id, out var value))
             return value;
 
         var select = GetQueryObj();
@@ -64,13 +86,13 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var curriculumGroup = result.Count == 0 ? null : result[0];
         if (curriculumGroup == null)
             return null;
-        _cache.Add(curriculumGroup.Id, curriculumGroup);
+        Cache.TryAdd(curriculumGroup.Id, curriculumGroup);
         return curriculumGroup;
     }
 
     public static CurriculumGroup Insert(CurriculumGroup curriculumGroup)
     {
-        _cache.Clear();
+        Cache.Clear();
 
         var insert = new SdmMysqlQueryInsert(TableName);
 
@@ -87,7 +109,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
     }
     public static void UpdateBy(CurriculumGroup curriculumGroup)
     {
-        _cache.Clear();
+        Cache.Clear();
 
         var update = new SdmMysqlQueryUpdate(TableName);
 
@@ -102,4 +124,12 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
     }
+
+    #region Caching
+    private static readonly Dictionary<int, CurriculumGroup> Cache = new();
+    public static void ClearCache()
+    {
+        Cache.Clear();
+    }
+    #endregion
 }
