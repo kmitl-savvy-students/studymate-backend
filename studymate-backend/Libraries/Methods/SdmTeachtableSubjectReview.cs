@@ -117,6 +117,9 @@ public class SdmTeachtableSubjectReview
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
+            
+            // อัปเดต count_of_review และ rating
+            SdmTeachtableSubject.UpdateReviewStats(review.TeachtableSubject.SubjectId);
 
             Console.WriteLine("TeachtableSubjectReview Inserted Successfully!");
         }
@@ -226,6 +229,10 @@ public class SdmTeachtableSubjectReview
 
                 var query = SdmMysqlQuery.Execute(delete);
                 query.CleanUp();
+                
+                // อัปเดต count_of_review และ rating
+                SdmTeachtableSubject.UpdateReviewStats(subject.SubjectId);
+                
                 Console.WriteLine($"Deleted review for teachtable_subject_id={subject.Id}, user_id={studentId}");
             }
         }

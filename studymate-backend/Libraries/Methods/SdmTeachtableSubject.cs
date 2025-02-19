@@ -113,5 +113,76 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             throw;
         }
     }
+    
+    public static void UpdateReviewStats(string subjectId)
+    {
+        try
+        {
+            // ดึง teachtable_subject ที่ตรงกับ subjectId
+            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
+            selectSubject.AddWhereCondition("tts_sbj_id", subjectId);
+            var subjectList = ProcessQuery(selectSubject, true);
+
+            foreach (var teachtableSubject in subjectList)
+            {
+                // ดึงจำนวนรีวิวจาก teachtable_subject_review
+                var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
+                selectReview.AddWhereCondition("tsr_tts_id", teachtableSubject.Id.ToString());
+
+                var reviews = SdmTeachtableSubjectReview.ProcessQuery(selectReview, true);
+                int countOfReview = reviews.Count;
+                float averageRating = countOfReview > 0 ? reviews.Average(r => r.Rating) : 0.0f;
+
+                // ตรวจสอบว่า countOfReview มีค่ามากกว่า 0 หรือไม่
+                Console.WriteLine($"Updating SubjectId: {subjectId} -> countOfReview: {countOfReview}, averageRating: {averageRating}");
+
+                // อัปเดตค่าในฐานข้อมูล
+                var update = new SdmMysqlQueryUpdate("teachtable_subject");
+                update.Set("tts_cor", countOfReview.ToString());
+                update.Set("tts_rat", averageRating.ToString("0.00"));
+                update.WhereEqual("tts_id", teachtableSubject.Id.ToString());
+
+                var query = SdmMysqlQuery.Execute(update);
+                query.CleanUp();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in UpdateReviewStats: {ex.Message}");
+            throw;
+        }
+    }
+
+    
+    public static (int countOfReview, float averageRating)? GetReviewStats(string subjectId)
+    {
+        // ดึง teachtable_subject_id ที่ตรงกับ subjectId
+        var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
+        selectSubject.AddWhereCondition("tts_sbj_id", subjectId);
+        var subjectList = ProcessQuery(selectSubject, true);
+
+        if (subjectList.Count == 0)
+            return null;
+
+        // รวมรีวิวทั้งหมดจาก teachtable_subject_review
+        int totalReviews = 0;
+        float totalRating = 0;
+
+        foreach (var subject in subjectList)
+        {
+            var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
+            selectReview.AddWhereCondition("tsr_tts_id", subject.Id.ToString());
+
+            var reviews = SdmTeachtableSubjectReview.ProcessQuery(selectReview, true);
+            totalReviews += reviews.Count;
+            totalRating += reviews.Sum(r => r.Rating);
+        }
+
+        // คำนวณค่าเฉลี่ยเรตติ้ง
+        float avgRating = totalReviews > 0 ? totalRating / totalReviews : 0.0f;
+
+        return (totalReviews, avgRating);
+    }
+
 
 }
