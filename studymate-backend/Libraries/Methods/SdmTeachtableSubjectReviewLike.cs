@@ -1,7 +1,4 @@
-﻿
-/* TEMP
-using Google.Rpc.Context;
-using studymate_backend.Libraries.Database;
+﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 
@@ -10,14 +7,14 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
 {
     public static string TableName => "teachtable_subject_review_like";
 
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<TeachtableSubjectReviewLike> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<TeachtableSubjectReviewLike> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
         var result = new List<TeachtableSubjectReviewLike>();
         while (query.Next())
         {
@@ -26,9 +23,7 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
                 SdmTeachtableSubjectReview.GetById(query.ToInt(1)),
                 query.ToInt(0)
                 ));
-                // if (!isArray) break;
         }
-
         query.CleanUp();
         return result;
     }
@@ -36,8 +31,8 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
     public static TeachtableSubjectReviewLike GetByUserIdAndReviewId(string user_id, string teachtableSubjectReviewId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("teachtable_subject_review_id", teachtableSubjectReviewId);
-        select.WhereEqual("user_id", user_id);
+        select.WhereEqual("tsrl_tsr_id", teachtableSubjectReviewId);
+        select.WhereEqual("tsrl_user_id", user_id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -50,7 +45,7 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
     public static List<TeachtableSubjectReviewLike> GetByReviewId(string teachtableSubjectReviewId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("teachtable_subject_review_id", teachtableSubjectReviewId);
+        select.WhereEqual("tsrl_tsr_id", teachtableSubjectReviewId);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -66,15 +61,15 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
     {
         try
         {
-            var insert = new SdmPgsqlQueryInsert(TableName);
-            insert.Insert("teachtable_subject_review_id", reviewLike.teachtable_subject_review.id.ToString());
-            insert.Insert("user_id", reviewLike.user_id);
+            var insert = new SdmMysqlQueryInsert(TableName);
+            insert.Insert("tsrl_tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
+            insert.Insert("tsrl_user_id", reviewLike.UserId);
 
-            var query = SdmPgsqlQuery.Execute(insert);
+            var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
             Console.WriteLine("Like Successfully!");
 
-            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.teachtable_subject_review.id);
+            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.TeachtableSubjectReview.Id);
         }
         catch (Exception ex)
         {
@@ -87,8 +82,8 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
     {
         try
         {
-            var selectReview = new SdmPgsqlQuerySelect("teachtable_subject_review");
-            selectReview.AddWhereCondition("id", reviewLike.teachtable_subject_review.id.ToString());
+            var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
+            selectReview.AddWhereCondition("tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
 
             var reviewResult = SdmTeachtableSubjectReview.ProcessQuery(selectReview, false);
             if (reviewResult.Count == 0)
@@ -96,15 +91,15 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
                 throw new Exception("review not found.");
             }
 
-            var delete = new SdmPgsqlQueryDelete("teachtable_subject_review_like");
-            delete.WhereEqual("teachtable_subject_review_id", reviewLike.teachtable_subject_review.id.ToString());
-            delete.WhereEqual("user_id", reviewLike.user_id);
+            var delete = new SdmMysqlQueryDelete("teachtable_subject_review_like");
+            delete.WhereEqual("tsrl_tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
+            delete.WhereEqual("tsrl_user_id", reviewLike.UserId);
 
-            var query = SdmPgsqlQuery.Execute(delete);
+            var query = SdmMysqlQuery.Execute(delete);
             query.CleanUp();
-            Console.WriteLine($"deleted like of review teachtable_subject_review_id={reviewLike.teachtable_subject_review.id.ToString()}, user_id={reviewLike.user_id}");
+            Console.WriteLine($"deleted like of review teachtable_subject_review_id={reviewLike.TeachtableSubjectReview.Id}, user_id={reviewLike.UserId}");
 
-            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.teachtable_subject_review.id);
+            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.TeachtableSubjectReview.Id);
         }
         catch (Exception ex)
         {
@@ -124,15 +119,14 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         }
 
         // ตรวจสอบว่า Token หมดอายุหรือไม่
-        if (userToken.expired.ToDateTime() < DateTime.Now)
+        if (userToken.DateExpired.ToDateTime() < DateTime.Now)
         {
             Console.WriteLine("[Error] Token has expired.");
             return null;
         }
 
         // คืนค่า User ที่เชื่อมโยงกับ Token
-        return userToken.user;
+        return userToken.User;
     }
 
 }
-*/
