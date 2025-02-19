@@ -12,9 +12,9 @@ public class CurriculumGroupSubjectController : ControllerBase
     #region [DELETE] Delete
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("delete/{id:int}")]
-    public ActionResult<CurriculumGroupSubject> Delete(int id)
+    public ActionResult Delete(int id)
     {
-        SdmCurriculumGroupSubject.Delete(id);
+        SdmCurriculumGroupSubject.DeleteBy(id);
         return Ok();
     }
     #endregion

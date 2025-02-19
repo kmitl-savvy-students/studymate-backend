@@ -107,6 +107,21 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         query.CleanUp();
         return curriculumGroup;
     }
+    public static void DeleteBy(int id)
+    {
+        var curriculumGroup = GetBy(id);
+        if (curriculumGroup == null)
+            return;
+
+        SdmCurriculumGroupSubject.DeleteBy(curriculumGroup);
+
+        var delete = new SdmMysqlQueryDelete(TableName);
+
+        delete.WhereEqual("cg_id", curriculumGroup.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(delete);
+        query.CleanUp();
+    }
     public static void UpdateBy(CurriculumGroup curriculumGroup)
     {
         Cache.Clear();
