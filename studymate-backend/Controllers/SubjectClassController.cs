@@ -19,7 +19,7 @@ public class SubjectClassController : ControllerBase
     )
     {
         var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
-        var curriculum = SdmCurriculum.GetBy(curriculumId);
+        var curriculum = curriculumId == 0 ? new Curriculum(0, null, 0, "x", "x", null) : SdmCurriculum.GetBy(curriculumId);
 
         if (teachtable == null || curriculum == null)
             return BadRequest("Invalid academic year, term, or curriculum.");

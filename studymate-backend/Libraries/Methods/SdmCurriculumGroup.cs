@@ -58,7 +58,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 
         var result = new List<CurriculumGroup>();
         foreach (var currentNodeSubject in currentNode.Subjects)
-            if (currentNodeSubject.Subject == subject)
+            if (currentNodeSubject.Subject?.Id == subject.Id)
                 result.Add(new CurriculumGroup(
                     currentNode.Id,
                     null,

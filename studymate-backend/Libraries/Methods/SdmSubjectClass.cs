@@ -142,7 +142,23 @@ public partial class SdmSubjectClass
         string year
     )
     {
-        var apiUrl = $"{KmitlPublicApiUrl}?" +
+        string apiUrl;
+        if (curriculum.Id == 0)
+            apiUrl = $"{KmitlPublicApiUrl}?" +
+                     $"function=get-teach-table-show" +
+                     $"&mode=by_class" +
+                     $"&selected_year={inputTeachtable.Year + 543}" +
+                     $"&selected_semester={inputTeachtable.Term}" +
+                     $"&selected_class_year={year}" +
+                     $"&selected_faculty=90" +
+                     $"&selected_department=90" +
+                     $"&selected_curriculum=x" +
+                     $"&search_all_faculty=false" +
+                     $"&search_all_department=false" +
+                     $"&search_all_curriculum=false" +
+                     $"&search_all_class_year={(year == "0" ? "true" : "false")}";
+        else
+            apiUrl = $"{KmitlPublicApiUrl}?" +
                      $"function=get-teach-table-show" +
                      $"&mode=by_class" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
