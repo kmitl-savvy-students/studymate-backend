@@ -133,7 +133,28 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
                 int countOfReview = reviews.Count;
                 float averageRating = countOfReview > 0 ? reviews.Average(r => r.Rating) : 0.0f;
 
-                // ตรวจสอบว่า countOfReview มีค่ามากกว่า 0 หรือไม่
+                // ดึงค่าปัจจุบันจากฐานข้อมูลโดยตรง
+                var selectCurrent = new SdmMysqlQuerySelect("teachtable_subject");
+                selectCurrent.AddWhereCondition("tts_id", teachtableSubject.Id.ToString());
+
+                var query = SdmMysqlQuery.Execute(selectCurrent);
+                int currentCount = 0;
+                float currentRating = 0.0f;
+
+                if (query.Next()) 
+                {
+                    currentCount = query.ToInt(5); // index ของ tts_cor
+                    currentRating = query.ToFloat(4); // index ของ tts_rat
+                }
+                query.CleanUp();
+
+                // ถ้าค่าไม่เปลี่ยนแปลง ไม่ต้อง update
+                if (currentCount == countOfReview && Math.Abs(currentRating - averageRating) < 0.01)
+                {
+                    Console.WriteLine($"No change for SubjectId: {subjectId}, skipping update.");
+                    continue;
+                }
+
                 Console.WriteLine($"Updating SubjectId: {subjectId} -> countOfReview: {countOfReview}, averageRating: {averageRating}");
 
                 // อัปเดตค่าในฐานข้อมูล
@@ -142,8 +163,8 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
                 update.Set("tts_rat", averageRating.ToString("0.00"));
                 update.WhereEqual("tts_id", teachtableSubject.Id.ToString());
 
-                var query = SdmMysqlQuery.Execute(update);
-                query.CleanUp();
+                var updateQuery = SdmMysqlQuery.Execute(update);
+                updateQuery.CleanUp();
             }
         }
         catch (Exception ex)
@@ -152,7 +173,6 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             throw;
         }
     }
-
     
     public static (int countOfReview, float averageRating)? GetReviewStats(string subjectId)
     {
