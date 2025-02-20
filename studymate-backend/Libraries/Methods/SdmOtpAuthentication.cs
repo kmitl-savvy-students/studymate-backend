@@ -136,6 +136,11 @@ public class SdmOtpAuthentication
     // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
     public static OtpAuthentication RequestOtp(int userId)
     {
+        if (SdmUser.GetBy(userId) != null)
+        {
+            throw new Exception("Cannot request OTP. User already exists.");
+        }
+        
         // ดึง OTP ล่าสุดของ userId
         var lastOtp = GetLastOtpForUser(userId);
     
@@ -144,7 +149,7 @@ public class SdmOtpAuthentication
             var timeElapsed = (DateTime.UtcNow - lastOtp.DateCreated.ToDateTime()).TotalSeconds;
             if (timeElapsed < 60)
             {
-                throw new Exception("OTP request too frequent. Please wait before requesting again.");
+                throw new Exception("คุณขอ OTP บ่อยเกินไป กรุณารอสักครู่ก่อนลองใหม่อีกครั้งค่ะ");
             }
         }
         
