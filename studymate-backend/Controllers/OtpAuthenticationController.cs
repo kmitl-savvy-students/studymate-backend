@@ -29,7 +29,7 @@ public class OtpAuthenticationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "คุณขอ OTP บ่อยเกินไป กรุณารอสักครู่ก่อนลองใหม่อีกครั้งค่ะ", error = ex.Message });
+            return StatusCode(500, new { message = "can't generate your otp code.", error = ex.Message });
         }
     }
 
