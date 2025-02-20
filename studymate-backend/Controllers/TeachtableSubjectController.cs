@@ -2,31 +2,28 @@
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
-[Route("teachtable-subject")]
+[Route("api/teachtable-subject")]
 [ApiController]
 public class TeachtableSubjectController : ControllerBase
 {
-    [HttpGet("get/count-and-rating-review/{subjectId}")]
-    public IActionResult GetReviewStats(string subjectId)
+    [HttpGet("get/{subjectId}")]
+    public IActionResult GetBySubject(string subjectId)
     {
         try
         {
-            var stats = SdmTeachtableSubject.GetReviewStats(subjectId);
-            if (stats == null)
+            var teachtableSubject = SdmTeachtableSubject.GetBySubject(subjectId);
+            if (teachtableSubject == null)
             {
-                return NotFound(new { message = "Subject not found or no reviews available." });
+                return NotFound(new {message = "This subjectId does not exist in TeachtableSubject."});
             }
 
-            return Ok(new
-            {
-                subject_id = subjectId,
-                count_of_review = stats.Value.countOfReview,
-                average_rating = stats.Value.averageRating
-            });
+            return Ok(teachtableSubject);
+
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            Console.WriteLine(ex);
+            throw;
         }
     }
 }
