@@ -25,6 +25,16 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            if (user.Id != reviewDto.StudentId || user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
             SdmTeachtableSubjectReview.CreateReview(
                 studentId: reviewDto.StudentId,
                 year: reviewDto.Year,
@@ -93,6 +103,16 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            if (user.Id.ToString() != studentId || user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
             var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
