@@ -173,35 +173,16 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             throw;
         }
     }
-    
-    public static (int countOfReview, float averageRating)? GetReviewStats(string subjectId)
+
+    public static TeachtableSubject GetBySubject(string subjectId)
     {
-        // ดึง teachtable_subject_id ที่ตรงกับ subjectId
-        var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
-        selectSubject.AddWhereCondition("tts_sbj_id", subjectId);
-        var subjectList = ProcessQuery(selectSubject, true);
-
-        if (subjectList.Count == 0)
+        var select = GetQueryObj();
+        select.WhereEqual("tts_sbj_id", subjectId);
+        
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
             return null;
-
-        // รวมรีวิวทั้งหมดจาก teachtable_subject_review
-        int totalReviews = 0;
-        float totalRating = 0;
-
-        foreach (var subject in subjectList)
-        {
-            var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
-            selectReview.AddWhereCondition("tsr_tts_id", subject.Id.ToString());
-
-            var reviews = SdmTeachtableSubjectReview.ProcessQuery(selectReview, true);
-            totalReviews += reviews.Count;
-            totalRating += reviews.Sum(r => r.Rating);
-        }
-
-        // คำนวณค่าเฉลี่ยเรตติ้ง
-        float avgRating = totalReviews > 0 ? totalRating / totalReviews : 0.0f;
-
-        return (totalReviews, avgRating);
+        return result[0];
     }
 
 
