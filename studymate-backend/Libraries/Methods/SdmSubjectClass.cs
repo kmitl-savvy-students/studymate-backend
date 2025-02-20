@@ -216,6 +216,7 @@ public partial class SdmSubjectClass
         if (subjectClassSubject == null)
             return null;
 
+        SdmCurriculumGroup.AssignColors(curriculumGroup);
         var subjectClassGroupNames = SdmCurriculumGroup.GetAllBy(subjectClassSubject, curriculumGroup);
 
         var subjectClassSection = int.Parse(teachtableSubject.Section ?? "0");

@@ -140,6 +140,20 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         query.CleanUp();
     }
 
+    public static void AssignColors(CurriculumGroup? node, string? parentColor = null)
+    {
+        if (node == null) return;
+
+        if (string.IsNullOrWhiteSpace(node.Color) || node.Color == "#FFFFFF")
+            if (!string.IsNullOrWhiteSpace(parentColor))
+                node.Color = parentColor;
+
+        var currentColor = node.Color;
+
+        foreach (var child in node.Children) AssignColors(child, currentColor);
+    }
+
+
     #region Caching
     private static readonly Dictionary<int, CurriculumGroup> Cache = new();
     public static void ClearCache()
