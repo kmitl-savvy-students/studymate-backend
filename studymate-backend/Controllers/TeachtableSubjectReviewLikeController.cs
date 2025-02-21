@@ -1,8 +1,5 @@
-﻿
-/* TEMP
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Methods;
 using studymate_backend.Libraries.Models;
 
@@ -28,7 +25,7 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
             }
 
             var user = SdmTeachtableSubjectReviewLike.GetUserInfoFromToken(token);
-            var alreadyLike = SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.id, reviewLikeDto.TeachtableSubjectReviewId.ToString());
+            var alreadyLike = SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), reviewLikeDto.TeachtableSubjectReviewId.ToString());
 
             if (alreadyLike != null)
             {
@@ -36,8 +33,8 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
             }
 
             var reviewLike = new TeachtableSubjectReviewLike(
-                user_id: user.id,
-                teachtable_subject_review: existingReview
+                userId: user.Id.ToString(),
+                teachtableSubjectReview: existingReview
             );
 
             SdmTeachtableSubjectReviewLike.Insert(reviewLike);
@@ -70,19 +67,19 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
 
             var user = SdmTeachtableSubjectReviewLike.GetUserInfoFromToken(token);
             var reviewLike = new TeachtableSubjectReviewLike(
-                user_id: user.id,
-                teachtable_subject_review: review
+                userId: user.Id.ToString(),
+                teachtableSubjectReview: review
             );
 
-            Console.WriteLine($"{SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.id, review.id.ToString())}");
+            Console.WriteLine($"{SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString())}");
 
-            if (SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.id, review.id.ToString()) == null)
+            if (SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString()) == null)
             {
                 return NotFound(new {message = "Like not found."});
             }
 
             SdmTeachtableSubjectReviewLike.Delete(reviewLike);
-            Console.WriteLine($"user_id = {user.id}, review_id = {review.id}");
+            Console.WriteLine($"user_id = {user.Id}, review_id = {review.Id}");
             return Ok(new { message = "Unlike this review successfully." });
 
         }
@@ -124,5 +121,3 @@ public class TeachtableSubjectReviewLikeDto
 {
     public int TeachtableSubjectReviewId { get; set; }
 }
-*/
-

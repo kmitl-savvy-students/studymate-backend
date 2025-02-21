@@ -117,6 +117,9 @@ public class SdmTeachtableSubjectReview
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
+            
+            // อัปเดต count_of_review และ rating
+            SdmTeachtableSubject.UpdateReviewStats(review.TeachtableSubject.SubjectId);
 
             Console.WriteLine("TeachtableSubjectReview Inserted Successfully!");
         }
@@ -216,18 +219,40 @@ public class SdmTeachtableSubjectReview
             {
                 throw new Exception("TeachtableSubject not found.");
             }
-
-            // ลบข้อมูล teachtable_subject_review ทั้งหมดที่เกี่ยวข้องกับ user_id
+            
+            // ลบข้อมูล teachtable_subject_review_like และ teachtable_subject_review ที่เกี่ยวข้อง
             foreach (var subject in subjectResult)
             {
-                var delete = new SdmMysqlQueryDelete(TableName);
-                delete.WhereEqual("tsr_tts_id", subject.Id.ToString()); //✅
-                delete.WhereEqual("tsr_user_id", studentId); //✅
+                // ค้นหาทุก review ที่เกี่ยวข้อง
+                var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
+                selectReview.AddWhereCondition("tsr_tts_id", subject.Id.ToString());
+                selectReview.AddWhereCondition("tsr_user_id", studentId);
 
-                var query = SdmMysqlQuery.Execute(delete);
-                query.CleanUp();
+                var reviewResult = ProcessQuery(selectReview, true);
+                foreach (var review in reviewResult)
+                {
+                    // ลบ Like ที่อ้างอิงถึง review นั้น
+                    var deleteLike = new SdmMysqlQueryDelete("teachtable_subject_review_like");
+                    deleteLike.WhereEqual("tsrl_tsr_id", review.Id.ToString());
+                    var queryLike = SdmMysqlQuery.Execute(deleteLike);
+                    queryLike.CleanUp();
+
+                    Console.WriteLine($"Deleted likes for review_id={review.Id}");
+                }
+
+                // ลบ review ที่เกี่ยวข้อง
+                var deleteReview = new SdmMysqlQueryDelete("teachtable_subject_review");
+                deleteReview.WhereEqual("tsr_tts_id", subject.Id.ToString());
+                deleteReview.WhereEqual("tsr_user_id", studentId);
+                var queryReview = SdmMysqlQuery.Execute(deleteReview);
+                queryReview.CleanUp();
+
                 Console.WriteLine($"Deleted review for teachtable_subject_id={subject.Id}, user_id={studentId}");
+            
+                // อัปเดต count_of_review และ rating
+                SdmTeachtableSubject.UpdateReviewStats(subject.SubjectId);
             }
+            
         }
         catch (Exception ex)
         {
@@ -446,15 +471,18 @@ public class SdmTeachtableSubjectReview
         {
             // ดึงจำนวน Like ของรีวิวนี้
             var select = new SdmMysqlQuerySelect("teachtable_subject_review_like");
-            select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+            // select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
+            select.WhereEqual("tsrl_tsr_id", reviewId.ToString());
         
             // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
             var countLike = ProcessQuery(select).Count;
 
             // อัปเดตจำนวนไลค์ใน teachtable_subject_review
             var update = new SdmMysqlQueryUpdate("teachtable_subject_review");
-            update.Set("like", countLike.ToString());
-            update.WhereEqual("id", reviewId.ToString());
+            // update.Set("like", countLike.ToString());
+            // update.WhereEqual("id", reviewId.ToString());
+            update.Set("tsr_like", countLike.ToString());
+            update.WhereEqual("tsr_id", reviewId.ToString());
 
             var query = SdmMysqlQuery.Execute(update);
             query.CleanUp();

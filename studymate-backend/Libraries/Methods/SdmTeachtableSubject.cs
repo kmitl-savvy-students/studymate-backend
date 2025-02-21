@@ -113,5 +113,77 @@ public class SdmTeachtableSubject : ISdmBaseMethod<TeachtableSubject>
             throw;
         }
     }
+    
+    public static void UpdateReviewStats(string subjectId)
+    {
+        try
+        {
+            // ดึง teachtable_subject ที่ตรงกับ subjectId
+            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");
+            selectSubject.AddWhereCondition("tts_sbj_id", subjectId);
+            var subjectList = ProcessQuery(selectSubject, true);
+
+            foreach (var teachtableSubject in subjectList)
+            {
+                // ดึงจำนวนรีวิวจาก teachtable_subject_review
+                var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
+                selectReview.AddWhereCondition("tsr_tts_id", teachtableSubject.Id.ToString());
+
+                var reviews = SdmTeachtableSubjectReview.ProcessQuery(selectReview, true);
+                int countOfReview = reviews.Count;
+                float averageRating = countOfReview > 0 ? reviews.Average(r => r.Rating) : 0.0f;
+
+                // ดึงค่าปัจจุบันจากฐานข้อมูลโดยตรง
+                var selectCurrent = new SdmMysqlQuerySelect("teachtable_subject");
+                selectCurrent.AddWhereCondition("tts_id", teachtableSubject.Id.ToString());
+
+                var query = SdmMysqlQuery.Execute(selectCurrent);
+                int currentCount = 0;
+                float currentRating = 0.0f;
+
+                if (query.Next()) 
+                {
+                    currentCount = query.ToInt(5); // index ของ tts_cor
+                    currentRating = query.ToFloat(4); // index ของ tts_rat
+                }
+                query.CleanUp();
+
+                // ถ้าค่าไม่เปลี่ยนแปลง ไม่ต้อง update
+                if (currentCount == countOfReview && Math.Abs(currentRating - averageRating) < 0.01)
+                {
+                    Console.WriteLine($"No change for SubjectId: {subjectId}, skipping update.");
+                    continue;
+                }
+
+                Console.WriteLine($"Updating SubjectId: {subjectId} -> countOfReview: {countOfReview}, averageRating: {averageRating}");
+
+                // อัปเดตค่าในฐานข้อมูล
+                var update = new SdmMysqlQueryUpdate("teachtable_subject");
+                update.Set("tts_cor", countOfReview.ToString());
+                update.Set("tts_rat", averageRating.ToString("0.00"));
+                update.WhereEqual("tts_id", teachtableSubject.Id.ToString());
+
+                var updateQuery = SdmMysqlQuery.Execute(update);
+                updateQuery.CleanUp();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in UpdateReviewStats: {ex.Message}");
+            throw;
+        }
+    }
+
+    public static TeachtableSubject GetBySubject(string subjectId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("tts_sbj_id", subjectId);
+        
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
+            return null;
+        return result[0];
+    }
+
 
 }
