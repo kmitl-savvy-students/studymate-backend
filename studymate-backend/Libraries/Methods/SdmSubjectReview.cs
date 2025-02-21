@@ -4,23 +4,23 @@ using studymate_backend.Libraries.Models;
 using Newtonsoft.Json.Linq;
 
 namespace studymate_backend.Libraries.Methods;
-public class SdmTeachtableSubjectReview
+public class SdmSubjectReview
 {
     private static int? LatestYear { get; set; }
     private static int? LatestTerm { get; set; }
 
-    public static string TableName => "teachtable_subject_review";
+    public static string TableName => "subject_review";
 
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
     
-    public static List<TeachtableSubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    public static List<SubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
 
-        var result = new List<TeachtableSubjectReview>();
+        var result = new List<SubjectReview>();
 
         while (query.Next())
         {
@@ -41,38 +41,39 @@ public class SdmTeachtableSubjectReview
             string subjectNameEn = "";
             if (query.ToInt(1) > 0)
             {
-                var teachtableSubject = SdmTeachtableSubject.GetById(query.ToInt(1));
-                if (teachtableSubject != null)
+                var subjectReviews = GetBySubjectId(query.ToString(2));
+                if (subjectReviews != null)
                 {
-                    var subject = SdmSubject.GetBy(teachtableSubject.SubjectId); // ดึง Subject โดยใช้ subject_id
-                    if (subject != null)
+                    foreach (var subjectReview in subjectReviews)
                     {
-                        subjectNameEn = subject.NameEn; // ดึง subject_name_en
+                        var subject = SdmSubject.GetBy(subjectReview.SubjectId);
+                        if (subject != null)
+                            subjectNameEn = subject.NameEn;
                     }
                 }
             }
 
-            result.Add(new TeachtableSubjectReview(
-                SdmTeachtableSubject.GetById(query.ToInt(1)), // Foreign Key: teachtable_subject_id
+            result.Add(new SubjectReview(
+                SdmTeachtable.GetBy(query.ToInt(1)), // Foreign Key: teachtable
                 query.ToString(2),             
                 query.ToString(3),                          
-                query.ToFloat(4),                          
-                query.ToInt(5),                           
+                query.ToString(4),                          
+                query.ToFloat(5),
+                query.ToInt(6),
                 createdValue,
                 query.ToInt(0)                            
             )
             {
                 SubjectNameEn = subjectNameEn // Assign dynamically
             });
-
-            // if (!isArray) break;
+            
         }
 
         query.CleanUp();
         return result;
     }
     
-    public static List<TeachtableSubjectReview> GetAll()
+    public static List<SubjectReview> GetAll()
     {
         var select = GetQueryObj();
         
@@ -80,25 +81,34 @@ public class SdmTeachtableSubjectReview
         return result;
     }
 
-    public static TeachtableSubjectReview GetById(int id)
+    public static SubjectReview GetById(int id)
     {
         var select = GetQueryObj();
-        select.WhereEqual("tsr_id", id.ToString()); //✅
+        select.WhereEqual("sbjr_id", id.ToString()); //✅
         
         var  result = ProcessQuery(select);
         if (result.Count == 0)
             return null;
         return result[0];
     }
+
+    public static List<SubjectReview> GetBySubjectId(string subjectId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("sbjr_sbj_id", subjectId);
+        
+        var result = ProcessQuery(select, true);
+        return result;
+    }
     
-    public static void Insert(TeachtableSubjectReview review)
+    public static void Insert(SubjectReview review)
     {
         try
         {
             
-            if (review.TeachtableSubject == null || review.TeachtableSubject.Id == 0)
+            if (review.Teachtable == null || review.Teachtable.Id == 0)
             {
-                throw new Exception("teachtable_subject is null or has invalid id.");
+                throw new Exception("teachtable is null or has invalid id.");
             }
 
             if (string.IsNullOrEmpty(review.UserId))
@@ -108,20 +118,18 @@ public class SdmTeachtableSubjectReview
 
             var insert = new SdmMysqlQueryInsert(TableName);
             
-            insert.Insert("tsr_tts_id", review.TeachtableSubject.Id.ToString());  //✅
-            insert.Insert("tsr_user_id", review.UserId);  //✅
-            insert.Insert("tsr_rv", review.Review);  //✅
-            insert.Insert("tsr_rt", review.Rating.ToString());  //✅
-            insert.Insert("tsr_like", review.Like.ToString());  //✅
-            insert.Insert("tsr_date_created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            insert.Insert("sbjr_tt_id", review.Teachtable.Id.ToString());  //✅
+            insert.Insert("sbjr_user_id", review.UserId);  //✅
+            insert.Insert("sbjr_rev", review.Review);  //✅
+            insert.Insert("sbjr_rat", review.Rating.ToString());  //✅
+            insert.Insert("sbjr_like", review.Like.ToString());  //✅
+            insert.Insert("sbjr_date_created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            insert.Insert("sbjr_sbj_id", review.SubjectId);
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
             
-            // อัปเดต count_of_review และ rating
-            SdmTeachtableSubject.UpdateReviewStats(review.TeachtableSubject.SubjectId);
-
-            Console.WriteLine("TeachtableSubjectReview Inserted Successfully!");
+            Console.WriteLine("Subject Review Inserted Successfully!");
         }
         catch (Exception ex)
         {
@@ -130,74 +138,20 @@ public class SdmTeachtableSubjectReview
         }
     }
     
-    public static List<TeachtableSubjectReview> GetBySubject(string subjectId)
+    public static SubjectReview? GetBySubjectAndStudent(string subjectId, string studentId)
     {
         try
         {
-            // 1. ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
-            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject");  //✅
-            selectSubject.AddWhereCondition("tts_sbj_id", subjectId); //✅
-        
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ตั้งค่า isArray เป็น true
-            if (subjectResult.Count == 0)
+            var select = GetQueryObj();
+            select.WhereEqual("sbjr_sbj_id", subjectId);
+            select.WhereEqual("sbjr_user_id", studentId);
+            
+            var result = ProcessQuery(select);
+            if (result.Count > 0)
             {
-                return new List<TeachtableSubjectReview>(); // คืนค่าเป็นลิสต์ว่างถ้าไม่พบข้อมูล
+                return result[0];
             }
-
-            var allReviews = new List<TeachtableSubjectReview>();
-
-            // 2. ดึงข้อมูลรีวิวจาก teachtable_subject_review ทั้งหมด
-            foreach (var subject in subjectResult)
-            {
-                var selectReview = GetQueryObj();
-                selectReview.AddWhereCondition("tsr_tts_id", subject.Id.ToString()); //✅
-
-                var reviewResult = ProcessQuery(selectReview, true);
-                if (reviewResult.Count > 0)
-                {
-                    allReviews.AddRange(reviewResult); // รวมข้อมูลทั้งหมดในลิสต์เดียว
-                }
-            }
-
-            return allReviews; // คืนค่าลิสต์ของรีวิวทั้งหมด
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in GetBySubject: {ex.Message}");
-            throw;
-        }
-    }
-    
-    public static TeachtableSubjectReview? GetBySubjectAndStudent(string subjectId, string studentId)
-    {
-        try
-        {
-            // ดึง teachtable_subject_id ทั้งหมดที่เกี่ยวข้องกับ subjectId
-            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject"); //✅
-            selectSubject.AddWhereCondition("tts_sbj_id", subjectId); //✅
-
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true);
-            if (subjectResult.Count == 0)
-            {
-                return null; // ไม่มี teachtable_subject_id ที่เกี่ยวข้อง
-            }
-
-            // ตรวจสอบ teachtable_subject_review สำหรับ user_id และ teachtable_subject_id
-            foreach (var teachtableSubject in subjectResult)
-            {
-                var selectReview = GetQueryObj();
-           
-                selectReview.AddWhereCondition("tsr_tts_id", teachtableSubject.Id.ToString()); //✅
-                selectReview.AddWhereCondition("tsr_user_id", studentId); //✅
-
-                var reviewResult = ProcessQuery(selectReview, true);
-                if (reviewResult.Count > 0)
-                {
-                    return reviewResult[0]; // คืนค่าหากมีรีวิวที่ตรงกัน
-                }
-            }
-
-            return null; // ไม่มีรีวิวที่ตรงกัน
+            return null;
         }
         catch (Exception ex)
         {
@@ -210,49 +164,25 @@ public class SdmTeachtableSubjectReview
     {
         try
         {
-            // ดึง teachtable_subject_id ทั้งหมดที่ตรงกับ subjectId
-            var selectSubject = new SdmMysqlQuerySelect("teachtable_subject"); //✅
-            selectSubject.AddWhereCondition("tts_sbj_id", subjectId); //✅
+            // delete review
+            var deleteReview = new SdmMysqlQueryDelete("subject_review");
+            deleteReview.WhereEqual("sbjr_sbj_id", subjectId);
+            deleteReview.WhereEqual("sbjr_user_id", studentId);
+            var queryReview = SdmMysqlQuery.Execute(deleteReview);
+            queryReview.CleanUp();
 
-            var subjectResult = SdmTeachtableSubject.ProcessQuery(selectSubject, true); // ใช้ isArray = true เพื่อดึงข้อมูลทั้งหมด
-            if (subjectResult.Count == 0)
+            var result = ProcessQuery(deleteReview);
+            
+            // delete like ทั้งหมด
+            foreach (var review in result)
             {
-                throw new Exception("TeachtableSubject not found.");
+                var deleteLikeReview = new SdmMysqlQueryDelete("subject_review_like");
+                deleteLikeReview.WhereEqual("srl_sbjr_id", review.Id.ToString());
+                var queryLike = SdmMysqlQuery.Execute(deleteLikeReview);
+                queryLike.CleanUp();
             }
-            
-            // ลบข้อมูล teachtable_subject_review_like และ teachtable_subject_review ที่เกี่ยวข้อง
-            foreach (var subject in subjectResult)
-            {
-                // ค้นหาทุก review ที่เกี่ยวข้อง
-                var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
-                selectReview.AddWhereCondition("tsr_tts_id", subject.Id.ToString());
-                selectReview.AddWhereCondition("tsr_user_id", studentId);
 
-                var reviewResult = ProcessQuery(selectReview, true);
-                foreach (var review in reviewResult)
-                {
-                    // ลบ Like ที่อ้างอิงถึง review นั้น
-                    var deleteLike = new SdmMysqlQueryDelete("teachtable_subject_review_like");
-                    deleteLike.WhereEqual("tsrl_tsr_id", review.Id.ToString());
-                    var queryLike = SdmMysqlQuery.Execute(deleteLike);
-                    queryLike.CleanUp();
-
-                    Console.WriteLine($"Deleted likes for review_id={review.Id}");
-                }
-
-                // ลบ review ที่เกี่ยวข้อง
-                var deleteReview = new SdmMysqlQueryDelete("teachtable_subject_review");
-                deleteReview.WhereEqual("tsr_tts_id", subject.Id.ToString());
-                deleteReview.WhereEqual("tsr_user_id", studentId);
-                var queryReview = SdmMysqlQuery.Execute(deleteReview);
-                queryReview.CleanUp();
-
-                Console.WriteLine($"Deleted review for teachtable_subject_id={subject.Id}, user_id={studentId}");
-            
-                // อัปเดต count_of_review และ rating
-                SdmTeachtableSubject.UpdateReviewStats(subject.SubjectId);
-            }
-            
+            Console.WriteLine($"Deleted review for teachtable_subject_id={subjectId}, user_id={studentId}");
         }
         catch (Exception ex)
         {
@@ -278,15 +208,6 @@ public class SdmTeachtableSubjectReview
             var teachtable = SdmTeachtable.CheckOrCreate(year, term);
             Console.WriteLine($"Teachtable: id={teachtable?.Id}, academic_year={teachtable?.Year}, academic_term={teachtable?.Term}");
     
-            var teachableSubject = SdmTeachtableSubject.CheckOrCreate(teachtable.Id, subjectId);
-            if (teachableSubject == null || teachableSubject.Id == 0)
-            {
-                throw new Exception("TeachtableSubject is null or has invalid id.");
-            }
-            
-            Console.WriteLine($"Debug: teachableSubject.Id={teachableSubject?.Id}");
-            Console.WriteLine($"TeachtableSubject: id={teachableSubject.Id}, subject_id={teachableSubject.SubjectId}");
-    
             var user = SdmUser.GetBy(studentId);
             if (user == null || string.IsNullOrEmpty(user.Id.ToString()))
             {
@@ -294,16 +215,16 @@ public class SdmTeachtableSubjectReview
             }
             Console.WriteLine($"User: id={user.Id}");
     
-            var newReview = new TeachtableSubjectReview(
-                teachtableSubject: teachableSubject,
+            var newReview = new SubjectReview(
+                teachtable: teachtable,
+                subjectId: subjectId,
                 userId: studentId.ToString(),
                 review: review,
                 rating: rating,
                 like: 0
             );
-            Console.WriteLine($"Before Insert: TeachtableSubjectReview tts_tt_id={newReview.TeachtableSubject?.Id}");
-
-            Console.WriteLine($"TeachtableSubjectReview Created: teachtable_subject_id={newReview.TeachtableSubject?.Id}, user_id={newReview.UserId}, review={newReview.Review}, rating={newReview.Rating}, like={newReview.Like}");
+            
+            Console.WriteLine($"SubjectReview Created: teachtable_id={newReview.Teachtable?.Id}, user_id={newReview.UserId}, review={newReview.Review}, rating={newReview.Rating}, like={newReview.Like}");
             Insert(newReview);
         }
         catch (InvalidOperationException ex)
@@ -445,13 +366,13 @@ public class SdmTeachtableSubjectReview
         throw new Exception("Cannot find valid academic year and term.");
     }
     
-    public static List<TeachtableSubjectReview> GetReviewsBySubjects(List<string> subjectIds)
+    public static List<SubjectReview> GetReviewsBySubjects(List<string> subjectIds)
     {
-        var allReviews = new List<TeachtableSubjectReview>();
+        var allReviews = new List<SubjectReview>();
 
         foreach (var subjectId in subjectIds)
         {
-            var reviews = GetBySubject(subjectId); // ใช้ฟังก์ชันที่มีอยู่แล้วเพื่อดึงรีวิวของแต่ละ subjectId
+            var reviews = GetBySubjectId(subjectId); // ใช้ฟังก์ชันที่มีอยู่แล้วเพื่อดึงรีวิวของแต่ละ subjectId
             if (reviews.Count > 0)
             {
                 allReviews.AddRange(reviews); // รวมรีวิวทั้งหมดในลิสต์เดียว
@@ -470,19 +391,19 @@ public class SdmTeachtableSubjectReview
         try
         {
             // ดึงจำนวน Like ของรีวิวนี้
-            var select = new SdmMysqlQuerySelect("teachtable_subject_review_like");
+            var select = new SdmMysqlQuerySelect("subject_review_like");
             // select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
-            select.WhereEqual("tsrl_tsr_id", reviewId.ToString());
+            select.WhereEqual("srl_sbjr_id", reviewId.ToString());
         
             // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
             var countLike = ProcessQuery(select).Count;
 
             // อัปเดตจำนวนไลค์ใน teachtable_subject_review
-            var update = new SdmMysqlQueryUpdate("teachtable_subject_review");
+            var update = new SdmMysqlQueryUpdate("subject_review");
             // update.Set("like", countLike.ToString());
             // update.WhereEqual("id", reviewId.ToString());
-            update.Set("tsr_like", countLike.ToString());
-            update.WhereEqual("tsr_id", reviewId.ToString());
+            update.Set("sbjr_like", countLike.ToString());
+            update.WhereEqual("sbjr_id", reviewId.ToString());
 
             var query = SdmMysqlQuery.Execute(update);
             query.CleanUp();

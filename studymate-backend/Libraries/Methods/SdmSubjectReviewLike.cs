@@ -3,24 +3,24 @@ using studymate_backend.Libraries.Database.QueryBuilders;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
-public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectReviewLike>
+public class SdmSubjectReviewLike : ISdmBaseMethod<SubjectReviewLike>
 {
-    public static string TableName => "teachtable_subject_review_like";
+    public static string TableName => "subject_review_like";
 
     public static SdmMysqlQuerySelect GetQueryObj()
     {
         return new SdmMysqlQuerySelect(TableName);
     }
 
-    public static List<TeachtableSubjectReviewLike> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    public static List<SubjectReviewLike> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
-        var result = new List<TeachtableSubjectReviewLike>();
+        var result = new List<SubjectReviewLike>();
         while (query.Next())
         {
-            result.Add(new TeachtableSubjectReviewLike(
+            result.Add(new SubjectReviewLike(
                 query.ToString(2),
-                SdmTeachtableSubjectReview.GetById(query.ToInt(1)),
+                SdmSubjectReview.GetById(query.ToInt(1)),
                 query.ToInt(0)
                 ));
         }
@@ -28,11 +28,11 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         return result;
     }
 
-    public static TeachtableSubjectReviewLike GetByUserIdAndReviewId(string user_id, string teachtableSubjectReviewId)
+    public static SubjectReviewLike GetByUserIdAndReviewId(string user_id, string subjectReviewId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("tsrl_tsr_id", teachtableSubjectReviewId);
-        select.WhereEqual("tsrl_user_id", user_id);
+        select.WhereEqual("srl_sbjr_id", subjectReviewId);
+        select.WhereEqual("srl_user_id", user_id);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -42,10 +42,10 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         return result[0];
     }
 
-    public static List<TeachtableSubjectReviewLike> GetByReviewId(string teachtableSubjectReviewId)
+    public static List<SubjectReviewLike> GetByReviewId(string subjectReviewId)
     {
         var select = GetQueryObj();
-        select.WhereEqual("tsrl_tsr_id", teachtableSubjectReviewId);
+        select.WhereEqual("srl_sbjr_id", subjectReviewId);
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -57,19 +57,19 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         return result;
     }
 
-    public static void Insert(TeachtableSubjectReviewLike reviewLike)
+    public static void Insert(SubjectReviewLike reviewLike)
     {
         try
         {
             var insert = new SdmMysqlQueryInsert(TableName);
-            insert.Insert("tsrl_tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
-            insert.Insert("tsrl_user_id", reviewLike.UserId);
+            insert.Insert("srl_sbjr_id", reviewLike.SubjectReview.Id.ToString());
+            insert.Insert("srl_user_id", reviewLike.UserId);
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
             Console.WriteLine("Like Successfully!");
 
-            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.TeachtableSubjectReview.Id);
+            SdmSubjectReview.UpdateLikeCount(reviewLike.SubjectReview.Id);
         }
         catch (Exception ex)
         {
@@ -78,28 +78,28 @@ public class SdmTeachtableSubjectReviewLike : ISdmBaseMethod<TeachtableSubjectRe
         }
     }
 
-    public static void Delete(TeachtableSubjectReviewLike reviewLike)
+    public static void Delete(SubjectReviewLike reviewLike)
     {
         try
         {
-            var selectReview = new SdmMysqlQuerySelect("teachtable_subject_review");
-            selectReview.AddWhereCondition("tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
+            var selectReview = new SdmMysqlQuerySelect("subject_review");
+            selectReview.AddWhereCondition("sbjr_id", reviewLike.SubjectReview.Id.ToString());
 
-            var reviewResult = SdmTeachtableSubjectReview.ProcessQuery(selectReview, false);
+            var reviewResult = SdmSubjectReview.ProcessQuery(selectReview, false);
             if (reviewResult.Count == 0)
             {
                 throw new Exception("review not found.");
             }
 
-            var delete = new SdmMysqlQueryDelete("teachtable_subject_review_like");
-            delete.WhereEqual("tsrl_tsr_id", reviewLike.TeachtableSubjectReview.Id.ToString());
-            delete.WhereEqual("tsrl_user_id", reviewLike.UserId);
+            var delete = new SdmMysqlQueryDelete("subject_review_like");
+            delete.WhereEqual("srl_sbjr_id", reviewLike.SubjectReview.Id.ToString());
+            delete.WhereEqual("srl_user_id", reviewLike.UserId);
 
             var query = SdmMysqlQuery.Execute(delete);
             query.CleanUp();
-            Console.WriteLine($"deleted like of review teachtable_subject_review_id={reviewLike.TeachtableSubjectReview.Id}, user_id={reviewLike.UserId}");
+            Console.WriteLine($"deleted like of review subject_review_id={reviewLike.SubjectReview.Id}, user_id={reviewLike.UserId}");
 
-            SdmTeachtableSubjectReview.UpdateLikeCount(reviewLike.TeachtableSubjectReview.Id);
+            SdmSubjectReview.UpdateLikeCount(reviewLike.SubjectReview.Id);
         }
         catch (Exception ex)
         {

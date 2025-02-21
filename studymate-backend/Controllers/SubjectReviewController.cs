@@ -6,13 +6,13 @@ namespace studymate_backend.Controllers;
 
 [ApiController]
 [Route("api/teachtable-subject-review")]
-public class TeachtableSubjectReviewController : ControllerBase
+public class SubjectReviewController : ControllerBase
 {
     
     [HttpGet]
     public IActionResult GetAll()
     {
-        var reviews = SdmTeachtableSubjectReview.GetAll();
+        var reviews = SdmSubjectReview.GetAll();
 
         if (reviews.Count == 0)
             return Ok(reviews);
@@ -29,13 +29,13 @@ public class TeachtableSubjectReviewController : ControllerBase
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
     
             // ดึงข้อมูลผู้ใช้จาก Token
-            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
             if (user.Id != reviewDto.StudentId || user == null)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
             
-            SdmTeachtableSubjectReview.CreateReview(
+            SdmSubjectReview.CreateReview(
                 studentId: reviewDto.StudentId,
                 year: reviewDto.Year,
                 term: reviewDto.Term,
@@ -62,7 +62,7 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
                 return Ok(new object[] { });
@@ -82,7 +82,7 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
+            var review = SdmSubjectReview.GetBySubjectId(subjectId);
             if (review == null|| review.Count == 0)
             {
                 return Ok(new object[] { });
@@ -107,22 +107,22 @@ public class TeachtableSubjectReviewController : ControllerBase
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
     
             // ดึงข้อมูลผู้ใช้จาก Token
-            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
             if (user.Id.ToString() != studentId || user == null)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
             
-            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
             }
 
-            SdmTeachtableSubjectReview.Delete(subjectId, studentId);
+            SdmSubjectReview.Delete(subjectId, studentId);
 
             // ตรวจสอบว่าข้อมูลถูกลบจริงหรือไม่
-            var remainingReview = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var remainingReview = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
             if (remainingReview == null)
             {
                 return Ok(new { message = "Review deleted successfully." });
@@ -149,7 +149,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
     
             // ดึงข้อมูลผู้ใช้จาก Token
-            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
             if (user == null)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
@@ -166,10 +166,10 @@ public class TeachtableSubjectReviewController : ControllerBase
             var publicId = user.Curriculum.Program.KmitlId;
     
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(user);
+            var allSubjects = await SdmSubjectReview.GetAllSubjectInFacultyAndGened(user);
             
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
-            var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
+            var reviews = SdmSubjectReview.GetReviewsBySubjects(allSubjects);
     
             return Ok(reviews);
         }
