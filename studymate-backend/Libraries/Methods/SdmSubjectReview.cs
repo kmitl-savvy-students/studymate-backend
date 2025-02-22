@@ -79,63 +79,6 @@ public class SdmSubjectReview
         return result;
     }
     
-    // public static List<SubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
-    // {
-    //     var query = SdmMysqlQuery.Execute(queryBuilder);
-    //     var result = new List<SubjectReview>();
-    //
-    //     while (query.Next())
-    //     {
-    //         // ตรวจสอบและแปลงค่าของ created
-    //         DateOnly createdValue;
-    //         try
-    //         {
-    //             var createdDateTime = DateTime.Parse(query.ToString(6)); // ✅ ดึงค่าเป็น string แล้วแปลงเป็น DateTime
-    //             createdValue = DateOnly.FromDateTime(createdDateTime);
-    //         }
-    //         catch
-    //         {
-    //             createdValue = DateOnly.FromDateTime(DateTime.Now);
-    //         }
-    //
-    //         // ดึง subject_name_en จากตาราง subject
-    //         string subjectNameEn = "";
-    //         string subjectId = query.ToString(2); // ✅ subjectId ควรเป็น string
-    //
-    //         if (!string.IsNullOrEmpty(subjectId)) // ✅ แก้ให้ตรวจสอบค่า subjectId ถูกต้อง
-    //         {
-    //             var subjectReviews = GetBySubjectId(subjectId);
-    //             if (subjectReviews != null)
-    //             {
-    //                 foreach (var subjectReview in subjectReviews)
-    //                 {
-    //                     var subject = SdmSubject.GetBy(subjectReview.SubjectId);
-    //                     if (subject != null)
-    //                         subjectNameEn = subject.NameEn;
-    //                 }
-    //             }
-    //         }
-    //
-    //         result.Add(new SubjectReview(
-    //             teachtable: SdmTeachtable.GetBy(query.ToInt(1)), // ✅ Foreign Key: teachtable
-    //             subjectId: subjectId, // ✅ ใช้ค่าจาก query.ToString(2)
-    //             userId: query.ToString(3), // ✅ userId เป็น string
-    //             review: query.ToString(4), // ✅ review เป็น string
-    //             rating: query.ToFloat(5), // ✅ rating เป็น float
-    //             like: query.ToInt(6), // ✅ like เป็น int
-    //             created: createdValue,
-    //             id: query.ToInt(0) // ✅ id เป็น int
-    //         )
-    //         {
-    //             SubjectNameEn = subjectNameEn // Assign dynamically
-    //         });
-    //     }
-    //
-    //     query.CleanUp();
-    //     return result;
-    // }
-
-    
     public static List<SubjectReview> GetAll()
     {
         var select = GetQueryObj();
@@ -455,7 +398,6 @@ public class SdmSubjectReview
         {
             // ดึงจำนวน Like ของรีวิวนี้
             var select = new SdmMysqlQuerySelect("subject_review_like");
-            // select.WhereEqual("teachtable_subject_review_id", reviewId.ToString());
             select.WhereEqual("srl_sbjr_id", reviewId.ToString());
         
             // ✅ ใช้ Count() จาก List<TeachtableSubjectReviewLike>
@@ -463,8 +405,6 @@ public class SdmSubjectReview
 
             // อัปเดตจำนวนไลค์ใน teachtable_subject_review
             var update = new SdmMysqlQueryUpdate("subject_review");
-            // update.Set("like", countLike.ToString());
-            // update.WhereEqual("id", reviewId.ToString());
             update.Set("sbjr_like", countLike.ToString());
             update.WhereEqual("sbjr_id", reviewId.ToString());
 
