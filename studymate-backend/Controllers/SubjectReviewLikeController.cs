@@ -6,7 +6,7 @@ using studymate_backend.Libraries.Models;
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/teachtable-subject-review/like")]
+[Route("api/subject-review-like")]
 public class SubjectReviewLikeController : ControllerBase
 {
 
@@ -96,15 +96,15 @@ public class SubjectReviewLikeController : ControllerBase
     {
         try
         {
-            var review = SdmSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
+            var reviewLike = SdmSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
 
             // ไม่พบรีวิว
-            if (review == null)
+            if (reviewLike == null)
             {
-                return NotFound(new { message = "Subject review not found." });
+                return NotFound(new { message = "Not found like in this review." });
             }
 
-            return Ok(review);
+            return Ok(reviewLike);
         }
         catch (Exception ex)
         {

@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
-
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/teachtable-subject-review")]
+[Route("api/subject-review")]
 public class SubjectReviewController : ControllerBase
 {
     
@@ -13,9 +12,9 @@ public class SubjectReviewController : ControllerBase
     public IActionResult GetAll()
     {
         var reviews = SdmSubjectReview.GetAll();
-
+        Console.WriteLine($"like {reviews[0].Like}");
         if (reviews.Count == 0)
-            return Ok(reviews);
+            return NotFound(new { message = "Reviews not found." });
         return Ok(reviews);
     }
     
