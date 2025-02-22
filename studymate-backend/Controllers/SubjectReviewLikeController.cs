@@ -96,12 +96,16 @@ public class SubjectReviewLikeController : ControllerBase
     {
         try
         {
+            var review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
             var reviewLike = SdmSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
 
-            // ไม่พบรีวิว
+            if (review == null)
+            {
+                return NotFound(new { message = "Review not found." });
+            }
             if (reviewLike == null)
             {
-                return NotFound(new { message = "Not found like in this review." });
+                return NotFound(new { message = "This review has no likes." });
             }
 
             return Ok(reviewLike);
