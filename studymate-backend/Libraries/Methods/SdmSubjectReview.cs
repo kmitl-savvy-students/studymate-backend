@@ -61,7 +61,7 @@ public class SdmSubjectReview
             
             result.Add(new SubjectReview(
                 SdmTeachtable.GetBy(query.ToInt(1)), // Foreign Key: teachtable
-                query.ToString(2),             
+                query.ToInt(2),             
                 query.ToString(3),                          
                 query.ToFloat(4),                          
                 query.ToInt(5),
@@ -117,7 +117,7 @@ public class SdmSubjectReview
                 throw new Exception("teachtable is null or has invalid id.");
             }
 
-            if (string.IsNullOrEmpty(review.UserId))
+            if (string.IsNullOrEmpty(review.UserId.ToString()))
             {
                 throw new Exception("User is null or has invalid id.");
             }
@@ -125,7 +125,7 @@ public class SdmSubjectReview
             var insert = new SdmMysqlQueryInsert(TableName);
             
             insert.Insert("sbjr_tt_id", review.Teachtable.Id.ToString());  //✅
-            insert.Insert("sbjr_user_id", review.UserId);  //✅
+            insert.Insert("sbjr_user_id", review.UserId.ToString());  //✅
             insert.Insert("sbjr_rev", review.Review);  //✅
             insert.Insert("sbjr_rat", review.Rating.ToString());  //✅
             insert.Insert("sbjr_like", review.Like.ToString());  //✅
@@ -229,7 +229,7 @@ public class SdmSubjectReview
             var newReview = new SubjectReview(
                 teachtable: teachtable,
                 subjectId: subjectId,
-                userId: studentId.ToString(),
+                userId: studentId,
                 review: review,
                 rating: rating,
                 like: 0
