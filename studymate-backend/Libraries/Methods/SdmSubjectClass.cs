@@ -53,12 +53,12 @@ public partial class SdmSubjectClass
                      $"&mode=by_subject_id" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
-                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_faculty={(isGened == "1" ? "90" : curriculum.Program?.Department?.Faculty?.KmitlId)}" +
+                     $"&selected_department={(isGened == "1" ? "90" : curriculum.Program?.Department?.KmitlId)}" +
                      $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
-                     $"&search_all_curriculum=false" +
+                     $"&search_all_curriculum={(isGened == "1" ? "true" : "false")}" +
                      $"&search_all_class_year=true" +
                      $"&selected_subject_id={subjectId}";
 
@@ -93,12 +93,12 @@ public partial class SdmSubjectClass
                      $"&mode=by_subject_id" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
-                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_faculty={(isGened == "1" ? "90" : curriculum.Program?.Department?.Faculty?.KmitlId)}" +
+                     $"&selected_department={(isGened == "1" ? "90" : curriculum.Program?.Department?.KmitlId)}" +
                      $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
-                     $"&search_all_curriculum=false" +
+                     $"&search_all_curriculum={(isGened == "1" ? "true" : "false")}" +
                      $"&search_all_class_year=true" +
                      $"&selected_subject_id={subjectId}";
 
@@ -149,12 +149,12 @@ public partial class SdmSubjectClass
                      $"&selected_year={inputTeachtable.Year + 543}" +
                      $"&selected_semester={inputTeachtable.Term}" +
                      $"&selected_class_year={year}" +
-                     $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
-                     $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
+                     $"&selected_faculty={(isGened == "1" ? "90" : curriculum.Program?.Department?.Faculty?.KmitlId)}" +
+                     $"&selected_department={(isGened == "1" ? "90" : curriculum.Program?.Department?.KmitlId)}" +
                      $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
-                     $"&search_all_curriculum=false" +
+                     $"&search_all_curriculum={(isGened == "1" ? "true" : "false")}" +
                      $"&search_all_class_year={(year == "0" ? "true" : "false")}";
 
         var responses = await GetDeserializedObjects<List<DtoKmitlResponse>>(apiUrl);
