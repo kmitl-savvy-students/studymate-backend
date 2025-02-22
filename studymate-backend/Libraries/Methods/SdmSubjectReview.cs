@@ -441,4 +441,47 @@ public class SdmSubjectReview
         return userToken.User;
     }
     
+     public static int GetCountOfReview(string subjectId)
+     {
+         try
+         {
+             var reviews = GetBySubjectId(subjectId);
+             if (reviews == null)
+             {
+                 return 0;
+             }
+             return reviews.Count;
+         }
+         catch (Exception ex)
+         {
+             Console.WriteLine($"Error in GetCountOfReview: {ex.Message}");
+             throw;
+         }
+     }
+
+     public static double GetAverageRatingOfReview(string subjectId)
+     {
+         try
+         {
+             var reviews = GetBySubjectId(subjectId);
+             if (reviews == null)
+             {
+                 return 0;
+             }
+
+             double sumOfRating = 0;
+             foreach (var review in reviews)
+             {
+                 var rating = review.Rating;
+                 sumOfRating += rating;
+             }
+             return sumOfRating/reviews.Count;
+         }
+         catch (Exception ex)
+         {
+             Console.WriteLine($"Error in GetAverageRatingOfReview: {ex.Message}");
+             throw;
+         }
+     }
+    
 }

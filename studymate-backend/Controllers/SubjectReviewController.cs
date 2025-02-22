@@ -12,7 +12,7 @@ public class SubjectReviewController : ControllerBase
     public IActionResult GetAll()
     {
         var reviews = SdmSubjectReview.GetAll();
-        Console.WriteLine($"like {reviews[0].Like}");
+        
         if (reviews.Count == 0)
             return NotFound(new { message = "Reviews not found." });
         return Ok(reviews);
@@ -178,6 +178,35 @@ public class SubjectReviewController : ControllerBase
             return StatusCode(500, new { message = "Error occurred while fetching data.", error = ex.Message });
         }
     }
+    
+    [HttpGet("average/{subjectId}")]
+    public ActionResult<double> GetRating(string subjectId)
+    {
+        try
+        {
+            double review = SdmSubjectReview.GetAverageRatingOfReview(subjectId);
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while fetching the review.", error = ex.Message });
+        }
+    }
+    
+    [HttpGet("count/{subjectId}")]
+    public ActionResult<int> GetCount(string subjectId)
+    {
+        try
+        {
+            double review = SdmSubjectReview.GetCountOfReview(subjectId);
+            return Ok(review);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while fetching the review.", error = ex.Message });
+        }
+    }
+
     
 }
 
