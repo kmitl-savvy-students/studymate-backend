@@ -1,12 +1,12 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class SubjectReview(
-    Teachtable? teachtable, //sbjr_tt_id /
-    string subjectId, //sbjr_sbj_id
+    Teachtable? teachtable, //sbjr_tt_id
     string userId, //sbjr_user_id
     string review, //sbjr_rev
     float rating, //sbjr_rat
     int like, //sbjr_like
+    string subjectId, //sbjr_sbj_id
     DateOnly? created = null, //sbjr_date_created
     int id = 0 //sbjr_id 
 ) : IBaseModel
