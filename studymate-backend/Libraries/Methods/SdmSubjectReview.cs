@@ -455,7 +455,7 @@ public class SdmSubjectReview
          catch (Exception ex)
          {
              Console.WriteLine($"Error in GetCountOfReview: {ex.Message}");
-             throw;
+             return 0;
          }
      }
 
@@ -464,7 +464,7 @@ public class SdmSubjectReview
          try
          {
              var reviews = GetBySubjectId(subjectId);
-             if (reviews == null)
+             if (reviews == null || reviews.Count == 0)
              {
                  return 0;
              }
@@ -480,7 +480,7 @@ public class SdmSubjectReview
          catch (Exception ex)
          {
              Console.WriteLine($"Error in GetAverageRatingOfReview: {ex.Message}");
-             throw;
+             return 0;
          }
      }
     
