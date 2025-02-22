@@ -105,7 +105,7 @@ public class SubjectReviewLikeController : ControllerBase
             }
             if (reviewLike == null)
             {
-                return NotFound(new { message = "This review has no likes." });
+                return Ok(new List<SdmSubjectReviewLike>());
             }
 
             return Ok(reviewLike);
