@@ -227,10 +227,10 @@ public partial class SdmSubjectClass
         var subjectClassRoomNumber = teachtableSubject.RoomNumber ?? "ไม่ระบุ";
         var subjectClassRule = teachtableSubject.Rule ?? "ไม่ระบุ";
         var subjectClassRemark = teachtableSubject.Remark ?? "ไม่ระบุ";
-
+        
         var subjectClassRating = SdmSubjectReview.GetAverageRatingOfReview(teachtableSubject.SubjectId);
         var subjectClassReview = SdmSubjectReview.GetCountOfReview(teachtableSubject.SubjectId);
-
+        
         var subjectClassTeacherListTh = TransformTeacherList(teachtableSubject.TeacherListTh);
         var subjectClassTeacherListEn = TransformTeacherList(teachtableSubject.TeacherListEn);
 
