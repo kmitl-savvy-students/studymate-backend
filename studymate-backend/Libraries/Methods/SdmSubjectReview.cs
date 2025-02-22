@@ -19,14 +19,14 @@ public class SdmSubjectReview
     public static List<SubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
         var query = SdmMysqlQuery.Execute(queryBuilder);
-
+    
         var result = new List<SubjectReview>();
-
+    
         while (query.Next())
         {
             // ตรวจสอบและแปลงค่าของ created
             DateOnly createdValue;
-
+    
             try
             {
                 var createdDateTime = DateTime.Parse(query.ToString(6)); // แปลงจาก string เป็น DateTime
@@ -36,30 +36,36 @@ public class SdmSubjectReview
             {
                 createdValue = DateOnly.FromDateTime(DateTime.Now);
             }
-
+    
             // ดึง subject_name_en จากตาราง subject
             string subjectNameEn = "";
-            if (query.ToInt(1) > 0)
+            string subjectId = query.ToString(6);
+            
+            if (!string.IsNullOrEmpty(subjectId))
             {
-                var subjectReviews = GetBySubjectId(query.ToString(2));
-                if (subjectReviews != null)
+                // ดึงข้อมูลวิชาจาก SdmSubject
+                var subject = SdmSubject.GetBy(subjectId);
+                if (subject != null)
                 {
-                    foreach (var subjectReview in subjectReviews)
-                    {
-                        var subject = SdmSubject.GetBy(subjectReview.SubjectId);
-                        if (subject != null)
-                            subjectNameEn = subject.NameEn;
-                    }
+                    subjectNameEn = subject.NameEn;
+                }
+                else
+                {
+                    Console.WriteLine($"[DEBUG] ไม่พบข้อมูลวิชาสำหรับ subjectId={subjectId}");
                 }
             }
-
+            else
+            {
+                Console.WriteLine("[DEBUG] subjectId เป็นค่าว่างหรือ null");
+            }
+            
             result.Add(new SubjectReview(
                 SdmTeachtable.GetBy(query.ToInt(1)), // Foreign Key: teachtable
                 query.ToString(2),             
                 query.ToString(3),                          
-                query.ToString(4),                          
-                query.ToFloat(5),
-                query.ToInt(6),
+                query.ToFloat(4),                          
+                query.ToInt(5),
+                query.ToString(6),
                 createdValue,
                 query.ToInt(0)                            
             )
@@ -68,10 +74,67 @@ public class SdmSubjectReview
             });
             
         }
-
+    
         query.CleanUp();
         return result;
     }
+    
+    // public static List<SubjectReview> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
+    // {
+    //     var query = SdmMysqlQuery.Execute(queryBuilder);
+    //     var result = new List<SubjectReview>();
+    //
+    //     while (query.Next())
+    //     {
+    //         // ตรวจสอบและแปลงค่าของ created
+    //         DateOnly createdValue;
+    //         try
+    //         {
+    //             var createdDateTime = DateTime.Parse(query.ToString(6)); // ✅ ดึงค่าเป็น string แล้วแปลงเป็น DateTime
+    //             createdValue = DateOnly.FromDateTime(createdDateTime);
+    //         }
+    //         catch
+    //         {
+    //             createdValue = DateOnly.FromDateTime(DateTime.Now);
+    //         }
+    //
+    //         // ดึง subject_name_en จากตาราง subject
+    //         string subjectNameEn = "";
+    //         string subjectId = query.ToString(2); // ✅ subjectId ควรเป็น string
+    //
+    //         if (!string.IsNullOrEmpty(subjectId)) // ✅ แก้ให้ตรวจสอบค่า subjectId ถูกต้อง
+    //         {
+    //             var subjectReviews = GetBySubjectId(subjectId);
+    //             if (subjectReviews != null)
+    //             {
+    //                 foreach (var subjectReview in subjectReviews)
+    //                 {
+    //                     var subject = SdmSubject.GetBy(subjectReview.SubjectId);
+    //                     if (subject != null)
+    //                         subjectNameEn = subject.NameEn;
+    //                 }
+    //             }
+    //         }
+    //
+    //         result.Add(new SubjectReview(
+    //             teachtable: SdmTeachtable.GetBy(query.ToInt(1)), // ✅ Foreign Key: teachtable
+    //             subjectId: subjectId, // ✅ ใช้ค่าจาก query.ToString(2)
+    //             userId: query.ToString(3), // ✅ userId เป็น string
+    //             review: query.ToString(4), // ✅ review เป็น string
+    //             rating: query.ToFloat(5), // ✅ rating เป็น float
+    //             like: query.ToInt(6), // ✅ like เป็น int
+    //             created: createdValue,
+    //             id: query.ToInt(0) // ✅ id เป็น int
+    //         )
+    //         {
+    //             SubjectNameEn = subjectNameEn // Assign dynamically
+    //         });
+    //     }
+    //
+    //     query.CleanUp();
+    //     return result;
+    // }
+
     
     public static List<SubjectReview> GetAll()
     {
