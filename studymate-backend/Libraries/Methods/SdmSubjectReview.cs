@@ -170,17 +170,15 @@ public class SdmSubjectReview
     {
         try
         {
-            // delete review
-            var deleteReview = new SdmMysqlQueryDelete("subject_review");
-            deleteReview.WhereEqual("sbjr_sbj_id", subjectId);
-            deleteReview.WhereEqual("sbjr_user_id", studentId);
-            var queryReview = SdmMysqlQuery.Execute(deleteReview);
-            queryReview.CleanUp();
+            // ดึง reviewId ก่อนลบ
+            var selectReview = GetQueryObj();
+            selectReview.WhereEqual("sbjr_sbj_id", subjectId);
+            selectReview.WhereEqual("sbjr_user_id", studentId);
+        
+            var reviews = ProcessQuery(selectReview, true);
 
-            var result = ProcessQuery(deleteReview);
-            
-            // delete like ทั้งหมด
-            foreach (var review in result)
+            // ลบ Like ที่เกี่ยวข้อง
+            foreach (var review in reviews)
             {
                 var deleteLikeReview = new SdmMysqlQueryDelete("subject_review_like");
                 deleteLikeReview.WhereEqual("srl_sbjr_id", review.Id.ToString());
@@ -188,7 +186,14 @@ public class SdmSubjectReview
                 queryLike.CleanUp();
             }
 
-            Console.WriteLine($"Deleted review for teachtable_subject_id={subjectId}, user_id={studentId}");
+            // ลบ Review
+            var deleteReview = new SdmMysqlQueryDelete("subject_review");
+            deleteReview.WhereEqual("sbjr_sbj_id", subjectId);
+            deleteReview.WhereEqual("sbjr_user_id", studentId);
+            var queryReview = SdmMysqlQuery.Execute(deleteReview);
+            queryReview.CleanUp();
+
+            Console.WriteLine($"Deleted review and likes for subject_id={subjectId}, user_id={studentId}");
         }
         catch (Exception ex)
         {
