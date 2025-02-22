@@ -25,7 +25,7 @@ public class SubjectReviewLikeController : ControllerBase
             }
 
             var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
-            var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), reviewLikeDto.TeachtableSubjectReviewId.ToString());
+            var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, reviewLikeDto.TeachtableSubjectReviewId.ToString());
 
             if (alreadyLike != null)
             {
@@ -33,7 +33,7 @@ public class SubjectReviewLikeController : ControllerBase
             }
 
             var reviewLike = new SubjectReviewLike(
-                userId: user.Id.ToString(),
+                userId: user.Id,
                 subjectReview: existingReview
             );
 
@@ -67,13 +67,13 @@ public class SubjectReviewLikeController : ControllerBase
 
             var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
             var reviewLike = new SubjectReviewLike(
-                userId: user.Id.ToString(),
+                userId: user.Id,
                 subjectReview: review
             );
 
-            Console.WriteLine($"{SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString())}");
+            Console.WriteLine($"{SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, review.Id.ToString())}");
 
-            if (SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString()) == null)
+            if (SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, review.Id.ToString()) == null)
             {
                 return NotFound(new {message = "Like not found."});
             }
