@@ -45,7 +45,7 @@ public partial class SdmSubjectClass
     public static async Task<bool> GetBy(
         Teachtable inputTeachtable,
         Curriculum curriculum,
-        string subjectId
+        string subjectId, string isGened
     )
     {
         var apiUrl = $"{KmitlPublicApiUrl}?" +
@@ -55,7 +55,7 @@ public partial class SdmSubjectClass
                      $"&selected_semester={inputTeachtable.Term}" +
                      $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
                      $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
-                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
+                     $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
@@ -85,7 +85,7 @@ public partial class SdmSubjectClass
     public static async Task<SubjectClass?> GetBy(
         Teachtable inputTeachtable,
         Curriculum curriculum,
-        string subjectId, string section
+        string subjectId, string section, string isGened
     )
     {
         var apiUrl = $"{KmitlPublicApiUrl}?" +
@@ -95,7 +95,7 @@ public partial class SdmSubjectClass
                      $"&selected_semester={inputTeachtable.Term}" +
                      $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
                      $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
-                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
+                     $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
@@ -139,26 +139,11 @@ public partial class SdmSubjectClass
     public static async Task<List<SubjectClass>> GetAllBy(
         Teachtable inputTeachtable,
         Curriculum curriculum,
-        string year
+        string year,
+        string isGened
     )
     {
-        string apiUrl;
-        if (curriculum.Id == 0)
-            apiUrl = $"{KmitlPublicApiUrl}?" +
-                     $"function=get-teach-table-show" +
-                     $"&mode=by_class" +
-                     $"&selected_year={inputTeachtable.Year + 543}" +
-                     $"&selected_semester={inputTeachtable.Term}" +
-                     $"&selected_class_year={year}" +
-                     $"&selected_faculty=90" +
-                     $"&selected_department=90" +
-                     $"&selected_curriculum=x" +
-                     $"&search_all_faculty=false" +
-                     $"&search_all_department=false" +
-                     $"&search_all_curriculum=false" +
-                     $"&search_all_class_year={(year == "0" ? "true" : "false")}";
-        else
-            apiUrl = $"{KmitlPublicApiUrl}?" +
+        var apiUrl = $"{KmitlPublicApiUrl}?" +
                      $"function=get-teach-table-show" +
                      $"&mode=by_class" +
                      $"&selected_year={inputTeachtable.Year + 543}" +
@@ -166,7 +151,7 @@ public partial class SdmSubjectClass
                      $"&selected_class_year={year}" +
                      $"&selected_faculty={curriculum.Program?.Department?.Faculty?.KmitlId}" +
                      $"&selected_department={curriculum.Program?.Department?.KmitlId}" +
-                     $"&selected_curriculum={curriculum.Program?.KmitlId}" +
+                     $"&selected_curriculum={(isGened == "1" ? "x" : curriculum.Program?.KmitlId)}" +
                      $"&search_all_faculty=false" +
                      $"&search_all_department=false" +
                      $"&search_all_curriculum=false" +
@@ -227,10 +212,10 @@ public partial class SdmSubjectClass
         var subjectClassRoomNumber = teachtableSubject.RoomNumber ?? "ไม่ระบุ";
         var subjectClassRule = teachtableSubject.Rule ?? "ไม่ระบุ";
         var subjectClassRemark = teachtableSubject.Remark ?? "ไม่ระบุ";
-        
-        var subjectClassRating = SdmSubjectReview.GetAverageRatingOfReview(teachtableSubject.SubjectId);
-        var subjectClassReview = SdmSubjectReview.GetCountOfReview(teachtableSubject.SubjectId);
-        
+
+        var subjectClassRating = SdmSubjectReview.GetAverageRatingOfReview(subjectClassSubject.Id);
+        var subjectClassReview = SdmSubjectReview.GetCountOfReview(subjectClassSubject.Id);
+
         var subjectClassTeacherListTh = TransformTeacherList(teachtableSubject.TeacherListTh);
         var subjectClassTeacherListEn = TransformTeacherList(teachtableSubject.TeacherListEn);
 
@@ -250,7 +235,7 @@ public partial class SdmSubjectClass
             subjectClassSection, subjectClassCreditLps, subjectClassClassBuilding,
             subjectClassRoomNumber, subjectClassTeacherListTh, subjectClassTeacherListEn,
             subjectClassClassDatetime, subjectClassMidtermDatetime, subjectClassFinaltermDatetime,
-            subjectClassRating, subjectClassReview, subjectClassSessionType, 
+            subjectClassRating, subjectClassReview, subjectClassSessionType,
             subjectClassRule, subjectClassRemark
         );
     }

@@ -15,16 +15,17 @@ public class SubjectClassController : ControllerBase
         [FromQuery(Name = "academic_year")] int academicYear,
         [FromQuery(Name = "academic_term")] int academicTerm,
         [FromQuery] string year,
-        [FromQuery] int curriculumId
+        [FromQuery] int curriculumId,
+        [FromQuery(Name = "is_gened")] string isGened
     )
     {
         var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
-        var curriculum = curriculumId == 0 ? new Curriculum(0, null, 0, "x", "x", null) : SdmCurriculum.GetBy(curriculumId);
+        var curriculum = SdmCurriculum.GetBy(curriculumId);
 
         if (teachtable == null || curriculum == null)
             return BadRequest("Invalid academic year, term, or curriculum.");
 
-        var subjectClasses = await SdmSubjectClass.GetAllBy(teachtable, curriculum, year);
+        var subjectClasses = await SdmSubjectClass.GetAllBy(teachtable, curriculum, year, isGened);
 
         return Ok(subjectClasses);
     }
@@ -35,7 +36,8 @@ public class SubjectClassController : ControllerBase
         [FromQuery(Name = "academic_term")] int academicTerm,
         [FromQuery] int curriculumId,
         [FromQuery] string subjectId,
-        [FromQuery] string section
+        [FromQuery] string section,
+        [FromQuery(Name = "is_gened")] string isGened
     )
     {
         var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
@@ -44,7 +46,7 @@ public class SubjectClassController : ControllerBase
         if (teachtable == null || curriculum == null)
             return BadRequest("Invalid academic year, term, or curriculum.");
 
-        var subjectClass = await SdmSubjectClass.GetBy(teachtable, curriculum, subjectId, section);
+        var subjectClass = await SdmSubjectClass.GetBy(teachtable, curriculum, subjectId, section, isGened);
 
         return Ok(subjectClass);
     }
@@ -54,7 +56,8 @@ public class SubjectClassController : ControllerBase
         [FromQuery(Name = "academic_year")] int academicYear,
         [FromQuery(Name = "academic_term")] int academicTerm,
         [FromQuery] int curriculumId,
-        [FromQuery] string subjectId
+        [FromQuery] string subjectId,
+        [FromQuery(Name = "is_gened")] string isGened
     )
     {
         var teachtable = SdmTeachtable.GetBy(academicYear, academicTerm);
@@ -63,7 +66,7 @@ public class SubjectClassController : ControllerBase
         if (teachtable == null || curriculum == null)
             return BadRequest("Invalid academic year, term, or curriculum.");
 
-        var result = await SdmSubjectClass.GetBy(teachtable, curriculum, subjectId);
+        var result = await SdmSubjectClass.GetBy(teachtable, curriculum, subjectId, isGened);
         return Ok(result ? "true" : "false");
     }
     [AllowAnonymous]
