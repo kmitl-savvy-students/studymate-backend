@@ -2,7 +2,7 @@
 
 public class SubjectReview(
     Teachtable? teachtable, //sbjr_tt_id
-    string userId, //sbjr_user_id
+    int userId, //sbjr_user_id
     string review, //sbjr_rev
     float rating, //sbjr_rat
     int like, //sbjr_like
@@ -14,7 +14,7 @@ public class SubjectReview(
     public int Id { get; set; } = id;
     public Teachtable? Teachtable { get; set; } = teachtable;
     public string SubjectId { get; set; } = subjectId;
-    public string UserId { get; set; } = userId;
+    public int UserId { get; set; } = userId;
     public string Review { get; set; } = review;
     public float Rating { get; set; } = rating;
     public int Like { get; set; } = like;
