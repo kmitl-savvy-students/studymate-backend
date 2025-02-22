@@ -57,11 +57,11 @@ public class SubjectReviewController : ControllerBase
     }
 
     [HttpGet("{subjectId}/{studentId}")]
-    public IActionResult GetBySubjectAndStudent(string subjectId, string studentId)
+    public IActionResult GetBySubjectAndStudent(string subjectId, int studentId)
     {
         try
         {
-            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (review == null)
             {
                 return Ok(new object[] { });
@@ -98,7 +98,7 @@ public class SubjectReviewController : ControllerBase
     
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("{subjectId}/{studentId}")]
-    public IActionResult Delete(string subjectId, string studentId)
+    public IActionResult Delete(string subjectId, int studentId)
     {
         try
         {
@@ -107,21 +107,21 @@ public class SubjectReviewController : ControllerBase
     
             // ดึงข้อมูลผู้ใช้จาก Token
             var user = SdmSubjectReview.GetUserInfoFromToken(token);
-            if (user.Id.ToString() != studentId || user == null)
+            if (user.Id != studentId || user == null)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
             
-            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
             }
 
-            SdmSubjectReview.Delete(subjectId, studentId);
+            SdmSubjectReview.Delete(subjectId, studentId.ToString());
 
             // ตรวจสอบว่าข้อมูลถูกลบจริงหรือไม่
-            var remainingReview = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var remainingReview = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (remainingReview == null)
             {
                 return Ok(new { message = "Review deleted successfully." });
