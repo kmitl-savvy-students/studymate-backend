@@ -162,8 +162,6 @@ public class SubjectReviewController : ControllerBase
                 return NotFound(new { message = "You must login and select curriculum." });
             }
     
-            var publicId = user.Curriculum.Program.KmitlId;
-    
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
             var allSubjects = await SdmSubjectReview.GetAllSubjectInFacultyAndGened(user);
             
