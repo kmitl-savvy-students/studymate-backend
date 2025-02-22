@@ -14,6 +14,7 @@ public class SubjectClass(
     List<string> midtermDatetime,
     List<string> finalDatetime,
     double rating,
+    int review,
     string sessionType,
     string rule,
     string remark
@@ -32,6 +33,7 @@ public class SubjectClass(
     public List<string> MidtermDatetime { get; set; } = midtermDatetime;
     public List<string> FinalDatetime { get; set; } = finalDatetime;
     public double Rating { get; set; } = rating;
+    public int Review { get; set; } = review;
     public string SessionType { get; set; } = sessionType;
     public string Rule { get; set; } = rule;
     public string Remark { get; set; } = remark;

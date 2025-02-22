@@ -6,8 +6,8 @@ using studymate_backend.Libraries.Models;
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/teachtable-subject-review/like")]
-public class TeachtableSubjectReviewLikeController : ControllerBase
+[Route("api/subject-review-like")]
+public class SubjectReviewLikeController : ControllerBase
 {
 
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
@@ -17,27 +17,27 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            TeachtableSubjectReview existingReview = SdmTeachtableSubjectReview.GetById(reviewLikeDto.TeachtableSubjectReviewId);
+            SubjectReview existingReview = SdmSubjectReview.GetById(reviewLikeDto.TeachtableSubjectReviewId);
 
             if (existingReview == null)
             {
                 return NotFound(new { message = "Review not found."});
             }
 
-            var user = SdmTeachtableSubjectReviewLike.GetUserInfoFromToken(token);
-            var alreadyLike = SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), reviewLikeDto.TeachtableSubjectReviewId.ToString());
+            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), reviewLikeDto.TeachtableSubjectReviewId.ToString());
 
             if (alreadyLike != null)
             {
                 return Conflict(new { message = "You like this review already"});
             }
 
-            var reviewLike = new TeachtableSubjectReviewLike(
+            var reviewLike = new SubjectReviewLike(
                 userId: user.Id.ToString(),
-                teachtableSubjectReview: existingReview
+                subjectReview: existingReview
             );
 
-            SdmTeachtableSubjectReviewLike.Insert(reviewLike);
+            SdmSubjectReviewLike.Insert(reviewLike);
 
             return Ok(new { message = "Like review successfully." });
 
@@ -57,28 +57,28 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-            TeachtableSubjectReview review = SdmTeachtableSubjectReview.GetById(teachtableSubjectReviewId);
+            SubjectReview review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
 
             // ไม่พบรีวิว
             if (review == null)
             {
-                return NotFound(new { message = "Teachtable subject review not found." });
+                return NotFound(new { message = "Subject review not found." });
             }
 
-            var user = SdmTeachtableSubjectReviewLike.GetUserInfoFromToken(token);
-            var reviewLike = new TeachtableSubjectReviewLike(
+            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            var reviewLike = new SubjectReviewLike(
                 userId: user.Id.ToString(),
-                teachtableSubjectReview: review
+                subjectReview: review
             );
 
-            Console.WriteLine($"{SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString())}");
+            Console.WriteLine($"{SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString())}");
 
-            if (SdmTeachtableSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString()) == null)
+            if (SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id.ToString(), review.Id.ToString()) == null)
             {
                 return NotFound(new {message = "Like not found."});
             }
 
-            SdmTeachtableSubjectReviewLike.Delete(reviewLike);
+            SdmSubjectReviewLike.Delete(reviewLike);
             Console.WriteLine($"user_id = {user.Id}, review_id = {review.Id}");
             return Ok(new { message = "Unlike this review successfully." });
 
@@ -96,15 +96,19 @@ public class TeachtableSubjectReviewLikeController : ControllerBase
     {
         try
         {
-            var review = SdmTeachtableSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
+            var review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
+            var reviewLike = SdmSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
 
-            // ไม่พบรีวิว
             if (review == null)
             {
-                return NotFound(new { message = "Teachtable subject review not found." });
+                return NotFound(new { message = "Review not found." });
+            }
+            if (reviewLike == null)
+            {
+                return Ok(new List<SdmSubjectReviewLike>());
             }
 
-            return Ok(review);
+            return Ok(reviewLike);
         }
         catch (Exception ex)
         {
