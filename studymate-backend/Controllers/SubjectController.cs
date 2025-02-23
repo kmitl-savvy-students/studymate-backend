@@ -19,15 +19,43 @@ public class SubjectController : ControllerBase
             return NotFound(new { message = "Subject not found." });
         return Ok(subjects);
     }
-
+    
     [AllowAnonymous]
     [HttpGet("{subjectId}")]
-    public ActionResult<Subject> Get(string subjectId)
+    public ActionResult<DtoSubject> Get(string subjectId)
     {
-        var subjects = SdmSubject.GetBy(subjectId);
+        var subject = SdmSubject.GetBy(subjectId);
 
-        if (subjects == null)
+        if (subject == null)
             return NotFound(new { message = "Subject not found." });
-        return Ok(subjects);
+        
+        double rating = SdmSubjectReview.GetAverageRatingOfReview(subjectId);
+        int reviewCount = SdmSubjectReview.GetCountOfReview(subjectId);
+        
+        var response = new DtoSubject(subject, rating, reviewCount);
+
+        return Ok(response);
+    }
+    
+    public class DtoSubject
+    {
+        public string Id { get; init; } = string.Empty;
+        public string NameTh { get; init; } = string.Empty;
+        public string NameEn { get; init; } = string.Empty;
+        public int Credit { get; init; }
+        public string Detail { get; init; } = string.Empty;
+        public double Rating { get; init; }
+        public int Review { get; init; }
+        
+        public DtoSubject(Subject subject, double rating, int review)
+        {
+            Id = subject.Id;
+            NameTh = subject.NameTh;
+            NameEn = subject.NameEn;
+            Credit = subject.Credit;
+            Detail = subject.Detail;
+            Rating = rating;
+            Review = review;
+        }
     }
 }
