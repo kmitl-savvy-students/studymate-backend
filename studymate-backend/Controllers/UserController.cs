@@ -11,39 +11,58 @@ public class UserController : ControllerBase
 {
     #region [POST] Update
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpPut("update")]
+    [HttpPut("update/data")]
     public ActionResult<User> Update([FromBody] DtoUpdateUser user)
     {
         var existingUser = SdmUser.GetBy(user.Id);
         if (existingUser == null)
             return NotFound();
 
-        if (user.CurriculumId != null)
-        {
-            var newCurriculum = SdmCurriculum.GetBy(user.CurriculumId ?? -1);
-            if (newCurriculum == null)
-                return NotFound();
-            existingUser.Curriculum = newCurriculum;
-        }
-
-        existingUser.Nickname = user.NameNick ?? existingUser.Nickname;
-        existingUser.Firstname = user.NameFirst ?? existingUser.Firstname;
-        existingUser.Lastname = user.NameLast ?? existingUser.Lastname;
-        existingUser.ProfilePicture = user.Profile ?? existingUser.ProfilePicture;
+        if (user.NickName.Trim() != "")
+            existingUser.Nickname = user.NickName;
+        if (user.FirstName.Trim() != "")
+            existingUser.Firstname = user.FirstName;
+        if (user.LastName.Trim() != "")
+            existingUser.Lastname = user.LastName;
 
         SdmUser.UpdateBy(existingUser);
 
         return Ok(user);
     }
 
-    public class DtoUpdateUser(int id, string? nameNick, string? nameFirst, string? nameLast, string? profile, int? curriculumId)
+    public class DtoUpdateUser
     {
-        public required int Id { get; init; } = id;
-        public string? NameNick { get; } = nameNick;
-        public string? NameFirst { get; } = nameFirst;
-        public string? NameLast { get; } = nameLast;
-        public string? Profile { get; } = profile;
-        public int? CurriculumId { get; } = curriculumId;
+        public required int Id { get; init; } = -1;
+        public required string NickName { get; init; } = string.Empty;
+        public required string FirstName { get; init; } = string.Empty;
+        public required string LastName { get; init; } = string.Empty;
+    }
+
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPut("update/curriculum")]
+    public ActionResult<User> Update([FromBody] DtoUpdateUserCurriculum user)
+    {
+        var existingUser = SdmUser.GetBy(user.Id);
+        if (existingUser == null)
+            return NotFound();
+
+        if (user.CurriculumId != -1)
+        {
+            var newCurriculum = SdmCurriculum.GetBy(user.CurriculumId);
+            if (newCurriculum == null)
+                return NotFound();
+            existingUser.Curriculum = newCurriculum;
+        }
+
+        SdmUser.UpdateBy(existingUser);
+
+        return Ok(user);
+    }
+
+    public class DtoUpdateUserCurriculum
+    {
+        public required int Id { get; init; } = -1;
+        public required int CurriculumId { get; init; } = -1;
     }
     #endregion
 }
