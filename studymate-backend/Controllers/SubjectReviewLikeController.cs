@@ -17,14 +17,19 @@ public class SubjectReviewLikeController : ControllerBase
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            
             SubjectReview existingReview = SdmSubjectReview.GetById(reviewLikeDto.TeachtableSubjectReviewId);
 
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
             if (existingReview == null)
             {
                 return NotFound(new { message = "Review not found."});
             }
-
-            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            
             var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, reviewLikeDto.TeachtableSubjectReviewId.ToString());
 
             if (alreadyLike != null)
@@ -56,16 +61,22 @@ public class SubjectReviewLikeController : ControllerBase
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
+            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            
             SubjectReview review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
 
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
             // ไม่พบรีวิว
             if (review == null)
             {
                 return NotFound(new { message = "Subject review not found." });
             }
 
-            var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
+            
             var reviewLike = new SubjectReviewLike(
                 userId: user.Id,
                 subjectReview: review

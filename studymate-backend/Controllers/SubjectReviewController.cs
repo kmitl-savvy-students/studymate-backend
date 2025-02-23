@@ -29,7 +29,8 @@ public class SubjectReviewController : ControllerBase
     
             // ดึงข้อมูลผู้ใช้จาก Token
             var user = SdmSubjectReview.GetUserInfoFromToken(token);
-            if (user.Id != reviewDto.StudentId || user == null)
+            Console.WriteLine(user);
+            if (user == null || user.Id != reviewDto.StudentId)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
@@ -82,7 +83,7 @@ public class SubjectReviewController : ControllerBase
         try
         {
             var review = SdmSubjectReview.GetBySubjectId(subjectId);
-            if (review == null|| review.Count == 0)
+            if (review == null || review.Count == 0)
             {
                 return Ok(new object[] { });
             }
@@ -107,7 +108,7 @@ public class SubjectReviewController : ControllerBase
     
             // ดึงข้อมูลผู้ใช้จาก Token
             var user = SdmSubjectReview.GetUserInfoFromToken(token);
-            if (user.Id != studentId || user == null)
+            if (user == null || user.Id != studentId)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
             }
