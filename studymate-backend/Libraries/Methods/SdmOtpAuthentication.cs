@@ -183,55 +183,55 @@ public class SdmOtpAuthentication
     
     // ฟังก์ชันส่งอีเมล
     public static void SendEmail(string toEmail, string otpCode, string referer)
-{
-    var fromEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL");
-    var fromPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
-
-    if (string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(fromPassword))
     {
-        throw new Exception("❌ SMTP credentials are missing. Please set SMTP_EMAIL and SMTP_PASSWORD.");
-    }
+        var fromEmail = Environment.GetEnvironmentVariable("SMTP_EMAIL");
+        var fromPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
 
-    try
-    {
-        var smtpClient = new SmtpClient("smtp.gmail.com")
+        if (string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(fromPassword))
         {
-            Port = 587,
-            UseDefaultCredentials = false,
-            Credentials = new NetworkCredential(fromEmail, fromPassword),
-            EnableSsl = true,
-        };
-        
-        string logoUrl = "https://drive.google.com/uc?export=view&id=1Huf2Jjo_YgbWa1FiEZUPofFpCVA6ruUn"; 
+            throw new Exception("❌ SMTP credentials are missing. Please set SMTP_EMAIL and SMTP_PASSWORD.");
+        }
 
-        var mailMessage = new MailMessage
+        try
         {
-            From = new MailAddress(fromEmail),
-            Subject = "Your StudyMate OTP Code",
-            IsBodyHtml = true,
-            Body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 20px; text-align: center; background: #F5F5F5; border-radius: 8px;'>
-                    <img src='{logoUrl}' alt='StudyMate' style='width: 100px; margin-bottom: 10px;'>
-                    <h2 style='color: #333;'>Let's sign you up</h2>
-                    <p style='color: #666;'>Use this code to sign up to StudyMate. This code will expire in 5 minutes.</p>
-                    <h1 style='font-size: 32px; letter-spacing: 5px;'>{otpCode}</h1>
-                    <p style='color: #666;'>Referer: <b>{referer}</b></p>
-                    <p style='color: #666;'>This code will securely sign you up using <b>{toEmail}</b></p>
-                    <p style='font-size: 12px; color: #999;'>If you didn’t request this email, you can safely ignore it.</p>
-                </div>"
-        };
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromEmail, fromPassword),
+                EnableSsl = true,
+            };
+            
+            string logoUrl = "https://drive.google.com/uc?export=view&id=1Huf2Jjo_YgbWa1FiEZUPofFpCVA6ruUn"; 
 
-        mailMessage.To.Add(toEmail);
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromEmail),
+                Subject = "Your StudyMate OTP Code",
+                IsBodyHtml = true,
+                Body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 20px; text-align: center; background: #F5F5F5; border-radius: 8px;'>
+                        <img src='{logoUrl}' alt='StudyMate' style='width: 100px; margin-bottom: 10px;'>
+                        <h2 style='color: #333;'>Let's sign you up</h2>
+                        <p style='color: #666;'>Use this code to sign up to StudyMate. This code will expire in 5 minutes.</p>
+                        <h1 style='font-size: 32px; letter-spacing: 5px;'>{otpCode}</h1>
+                        <p style='color: #666;'>Referer: <b>{referer}</b></p>
+                        <p style='color: #666;'>This code will securely sign you up using <b>{toEmail}</b></p>
+                        <p style='font-size: 12px; color: #999;'>If you didn’t request this email, you can safely ignore it.</p>
+                    </div>"
+            };
 
-        smtpClient.Send(mailMessage);
-        Console.WriteLine("✅ OTP email sent successfully.");
+            mailMessage.To.Add(toEmail);
+
+            smtpClient.Send(mailMessage);
+            Console.WriteLine("✅ OTP email sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to send OTP email: {ex.Message}");
+            throw new Exception("Failed to send OTP email.", ex);
+        }
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Failed to send OTP email: {ex.Message}");
-        throw new Exception("Failed to send OTP email.", ex);
-    }
-}
 
     
     public static List<OtpAuthentication> GetActiveOtps()
