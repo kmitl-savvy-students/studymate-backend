@@ -29,7 +29,7 @@ public class CurriculumGroupSubjectController : ControllerBase
     #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
-    public async Task<ActionResult<DtoCreateCurriculumGroupSubject>> Create(DtoCreateCurriculumGroupSubject curriculumGroupSubject)
+    public async Task<ActionResult> Create(DtoCreateCurriculumGroupSubject curriculumGroupSubject)
     {
         var curriculumGroup = SdmCurriculumGroup.GetBy(curriculumGroupSubject.CurriculumGroupId);
         var subjectIds = curriculumGroupSubject.SubjectString.Split(',').ToList();
