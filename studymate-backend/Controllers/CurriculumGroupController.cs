@@ -42,6 +42,25 @@ public class CurriculumGroupController : ControllerBase
             []
         )));
     }
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPost("clone")]
+    public ActionResult Clone(DtoCreateCurriculumGroup curriculumGroup)
+    {
+        var clonedGroup = SdmCurriculumGroup.GetBy(curriculumGroup.Id) ?? null;
+        clonedGroup = SdmCurriculumGroup.CloneBy(clonedGroup);
+        if (clonedGroup != null)
+            return Ok();
+        return BadRequest();
+    }
+    #region [DELETE] Delete
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete/{id:int}")]
+    public ActionResult Delete(int id)
+    {
+        SdmCurriculumGroup.DeleteBy(id);
+        return Ok();
+    }
+    #endregion
 
     public class DtoCreateCurriculumGroup
     {

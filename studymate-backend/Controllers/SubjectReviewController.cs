@@ -1,21 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studymate_backend.Libraries.Methods;
-
 namespace studymate_backend.Controllers;
 
 [ApiController]
-[Route("api/teachtable-subject-review")]
-public class TeachtableSubjectReviewController : ControllerBase
+[Route("api/subject-review")]
+public class SubjectReviewController : ControllerBase
 {
     
     [HttpGet]
     public IActionResult GetAll()
     {
-        var reviews = SdmTeachtableSubjectReview.GetAll();
-
+        var reviews = SdmSubjectReview.GetAll();
+        
         if (reviews.Count == 0)
-            return Ok(reviews);
+            return Ok(new List<SdmSubjectReview>());
         return Ok(reviews);
     }
     
@@ -25,7 +24,18 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
-            SdmTeachtableSubjectReview.CreateReview(
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
+            Console.WriteLine(user);
+            if (user == null || user.Id != reviewDto.StudentId)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
+            SdmSubjectReview.CreateReview(
                 studentId: reviewDto.StudentId,
                 year: reviewDto.Year,
                 term: reviewDto.Term,
@@ -48,11 +58,11 @@ public class TeachtableSubjectReviewController : ControllerBase
     }
 
     [HttpGet("{subjectId}/{studentId}")]
-    public IActionResult GetBySubjectAndStudent(string subjectId, string studentId)
+    public IActionResult GetBySubjectAndStudent(string subjectId, int studentId)
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (review == null)
             {
                 return Ok(new object[] { });
@@ -72,8 +82,8 @@ public class TeachtableSubjectReviewController : ControllerBase
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetBySubject(subjectId);
-            if (review == null|| review.Count == 0)
+            var review = SdmSubjectReview.GetBySubjectId(subjectId);
+            if (review == null || review.Count == 0)
             {
                 return Ok(new object[] { });
             }
@@ -89,20 +99,30 @@ public class TeachtableSubjectReviewController : ControllerBase
     
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("{subjectId}/{studentId}")]
-    public IActionResult Delete(string subjectId, string studentId)
+    public IActionResult Delete(string subjectId, int studentId)
     {
         try
         {
-            var review = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            // ดึง Token จาก Header
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+    
+            // ดึงข้อมูลผู้ใช้จาก Token
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
+            if (user == null || user.Id != studentId)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
+            var review = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (review == null)
             {
                 return NotFound(new { message = "Review not found." });
             }
 
-            SdmTeachtableSubjectReview.Delete(subjectId, studentId);
+            SdmSubjectReview.Delete(subjectId, studentId.ToString());
 
             // ตรวจสอบว่าข้อมูลถูกลบจริงหรือไม่
-            var remainingReview = SdmTeachtableSubjectReview.GetBySubjectAndStudent(subjectId, studentId);
+            var remainingReview = SdmSubjectReview.GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (remainingReview == null)
             {
                 return Ok(new { message = "Review deleted successfully." });
@@ -129,7 +149,7 @@ public class TeachtableSubjectReviewController : ControllerBase
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
     
             // ดึงข้อมูลผู้ใช้จาก Token
-            var user = SdmTeachtableSubjectReview.GetUserInfoFromToken(token);
+            var user = SdmSubjectReview.GetUserInfoFromToken(token);
             if (user == null)
             {
                 return Unauthorized(new { message = "Invalid or expired token." });
@@ -143,13 +163,11 @@ public class TeachtableSubjectReviewController : ControllerBase
                 return NotFound(new { message = "You must login and select curriculum." });
             }
     
-            var publicId = user.Curriculum.Program.KmitlId;
-    
             // เรียกใช้ฟังก์ชันดึงข้อมูลล่าสุด
-            var allSubjects = await SdmTeachtableSubjectReview.GetAllSubjectInFacultyAndGened(user);
+            var allSubjects = await SdmSubjectReview.GetAllSubjectInFacultyAndGened(user);
             
             // ดึงรีวิวที่เกี่ยวข้องกับ allSubjects
-            var reviews = SdmTeachtableSubjectReview.GetReviewsBySubjects(allSubjects);
+            var reviews = SdmSubjectReview.GetReviewsBySubjects(allSubjects);
     
             return Ok(reviews);
         }

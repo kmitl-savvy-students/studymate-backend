@@ -32,7 +32,8 @@ public class FacultyController : ControllerBase
     [HttpGet("get")]
     public ActionResult<IEnumerable<Faculty>> GetAll()
     {
-        return Ok(SdmFaculty.GetAll());
+        var faculties = SdmFaculty.GetAll();
+        return Ok(faculties);
     }
     [AllowAnonymous]
     [HttpGet("get/{id:int}")]

@@ -6,8 +6,6 @@ namespace studymate_backend.Libraries.Methods;
 
 public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 {
-    private static Dictionary<int, CurriculumGroup> _cache = new();
-
     public static string TableName => "curriculum_group";
     public static SdmMysqlQuerySelect GetQueryObj()
     {
@@ -50,11 +48,35 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
                 curriculumGroupSubject.Group = null;
             curriculumGroup.Subjects = curriculumGroupSubjects;
         }
+
         return curriculumGroups;
+    }
+    public static List<CurriculumGroup> GetAllBy(Subject subject, CurriculumGroup? currentNode)
+    {
+        if (currentNode == null)
+            return [];
+
+        var result = new List<CurriculumGroup>();
+        foreach (var currentNodeSubject in currentNode.Subjects)
+            if (currentNodeSubject.Subject?.Id == subject.Id)
+                result.Add(new CurriculumGroup(
+                    currentNode.Id,
+                    null,
+                    currentNode.Type,
+                    currentNode.Name,
+                    currentNode.Credit,
+                    currentNode.Color,
+                    [], []
+                ));
+
+        foreach (var child in currentNode.Children)
+            result.AddRange(GetAllBy(subject, child));
+
+        return result;
     }
     public static CurriculumGroup? GetBy(int id)
     {
-        if (_cache.TryGetValue(id, out var value))
+        if (Cache.TryGetValue(id, out var value))
             return value;
 
         var select = GetQueryObj();
@@ -64,13 +86,81 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var curriculumGroup = result.Count == 0 ? null : result[0];
         if (curriculumGroup == null)
             return null;
-        _cache.Add(curriculumGroup.Id, curriculumGroup);
+        Cache.TryAdd(curriculumGroup.Id, curriculumGroup);
         return curriculumGroup;
     }
 
+    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup)
+    {
+        Cache.Clear();
+
+        if (curriculumGroup == null) return null;
+        if (curriculumGroup.ParentId != -1) return null;
+
+        var clonedGroup = new CurriculumGroup(
+            -1,
+            -1,
+            curriculumGroup.Type,
+            curriculumGroup.Name,
+            curriculumGroup.Credit,
+            curriculumGroup.Color,
+            [],
+            []
+        );
+
+        clonedGroup = Insert(clonedGroup);
+
+        var curriculumOld = SdmCurriculum.GetBy(curriculumGroup);
+        if (curriculumOld == null)
+            return null;
+        var cloneCurriculum = new Curriculum(
+            -1,
+            curriculumOld.Program,
+            curriculumOld.Year,
+            curriculumOld.NameTh + " (ถูกคัดลอก)",
+            curriculumOld.NameEn + " (Cloned)",
+            clonedGroup
+        );
+        SdmCurriculum.Insert(cloneCurriculum);
+
+        CloneChildGroups(curriculumGroup, clonedGroup);
+
+        return clonedGroup;
+    }
+    private static void CloneChildGroups(CurriculumGroup original, CurriculumGroup clone)
+    {
+        var childGroups = GetAllBy(original.Id);
+
+        foreach (var child in childGroups)
+        {
+            var clonedChild = new CurriculumGroup(
+                -1,
+                clone.Id,
+                child.Type,
+                child.Name,
+                child.Credit,
+                child.Color,
+                [],
+                []
+            );
+            clonedChild = Insert(clonedChild);
+
+            foreach (var childSubject in child.Subjects)
+            {
+                var cloneChildSubject = new CurriculumGroupSubject(
+                    -1,
+                    clonedChild,
+                    childSubject.Subject
+                );
+                SdmCurriculumGroupSubject.Insert(cloneChildSubject);
+            }
+
+            CloneChildGroups(child, clonedChild);
+        }
+    }
     public static CurriculumGroup Insert(CurriculumGroup curriculumGroup)
     {
-        _cache.Clear();
+        Cache.Clear();
 
         var insert = new SdmMysqlQueryInsert(TableName);
 
@@ -85,9 +175,24 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         query.CleanUp();
         return curriculumGroup;
     }
+    public static void DeleteBy(int id)
+    {
+        var curriculumGroup = GetBy(id);
+        if (curriculumGroup == null)
+            return;
+
+        SdmCurriculumGroupSubject.DeleteBy(curriculumGroup);
+
+        var delete = new SdmMysqlQueryDelete(TableName);
+
+        delete.WhereEqual("cg_id", curriculumGroup.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(delete);
+        query.CleanUp();
+    }
     public static void UpdateBy(CurriculumGroup curriculumGroup)
     {
-        _cache.Clear();
+        Cache.Clear();
 
         var update = new SdmMysqlQueryUpdate(TableName);
 
@@ -102,4 +207,26 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
     }
+
+    public static void AssignColors(CurriculumGroup? node, string? parentColor = null)
+    {
+        if (node == null) return;
+
+        if (string.IsNullOrWhiteSpace(node.Color) || node.Color == "#FFFFFF")
+            if (!string.IsNullOrWhiteSpace(parentColor))
+                node.Color = parentColor;
+
+        var currentColor = node.Color;
+
+        foreach (var child in node.Children) AssignColors(child, currentColor);
+    }
+
+
+    #region Caching
+    private static readonly Dictionary<int, CurriculumGroup> Cache = new();
+    public static void ClearCache()
+    {
+        Cache.Clear();
+    }
+    #endregion
 }

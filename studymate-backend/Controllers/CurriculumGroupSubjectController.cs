@@ -12,9 +12,9 @@ public class CurriculumGroupSubjectController : ControllerBase
     #region [DELETE] Delete
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("delete/{id:int}")]
-    public ActionResult<CurriculumGroupSubject> Delete(int id)
+    public ActionResult Delete(int id)
     {
-        SdmCurriculumGroupSubject.Delete(id);
+        SdmCurriculumGroupSubject.DeleteBy(id);
         return Ok();
     }
     #endregion
@@ -29,7 +29,7 @@ public class CurriculumGroupSubjectController : ControllerBase
     #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
-    public ActionResult<DtoCreateCurriculumGroupSubject> Create(DtoCreateCurriculumGroupSubject curriculumGroupSubject)
+    public async Task<ActionResult> Create(DtoCreateCurriculumGroupSubject curriculumGroupSubject)
     {
         var curriculumGroup = SdmCurriculumGroup.GetBy(curriculumGroupSubject.CurriculumGroupId);
         var subjectIds = curriculumGroupSubject.SubjectString.Split(',').ToList();
@@ -39,7 +39,16 @@ public class CurriculumGroupSubjectController : ControllerBase
 
             if (mySubjectId == string.Empty) continue;
             if (SdmCurriculumGroupSubject.GetBy(curriculumGroupSubject.CurriculumGroupId, mySubjectId) != null) continue;
-            if (SdmSubject.GetBy(subjectId) == null) continue;
+            var trySubject = SdmSubject.GetBy(subjectId);
+            if (trySubject == null)
+            {
+                trySubject = await SdmSubjectClass.GetBy(subjectId);
+                if (trySubject == null)
+                {
+                    Console.WriteLine($"[WARN] Subject ID: {subjectId} not found even from the api. Skipping...");
+                    continue;
+                }
+            }
 
             SdmCurriculumGroupSubject.Insert(new CurriculumGroupSubject(
                 -1,

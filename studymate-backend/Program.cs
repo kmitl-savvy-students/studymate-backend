@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 using studymate_backend.Libraries.Core;
+using studymate_backend.Libraries.Helper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors();
 
 var app = builder.Build();
+
+app.UseMiddleware<SdmGlobalMiddlewareCacheManagement>();
 
 app.UseCors(policyBuilder =>
 {

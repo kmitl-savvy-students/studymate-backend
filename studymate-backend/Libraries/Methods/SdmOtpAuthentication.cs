@@ -136,6 +136,11 @@ public class SdmOtpAuthentication
     // ฟังก์ชันสร้าง OTP Request และบันทึกลง DB
     public static OtpAuthentication RequestOtp(int userId)
     {
+        if (SdmUser.GetBy(userId) != null)
+        {
+            throw new Exception("Cannot request OTP. User already exists.");
+        }
+        
         // ดึง OTP ล่าสุดของ userId
         var lastOtp = GetLastOtpForUser(userId);
     
@@ -144,7 +149,7 @@ public class SdmOtpAuthentication
             var timeElapsed = (DateTime.UtcNow - lastOtp.DateCreated.ToDateTime()).TotalSeconds;
             if (timeElapsed < 60)
             {
-                throw new Exception("OTP request too frequent. Please wait before requesting again.");
+                throw new Exception("คุณขอ OTP บ่อยเกินไป กรุณารอสักครู่ก่อนลองใหม่อีกครั้งค่ะ");
             }
         }
         
@@ -196,18 +201,26 @@ public class SdmOtpAuthentication
                 Credentials = new NetworkCredential(fromEmail, fromPassword),
                 EnableSsl = true,
             };
+            
+            string logoUrl = "https://drive.google.com/uc?export=view&id=1Huf2Jjo_YgbWa1FiEZUPofFpCVA6ruUn"; 
 
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(fromEmail),
                 Subject = "Your StudyMate OTP Code",
-                Body = $@"
-                    <h3>Your OTP Code</h3>
-                    <p><b>OTP:</b> {otpCode}</p>
-                    <p><b>Referer:</b> {referer}</p>
-                    <p>This code is valid for 5 minutes.</p>",
                 IsBodyHtml = true,
+                Body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 20px; text-align: center; background: #F5F5F5; border-radius: 8px;'>
+                        <img src='{logoUrl}' alt='StudyMate' style='width: 100px; margin-bottom: 10px;'>
+                        <h2 style='color: #333;'>Let's sign you up</h2>
+                        <p style='color: #666;'>Use this code to sign up to StudyMate. This code will expire in 5 minutes.</p>
+                        <h1 style='font-size: 32px; letter-spacing: 5px;'>{otpCode}</h1>
+                        <p style='color: #666;'>Referer: <b>{referer}</b></p>
+                        <p style='color: #666;'>This code will securely sign you up using <b>{toEmail}</b></p>
+                        <p style='font-size: 12px; color: #999;'>If you didn’t request this email, you can safely ignore it.</p>
+                    </div>"
             };
+
             mailMessage.To.Add(toEmail);
 
             smtpClient.Send(mailMessage);
@@ -219,6 +232,7 @@ public class SdmOtpAuthentication
             throw new Exception("Failed to send OTP email.", ex);
         }
     }
+
     
     public static List<OtpAuthentication> GetActiveOtps()
     {

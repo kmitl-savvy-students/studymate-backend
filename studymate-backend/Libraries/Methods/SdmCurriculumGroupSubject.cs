@@ -66,11 +66,20 @@ public abstract class SdmCurriculumGroupSubject : ISdmBaseMethod<CurriculumGroup
         var query = SdmMysqlQuery.Execute(insert);
         query.CleanUp();
     }
-    public static void Delete(int id)
+    public static void DeleteBy(int id)
     {
         var delete = new SdmMysqlQueryDelete(TableName);
 
         delete.WhereEqual("cgs_id", id.ToString());
+
+        var query = SdmMysqlQuery.Execute(delete);
+        query.CleanUp();
+    }
+    public static void DeleteBy(CurriculumGroup curriculumGroup)
+    {
+        var delete = new SdmMysqlQueryDelete(TableName);
+
+        delete.WhereEqual("cgs_cg_id", curriculumGroup.Id.ToString());
 
         var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();

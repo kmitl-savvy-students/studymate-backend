@@ -13,7 +13,8 @@ namespace studymate_backend.Controllers;
 [Route("api/google")]
 public class GoogleOAuthController : ControllerBase
 {
-    #region Google Environment Variables
+    private static readonly HttpClient HttpClient = new();
+
     private readonly string _oAuth2Endpoint = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT") ?? "";
     private readonly string _oAuth2EndpointToken = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_TOKEN") ?? "";
     private readonly string _oAuth2EndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH2_ENDPOINT_USER_INFO") ?? "";
@@ -21,7 +22,6 @@ public class GoogleOAuthController : ControllerBase
     private readonly string _oAuthClientSecret = Environment.GetEnvironmentVariable("OAUTH_CLIENT_SECRET") ?? "";
     private readonly string _oAuthEndpointUserInfo = Environment.GetEnvironmentVariable("OAUTH_ENDPOINT_USER_INFO") ?? "";
     private readonly string _oAuthRedirectUri = Environment.GetEnvironmentVariable("OAUTH_REDIRECT_URI") ?? "";
-    #endregion
 
     #region [GET] Google Link
     [AllowAnonymous]
@@ -63,11 +63,10 @@ public class GoogleOAuthController : ControllerBase
         if (string.IsNullOrEmpty(googleAccessToken.AccessToken))
             return Unauthorized(new { message = "ไม่สามารถเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ได้ B" });
 
-        var client = new HttpClient();
         var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, _oAuth2EndpointUserInfo);
         userInfoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken.AccessToken);
 
-        var response = await client.SendAsync(userInfoRequest);
+        var response = await HttpClient.SendAsync(userInfoRequest);
         if (!response.IsSuccessStatusCode)
             return Unauthorized(new { message = "ไม่สามารถเข้าถึงข้อมูลผู้ใช้ได้" });
 
@@ -153,7 +152,6 @@ public class GoogleOAuthController : ControllerBase
 
     private async Task<DtoGoogleAccessToken?> GetAccessTokenAsync(string code, string redirectUri)
     {
-        var client = new HttpClient();
         var tokenRequest = new HttpRequestMessage(HttpMethod.Post, _oAuth2EndpointToken)
         {
             Content = new FormUrlEncodedContent([
@@ -165,7 +163,7 @@ public class GoogleOAuthController : ControllerBase
             ])
         };
 
-        var response = await client.SendAsync(tokenRequest);
+        var response = await HttpClient.SendAsync(tokenRequest);
         var responseContent = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<DtoGoogleAccessToken>(responseContent);
     }

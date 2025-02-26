@@ -100,7 +100,6 @@ public partial class TranscriptController : ControllerBase
         transcriptText = regex.Replace(transcriptText, m => "\n" + m.Value);
         transcriptText = string.Join("\n", transcriptText.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)));
 
-
         regex = CleanTermYearHeader();
         transcriptText = regex.Replace(transcriptText, m =>
         {
@@ -161,7 +160,7 @@ public partial class TranscriptController : ControllerBase
                 var subject = await SdmSubjectClass.GetBy(extractedSubjectId);
                 if (subject == null)
                 {
-                    Console.WriteLine($"Subject {extractedSubjectId} not found.");
+                    Console.WriteLine($"[WARN] Subject ID: {extractedSubjectId} not found even from the api. Skipping...");
                     continue;
                 }
 
