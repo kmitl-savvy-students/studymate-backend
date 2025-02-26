@@ -86,7 +86,9 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         update.Set("curr_year", curriculum.Year.ToString());
         update.Set("curr_name_th", curriculum.NameTh);
         update.Set("curr_name_en", curriculum.NameEn);
-        update.Set("curr_cg_id", curriculum.CurriculumGroup?.Id.ToString());
+
+        if (curriculum.CurriculumGroup != null)
+            update.Set("curr_cg_id", curriculum.CurriculumGroup?.Id.ToString());
 
         update.WhereEqual("curr_id", curriculum.Id.ToString());
 
