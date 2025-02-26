@@ -33,7 +33,6 @@ public class FacultyController : ControllerBase
     public ActionResult<IEnumerable<Faculty>> GetAll()
     {
         var faculties = SdmFaculty.GetAll();
-        faculties.Add(new Faculty(0, "0", "ศึกษาทั่วไป", "General Education"));
         return Ok(faculties);
     }
     [AllowAnonymous]

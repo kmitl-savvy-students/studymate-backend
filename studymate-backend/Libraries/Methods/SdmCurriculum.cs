@@ -56,6 +56,14 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         var result = ProcessQuery(select);
         return result.Count == 0 ? null : result[0];
     }
+    public static Curriculum? GetBy(CurriculumGroup curriculumGroup)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("curr_cg_id", curriculumGroup.Id.ToString());
+
+        var result = ProcessQuery(select);
+        return result.Count == 0 ? null : result[0];
+    }
 
     public static void Insert(Curriculum curriculum)
     {

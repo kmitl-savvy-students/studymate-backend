@@ -90,6 +90,74 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return curriculumGroup;
     }
 
+    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup)
+    {
+        Cache.Clear();
+
+        if (curriculumGroup == null) return null;
+        if (curriculumGroup.ParentId != -1) return null;
+
+        var clonedGroup = new CurriculumGroup(
+            -1,
+            -1,
+            curriculumGroup.Type,
+            curriculumGroup.Name,
+            curriculumGroup.Credit,
+            curriculumGroup.Color,
+            [],
+            []
+        );
+
+        clonedGroup = Insert(clonedGroup);
+
+        var curriculumOld = SdmCurriculum.GetBy(curriculumGroup);
+        if (curriculumOld == null)
+            return null;
+        var cloneCurriculum = new Curriculum(
+            -1,
+            curriculumOld.Program,
+            curriculumOld.Year,
+            curriculumOld.NameTh + " (ถูกคัดลอก)",
+            curriculumOld.NameEn + " (Cloned)",
+            clonedGroup
+        );
+        SdmCurriculum.Insert(cloneCurriculum);
+
+        CloneChildGroups(curriculumGroup, clonedGroup);
+
+        return clonedGroup;
+    }
+    private static void CloneChildGroups(CurriculumGroup original, CurriculumGroup clone)
+    {
+        var childGroups = GetAllBy(original.Id);
+
+        foreach (var child in childGroups)
+        {
+            var clonedChild = new CurriculumGroup(
+                -1,
+                clone.Id,
+                child.Type,
+                child.Name,
+                child.Credit,
+                child.Color,
+                [],
+                []
+            );
+            clonedChild = Insert(clonedChild);
+
+            foreach (var childSubject in child.Subjects)
+            {
+                var cloneChildSubject = new CurriculumGroupSubject(
+                    -1,
+                    clonedChild,
+                    childSubject.Subject
+                );
+                SdmCurriculumGroupSubject.Insert(cloneChildSubject);
+            }
+
+            CloneChildGroups(child, clonedChild);
+        }
+    }
     public static CurriculumGroup Insert(CurriculumGroup curriculumGroup)
     {
         Cache.Clear();
