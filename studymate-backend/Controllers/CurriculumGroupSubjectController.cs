@@ -9,6 +9,14 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum-group-subject")]
 public class CurriculumGroupSubjectController : ControllerBase
 {
+    #region [GET] Get
+    [AllowAnonymous]
+    [HttpGet("get-by-curriculum-group/{curriculumGroupId:int}")]
+    public ActionResult<List<CurriculumGroupSubject>> GetBy(int curriculumGroupId)
+    {
+        return Ok(SdmCurriculumGroupSubject.GetAllBy(curriculumGroupId));
+    }
+    #endregion
     #region [DELETE] Delete
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpDelete("delete/{id:int}")]
@@ -17,13 +25,14 @@ public class CurriculumGroupSubjectController : ControllerBase
         SdmCurriculumGroupSubject.DeleteBy(id);
         return Ok();
     }
-    #endregion
-    #region [GET] Get
-    [AllowAnonymous]
-    [HttpGet("get-by-curriculum-group/{curriculumGroupId:int}")]
-    public ActionResult<List<CurriculumGroupSubject>> GetBy(int curriculumGroupId)
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete-all/{id:int}")]
+    public ActionResult DeleteAll(int id)
     {
-        return Ok(SdmCurriculumGroupSubject.GetAllBy(curriculumGroupId));
+        var curriculumGroup = SdmCurriculumGroup.GetBy(id);
+        if (curriculumGroup != null)
+            SdmCurriculumGroupSubject.DeleteBy(curriculumGroup);
+        return Ok();
     }
     #endregion
     #region [POST] Create
