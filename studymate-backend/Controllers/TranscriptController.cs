@@ -285,7 +285,8 @@ public partial class TranscriptController : ControllerBase
             resultRight = RemoveCreditCumulativeRegex().Replace(resultRight, "");
             resultRight = RemoveAccessSpaceRegex().Replace(resultRight, " ");
 
-            return (resultLeft + " " + resultRight).Trim();
+            var resultTop = textTop.ToString();
+            return !CheckForUnOfficialTranscriptRegex().IsMatch(resultTop) ? "" : (resultLeft + " " + resultRight).Trim();
         }
         catch (Exception ex)
         {
@@ -340,5 +341,7 @@ public partial class TranscriptController : ControllerBase
     private static partial Regex DetectSubjectLineRegex();
     [GeneratedRegex(@"^(\d),(\d{4})$")]
     private static partial Regex DetectTermYearLineRegex();
+    [GeneratedRegex(@"\bUnofficial Transcript\b", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex CheckForUnOfficialTranscriptRegex();
     #endregion
 }
