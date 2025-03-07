@@ -65,6 +65,17 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         return result.Count == 0 ? null : result[0];
     }
 
+    public static void DeleteBy(Curriculum curriculum)
+    {
+        var delete = new SdmMysqlQueryDelete(TableName);
+        delete.WhereEqual("curr_id", curriculum.Id.ToString());
+
+        ProcessQuery(delete);
+
+        if (curriculum.CurriculumGroup != null)
+            SdmCurriculumGroup.DeleteRecursively(curriculum.CurriculumGroup.Id);
+    }
+
     public static void Insert(Curriculum curriculum)
     {
         var insert = new SdmMysqlQueryInsert(TableName);

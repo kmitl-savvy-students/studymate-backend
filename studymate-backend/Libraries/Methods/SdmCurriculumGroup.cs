@@ -208,6 +208,22 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         query.CleanUp();
     }
 
+    private static void DeleteRecursively(CurriculumGroup curriculumGroup)
+    {
+        var children = GetAllBy(curriculumGroup.Id);
+        foreach (var child in children) DeleteRecursively(child);
+        SdmCurriculumGroupSubject.DeleteBy(curriculumGroup);
+        DeleteBy(curriculumGroup.Id);
+    }
+
+    public static void DeleteRecursively(int id)
+    {
+        var node = GetBy(id);
+        if (node == null)
+            return;
+        DeleteRecursively(node);
+    }
+
     public static void AssignColors(CurriculumGroup? node, string? parentColor = null)
     {
         if (node == null) return;

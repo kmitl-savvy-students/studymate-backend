@@ -18,6 +18,18 @@ public class CurriculumController : ControllerBase
         return Ok();
     }
     #endregion
+    #region [DELETE] Delete
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete/{id:int}")]
+    public ActionResult<Curriculum> Delete(int id)
+    {
+        var curriculum = SdmCurriculum.GetBy(id);
+        if (curriculum == null)
+            return BadRequest();
+        SdmCurriculum.DeleteBy(curriculum);
+        return Ok();
+    }
+    #endregion
     #region [POST] Create
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("create")]
