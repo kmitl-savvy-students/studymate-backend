@@ -213,19 +213,29 @@ public partial class TranscriptController : ControllerBase
     #region Helper Methods
     private static string ProcessSubjectLine(string line)
     {
-        var subjectMatch = FindSubjectIdRegex().Match(line);
-        if (!subjectMatch.Success)
-            return line;
+        var tGradeMatch = DetectTGradeRegex().Match(line);
+        if (tGradeMatch.Success)
+        {
+            var subjectMatch = FindSubjectIdRegex().Match(line);
+            if (!subjectMatch.Success)
+                return line;
+            return $"{subjectMatch.Groups[1].Value},T";
+        }
 
-        var subjectId = subjectMatch.Groups[1].Value;
+        var subjectMatchNormal = FindSubjectIdRegex().Match(line);
+        if (!subjectMatchNormal.Success)
+            return line;
+        var subjectId = subjectMatchNormal.Groups[1].Value;
 
         var gradeMatch = FindGradeRegex().Match(line);
-
         var grade = "X";
-        if (gradeMatch.Success) grade = gradeMatch.Groups[1].Success ? gradeMatch.Groups[1].Value : gradeMatch.Groups[2].Value;
+        if (gradeMatch.Success)
+            grade = gradeMatch.Groups[1].Success ? gradeMatch.Groups[1].Value : gradeMatch.Groups[2].Value;
 
         return $"{subjectId},{grade}";
     }
+
+
     private static bool IsWithinBounds(PdfRectangle wordBounds, PdfRectangle columnBounds)
     {
         return wordBounds.Left >= columnBounds.Left &&
@@ -255,7 +265,7 @@ public partial class TranscriptController : ControllerBase
                 var topBoxBounds = new PdfRectangle(0, pageHeight - topBoxHeight, pageWidth, pageHeight);
 
                 const double bottomIgnorePercent = 0.1;
-                var leftColumnBounds = new PdfRectangle(0, pageHeight * bottomIgnorePercent, pageWidth / 2,
+                var leftColumnBounds = new PdfRectangle(0, pageHeight * bottomIgnorePercent, pageWidth / 2 + 20,
                     pageHeight - pageHeight * topPercent);
                 var rightColumnBounds = new PdfRectangle(pageWidth / 2, pageHeight * bottomIgnorePercent, pageWidth,
                     pageHeight - pageHeight * topPercent);
@@ -335,13 +345,15 @@ public partial class TranscriptController : ControllerBase
     private static partial Regex FindTermYearHeader();
     [GeneratedRegex(@"\b(\d{8})\b")]
     private static partial Regex FindSubjectIdRegex();
-    [GeneratedRegex(@"\s(A\+?|B\+?|C\+?|D\+?|F|S)\s|\s(A\+?|B\+?|C\+?|D\+?|F|S)$", RegexOptions.RightToLeft)]
+    [GeneratedRegex(@"\s(A(?:\+)?|B(?:\+)?|C(?:\+)?|D(?:\+)?|F|S|U)\s|\s(A(?:\+)?|B(?:\+)?|C(?:\+)?|D(?:\+)?|F|S|U)$", RegexOptions.RightToLeft)]
     private static partial Regex FindGradeRegex();
-    [GeneratedRegex(@"^(\d{8}),(A\+?|B\+?|C\+?|D\+?|F|S|X)$")]
+    [GeneratedRegex(@"^(\d{8}),(A\+?|B\+?|C\+?|D\+?|F|S|U|T|X)$")]
     private static partial Regex DetectSubjectLineRegex();
     [GeneratedRegex(@"^(\d),(\d{4})$")]
     private static partial Regex DetectTermYearLineRegex();
     [GeneratedRegex(@"\bUnofficial Transcript\b", RegexOptions.IgnoreCase, "en-US")]
     private static partial Regex CheckForUnOfficialTranscriptRegex();
+    [GeneratedRegex(@"T\s*\(\s*(?:A(?:\+)?|B(?:\+)?|C(?:\+)?|D(?:\+)?|F|S)\s*\)", RegexOptions.IgnoreCase)]
+    private static partial Regex DetectTGradeRegex();
     #endregion
 }
