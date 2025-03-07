@@ -90,7 +90,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return curriculumGroup;
     }
 
-    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup)
+    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup, Models.Program program)
     {
         Cache.Clear();
 
@@ -115,7 +115,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
             return null;
         var cloneCurriculum = new Curriculum(
             -1,
-            curriculumOld.Program,
+            program,
             curriculumOld.Year,
             curriculumOld.NameTh + " (ถูกคัดลอก)",
             curriculumOld.NameEn + " (Cloned)",
