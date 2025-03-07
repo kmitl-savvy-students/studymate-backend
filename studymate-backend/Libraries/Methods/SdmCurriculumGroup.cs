@@ -90,7 +90,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
         return curriculumGroup;
     }
 
-    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup)
+    public static CurriculumGroup? CloneBy(CurriculumGroup? curriculumGroup, Models.Program program)
     {
         Cache.Clear();
 
@@ -115,7 +115,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
             return null;
         var cloneCurriculum = new Curriculum(
             -1,
-            curriculumOld.Program,
+            program,
             curriculumOld.Year,
             curriculumOld.NameTh + " (ถูกคัดลอก)",
             curriculumOld.NameEn + " (Cloned)",
@@ -206,6 +206,22 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
 
         var query = SdmMysqlQuery.Execute(update);
         query.CleanUp();
+    }
+
+    private static void DeleteRecursively(CurriculumGroup curriculumGroup)
+    {
+        var children = GetAllBy(curriculumGroup.Id);
+        foreach (var child in children) DeleteRecursively(child);
+        SdmCurriculumGroupSubject.DeleteBy(curriculumGroup);
+        DeleteBy(curriculumGroup.Id);
+    }
+
+    public static void DeleteRecursively(int id)
+    {
+        var node = GetBy(id);
+        if (node == null)
+            return;
+        DeleteRecursively(node);
     }
 
     public static void AssignColors(CurriculumGroup? node, string? parentColor = null)

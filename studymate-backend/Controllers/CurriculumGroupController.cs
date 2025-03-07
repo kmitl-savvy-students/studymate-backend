@@ -47,7 +47,11 @@ public class CurriculumGroupController : ControllerBase
     public ActionResult Clone(DtoCreateCurriculumGroup curriculumGroup)
     {
         var clonedGroup = SdmCurriculumGroup.GetBy(curriculumGroup.Id) ?? null;
-        clonedGroup = SdmCurriculumGroup.CloneBy(clonedGroup);
+        var programId = curriculumGroup.ParentId;
+        var program = SdmProgram.GetBy(programId);
+        if (program == null)
+            return BadRequest();
+        clonedGroup = SdmCurriculumGroup.CloneBy(clonedGroup, program);
         if (clonedGroup != null)
             return Ok();
         return BadRequest();
