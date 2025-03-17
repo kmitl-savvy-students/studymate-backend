@@ -12,14 +12,14 @@ public class SubjectReviewLikeController : ControllerBase
 
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost]
-    public IActionResult Create([FromBody] TeachtableSubjectReviewLikeDto reviewLikeDto)
+    public IActionResult Create([FromBody] SubjectReviewLikeDto reviewLikeDto)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
             
-            SubjectReview existingReview = SdmSubjectReview.GetById(reviewLikeDto.TeachtableSubjectReviewId);
+            SubjectReview existingReview = SdmSubjectReview.GetById(reviewLikeDto.SubjectReviewId);
 
             if (user == null)
             {
@@ -30,7 +30,7 @@ public class SubjectReviewLikeController : ControllerBase
                 return NotFound(new { message = "Review not found."});
             }
             
-            var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, reviewLikeDto.TeachtableSubjectReviewId.ToString());
+            var alreadyLike = SdmSubjectReviewLike.GetByUserIdAndReviewId(user.Id, reviewLikeDto.SubjectReviewId.ToString());
 
             if (alreadyLike != null)
             {
@@ -54,16 +54,16 @@ public class SubjectReviewLikeController : ControllerBase
     }
 
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
-    [HttpDelete("{teachtableSubjectReviewId}")]
+    [HttpDelete("{subjectReviewId}")]
 
-    public IActionResult Delete(int teachtableSubjectReviewId)
+    public IActionResult Delete(int subjectReviewId)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var user = SdmSubjectReviewLike.GetUserInfoFromToken(token);
             
-            SubjectReview review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
+            SubjectReview review = SdmSubjectReview.GetById(subjectReviewId);
 
             if (user == null)
             {
@@ -102,13 +102,13 @@ public class SubjectReviewLikeController : ControllerBase
         }
     }
 
-    [HttpGet("{teachtableSubjectReviewId}")]
-    public IActionResult GetByTeachtableSubjectReviewId(int teachtableSubjectReviewId)
+    [HttpGet("{subjectReviewId}")]
+    public IActionResult GetByTeachtableSubjectReviewId(int subjectReviewId)
     {
         try
         {
-            var review = SdmSubjectReview.GetById(teachtableSubjectReviewId);
-            var reviewLike = SdmSubjectReviewLike.GetByReviewId(teachtableSubjectReviewId.ToString());
+            var review = SdmSubjectReview.GetById(subjectReviewId);
+            var reviewLike = SdmSubjectReviewLike.GetByReviewId(subjectReviewId.ToString());
 
             if (review == null)
             {
@@ -128,11 +128,10 @@ public class SubjectReviewLikeController : ControllerBase
                 new { message = "An error occurred while deleting the review.", error = ex.Message });
         }
     }
-
-
+    
 }
 
-public class TeachtableSubjectReviewLikeDto
+public class SubjectReviewLikeDto
 {
-    public int TeachtableSubjectReviewId { get; set; }
+    public int SubjectReviewId { get; set; }
 }
