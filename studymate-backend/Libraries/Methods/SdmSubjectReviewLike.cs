@@ -28,11 +28,11 @@ public class SdmSubjectReviewLike : ISdmBaseMethod<SubjectReviewLike>
         return result;
     }
 
-    public static SubjectReviewLike GetByUserIdAndReviewId(int user_id, string subjectReviewId)
+    public static SubjectReviewLike GetByUserIdAndReviewId(int userId, string subjectReviewId)
     {
         var select = GetQueryObj();
         select.WhereEqual("srl_sbjr_id", subjectReviewId);
-        select.WhereEqual("srl_user_id", user_id.ToString());
+        select.WhereEqual("srl_u_id", userId.ToString());
 
         var result = ProcessQuery(select);
         if (result.Count == 0)
@@ -63,7 +63,7 @@ public class SdmSubjectReviewLike : ISdmBaseMethod<SubjectReviewLike>
         {
             var insert = new SdmMysqlQueryInsert(TableName);
             insert.Insert("srl_sbjr_id", reviewLike.SubjectReview.Id.ToString());
-            insert.Insert("srl_user_id", reviewLike.UserId.ToString());
+            insert.Insert("srl_u_id", reviewLike.UserId.ToString());
 
             var query = SdmMysqlQuery.Execute(insert);
             query.CleanUp();
@@ -93,7 +93,7 @@ public class SdmSubjectReviewLike : ISdmBaseMethod<SubjectReviewLike>
 
             var delete = new SdmMysqlQueryDelete("subject_review_like");
             delete.WhereEqual("srl_sbjr_id", reviewLike.SubjectReview.Id.ToString());
-            delete.WhereEqual("srl_user_id", reviewLike.UserId.ToString());
+            delete.WhereEqual("srl_u_id", reviewLike.UserId.ToString());
 
             var query = SdmMysqlQuery.Execute(delete);
             query.CleanUp();

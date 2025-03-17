@@ -125,7 +125,7 @@ public class SdmSubjectReview
             var insert = new SdmMysqlQueryInsert(TableName);
             
             insert.Insert("sbjr_tt_id", review.Teachtable.Id.ToString());  //✅
-            insert.Insert("sbjr_user_id", review.UserId.ToString());  //✅
+            insert.Insert("sbjr_u_id", review.UserId.ToString());  //✅
             insert.Insert("sbjr_rev", review.Review);  //✅
             insert.Insert("sbjr_rat", review.Rating.ToString());  //✅
             insert.Insert("sbjr_like", review.Like.ToString());  //✅
@@ -150,7 +150,7 @@ public class SdmSubjectReview
         {
             var select = GetQueryObj();
             select.WhereEqual("sbjr_sbj_id", subjectId);
-            select.WhereEqual("sbjr_user_id", studentId);
+            select.WhereEqual("sbjr_u_id", studentId);
             
             var result = ProcessQuery(select);
             if (result.Count > 0)
@@ -173,7 +173,7 @@ public class SdmSubjectReview
             // ดึง reviewId ก่อนลบ
             var selectReview = GetQueryObj();
             selectReview.WhereEqual("sbjr_sbj_id", subjectId);
-            selectReview.WhereEqual("sbjr_user_id", studentId);
+            selectReview.WhereEqual("sbjr_u_id", studentId);
         
             var reviews = ProcessQuery(selectReview, true);
 
@@ -189,7 +189,7 @@ public class SdmSubjectReview
             // ลบ Review
             var deleteReview = new SdmMysqlQueryDelete("subject_review");
             deleteReview.WhereEqual("sbjr_sbj_id", subjectId);
-            deleteReview.WhereEqual("sbjr_user_id", studentId);
+            deleteReview.WhereEqual("sbjr_u_id", studentId);
             var queryReview = SdmMysqlQuery.Execute(deleteReview);
             queryReview.CleanUp();
 
