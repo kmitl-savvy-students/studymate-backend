@@ -47,7 +47,7 @@ public class SdmOtpAuthentication
         var insert = new SdmMysqlQueryInsert(TableName);
         
         insert.Insert("otpa_id", otpAuthentication.Id);
-        insert.Insert("otpa_user_id", otpAuthentication.UserId.ToString());
+        insert.Insert("otpa_u_id", otpAuthentication.UserId.ToString());
         insert.Insert("otpa_code", otpAuthentication.Code.ToString());
         insert.Insert("otpa_referer", otpAuthentication.Referer);
         insert.Insert("otpa_status", otpAuthentication.Status);
@@ -314,7 +314,7 @@ public class SdmOtpAuthentication
         var select = GetQueryObj();
     
         // ✅ ใช้ WhereEqual() เพื่อป้องกัน SQL Syntax Error
-        select.WhereEqual("otpa_user_id", userId.ToString());
+        select.WhereEqual("otpa_u_id", userId.ToString());
     
         var results = ProcessQuery(select, true);
 
