@@ -53,7 +53,8 @@ public class AuthController : ControllerBase
             nameLast,
             "",
             false,
-            null
+            null,
+            0
         );
 
         if (!SdmUser.Verify(newUser, otpId))

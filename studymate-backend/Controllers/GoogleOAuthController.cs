@@ -98,7 +98,8 @@ public class GoogleOAuthController : ControllerBase
                 userInfo.FamilyName,
                 userInfo.Picture,
                 false,
-                null
+                null,
+                0
             );
             SdmUser.Insert(user);
         }
