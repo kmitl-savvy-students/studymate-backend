@@ -59,6 +59,60 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpGet("get-policy-by-user-id")]
+    public IActionResult GetByUserId()
+    {
+        try
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var user = SdmUser.GetUserInfoFromToken(token);
+            
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+            
+            var policyUser = SdmUser.GetViewPolicy(user.Id);
+            
+            return Ok(new { policyViewed = policyUser });;
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+        }
+    }
+
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPost("update/policy")]
+    public ActionResult UpdatePolicy()
+    {
+        try
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var user = SdmUser.GetUserInfoFromToken(token);
+            
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+
+            if (user.ViewPolicy == 1)
+            {
+                return Conflict(new { message = "User view policy already." });
+            }
+            SdmUser.UpdateViewPolicy(user);
+            return Ok(new { message = "Policy viewed status updated successfully." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+        }
+    }
+
     public class DtoUpdateUserCurriculum
     {
         public required int Id { get; init; } = -1;
