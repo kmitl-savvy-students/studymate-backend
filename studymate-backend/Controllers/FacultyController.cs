@@ -26,6 +26,7 @@ public class FacultyController : ControllerBase
         SdmFaculty.UpdateBy(faculty);
         return Ok();
     }
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
     #endregion
     #region [GET] Get
     [AllowAnonymous]
