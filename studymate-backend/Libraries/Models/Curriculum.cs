@@ -2,7 +2,7 @@
 
 public class Curriculum(
     int id,
-    int isVisible,
+    bool isVisible,
     Program? program,
     int year,
     string nameTh,
@@ -11,7 +11,7 @@ public class Curriculum(
 ) : IBaseModel
 {
     public int Id { get; } = id;
-    public int IsVisible { get; set; } = 0;
+    public bool IsVisible { get; set; } = isVisible;
     public Program? Program { get; set; } = program;
     public int Year { get; set; } = year;
     public string NameTh { get; set; } = nameTh;

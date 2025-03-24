@@ -115,7 +115,7 @@ public abstract class SdmCurriculumGroup : ISdmBaseMethod<CurriculumGroup>
             return null;
         var cloneCurriculum = new Curriculum(
             -1,
-            0,
+            false,
             program,
             curriculumOld.Year,
             curriculumOld.NameTh + " (ถูกคัดลอก)",

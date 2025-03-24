@@ -2,7 +2,7 @@ namespace studymate_backend.Libraries.Models;
 
 public class Program(
     int id,
-    int isVisible,
+    bool isVisible,
     string kmitlId,
     Department? department,
     string nameTh,
@@ -10,7 +10,7 @@ public class Program(
 ) : IBaseModel
 {
     public int Id { get; set; } = id;
-    public int IsVisible { get; set; } = 0;
+    public bool IsVisible { get; set; } = isVisible;
     public string KmitlId { get; set; } = kmitlId;
     public Department? Department { get; set; } = department;
     public string NameTh { get; set; } = nameTh;

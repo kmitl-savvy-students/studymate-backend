@@ -20,7 +20,7 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
         {
             result.Add(new Curriculum(
                 query.ToInt(0),
-                query.ToInt(1),
+                query.ToBool(1),
                 SdmProgram.GetBy(query.ToInt(2)),
                 query.ToInt(3),
                 query.ToString(4),
@@ -94,7 +94,7 @@ public abstract class SdmCurriculum : ISdmBaseMethod<Curriculum>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
-        update.Set("curr_is_visible", curriculum.IsVisible.ToString());
+        update.Set("curr_is_visible", curriculum.IsVisible ? "1" : "0");
         update.Set("curr_prog_id", curriculum.Program?.Id.ToString());
         update.Set("curr_year", curriculum.Year.ToString());
         update.Set("curr_name_th", curriculum.NameTh);
