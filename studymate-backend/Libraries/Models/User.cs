@@ -8,7 +8,8 @@ public class User(
     string lastname,
     string profilePicture,
     bool isAdmin,
-    Curriculum? curriculum
+    Curriculum? curriculum,
+    int viewPolicy
 ) : IBaseModel
 {
     public int Id { get; } = id;
@@ -19,6 +20,7 @@ public class User(
     public string ProfilePicture { get; set; } = profilePicture;
     public bool IsAdmin { get; set; } = isAdmin;
     public Curriculum? Curriculum { get; set; } = curriculum;
+    public int ViewPolicy { get; set; } = viewPolicy;
 
     public string GetFullName()
     {
