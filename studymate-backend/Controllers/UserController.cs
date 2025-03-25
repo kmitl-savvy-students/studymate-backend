@@ -87,23 +87,23 @@ public class UserController : ControllerBase
 
     [Authorize(AuthenticationSchemes = "StudyMateToken")]
     [HttpPost("update/policy")]
-    public ActionResult UpdatePolicy()
+    public ActionResult UpdatePolicy([FromBody] DtoUpdateUserPolicy user)
     {
         try
         {
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var user = SdmUser.GetUserInfoFromToken(token);
-            
-            if (user == null)
+            var existingUser = SdmUser.GetBy(user.Id);
+            if (existingUser == null)
             {
-                return Unauthorized(new { message = "Invalid or expired token." });
+                return NotFound();
             }
 
-            if (user.ViewPolicy == 1)
+            if (existingUser.ViewPolicy == 1)
             {
                 return Conflict(new { message = "User view policy already." });
             }
-            SdmUser.UpdateViewPolicy(user);
+            
+            SdmUser.UpdateViewPolicy(existingUser);
+            
             return Ok(new { message = "Policy viewed status updated successfully." });
         }
         catch (Exception ex)
@@ -117,6 +117,11 @@ public class UserController : ControllerBase
     {
         public required int Id { get; init; } = -1;
         public required int CurriculumId { get; init; } = -1;
+    }
+    
+    public class DtoUpdateUserPolicy
+    {
+        public required int Id { get; init; } = -1;
     }
     #endregion
 }
