@@ -13,7 +13,7 @@ public class User(
 ) : IBaseModel
 {
     public int Id { get; } = id;
-    public string Password { get; } = password;
+    public string Password { get; set; } = password;
     public string Nickname { get; set; } = nickname;
     public string Firstname { get; set; } = firstname;
     public string Lastname { get; set; } = lastname;
