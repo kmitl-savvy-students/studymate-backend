@@ -2,25 +2,19 @@
 
 public class Curriculum(
     int id,
-    string uniqueId,
-    string year,
+    bool isVisible,
+    Program? program,
+    int year,
     string nameTh,
     string nameEn,
-    string degreeNameTh,
-    string degreeNameThShort,
-    string degreeNameEn,
-    string degreeNameEnShort,
-    string pid
+    CurriculumGroup? curriculumGroup
 ) : IBaseModel
 {
-    public int id { get; set; } = id;
-    public string uniqueId { get; set; } = uniqueId;
-    public string year { get; set; } = year;
-    public string nameTh { get; set; } = nameTh;
-    public string nameEn { get; set; } = nameEn;
-    public string degreeNameTh { get; set; } = degreeNameTh;
-    public string degreeNameThShort { get; set; } = degreeNameThShort;
-    public string degreeNameEn { get; set; } = degreeNameEn;
-    public string degreeNameEnShort { get; set; } = degreeNameEnShort;
-    public string pid { get; set; } = pid;
+    public int Id { get; } = id;
+    public bool IsVisible { get; set; } = isVisible;
+    public Program? Program { get; set; } = program;
+    public int Year { get; set; } = year;
+    public string NameTh { get; set; } = nameTh;
+    public string NameEn { get; set; } = nameEn;
+    public CurriculumGroup? CurriculumGroup { get; set; } = curriculumGroup;
 }

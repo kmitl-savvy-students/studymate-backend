@@ -5,28 +5,24 @@ using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmTranscript : ISdmBaseMethod<Transcript>
+public abstract class SdmTranscript : ISdmBaseMethod<Transcript>
 {
     public static string TableName => "transcript";
-
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
-
-    public static List<Transcript> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Transcript> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<Transcript>();
-
         while (query.Next())
         {
             result.Add(new Transcript(
                 query.ToInt(0),
-                SdmUser.GetBy(query.ToString(1)),
-                SdmCurriculum.GetBy(query.ToInt(2)),
-                new SdmDateTime(query.ToDateTime(3))
+                SdmUser.GetBy(query.ToInt(1)),
+                new SdmDateTime(query.ToDateTime(2))
             ));
             if (!isArray) break;
         }
@@ -42,58 +38,63 @@ public class SdmTranscript : ISdmBaseMethod<Transcript>
         var result = ProcessQuery(select, true);
         return result;
     }
-
-    public static Transcript? GetBy(int id)
-    {
-        var select = GetQueryObj();
-        select.WhereEqual("id", id.ToString());
-
-        var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
-    }
-    public static Transcript? GetBy(User user)
-    {
-        var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
-
-        var result = ProcessQuery(select);
-        if (result.Count == 0)
-            return null;
-        return result[0];
-    }
     public static List<Transcript> GetAllBy(User user)
     {
         var select = GetQueryObj();
-        select.WhereEqual("user_id", user.id);
+        select.WhereEqual("ts_u_id", user.Id.ToString());
 
         var result = ProcessQuery(select, true);
         return result;
     }
+    public static Transcript? GetBy(int id)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("ts_id", id.ToString());
+
+        var result = ProcessQuery(select);
+        return result.Count == 0 ? null : result[0];
+    }
+    public static Transcript? GetBy(User user)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("ts_u_id", user.Id.ToString());
+
+        var result = ProcessQuery(select);
+        var transcript = result.Count == 0 ? null : result[0];
+        if (transcript == null) return transcript;
+        transcript.Details = SdmTranscriptDetail.GetAllBy(transcript);
+        return transcript;
+    }
 
     public static Transcript Insert(Transcript transcript)
     {
-        var insert = new SdmPgsqlQueryInsert(TableName);
+        var insert = new SdmMysqlQueryInsert(TableName);
 
-        insert.Insert("user_id", transcript.user?.id);
-        insert.Insert("curriculum_id", transcript.user?.curriculum?.id.ToString());
-        insert.Insert("created", transcript.created.ToString());
+        insert.Insert("ts_u_id", transcript.User?.Id.ToString());
+        insert.Insert("ts_date_created", transcript.DateCreated.ToString());
 
-        var query = SdmPgsqlQuery.Execute(insert);
-        transcript.id = query.insertedId;
+        var query = SdmMysqlQuery.Execute(insert);
+        transcript.Id = query.InsertedId;
         query.CleanUp();
 
         return transcript;
     }
-
-    public static void DeleteByUser(User user)
+    public static void DeleteBy(User user)
     {
-        var delete = new SdmPgsqlQueryDelete(TableName);
+        var delete = new SdmMysqlQueryDelete(TableName);
 
-        delete.WhereEqual("user_id", user.id);
+        delete.WhereEqual("ts_u_id", user.Id.ToString());
 
-        var query = SdmPgsqlQuery.Execute(delete);
+        var query = SdmMysqlQuery.Execute(delete);
+        query.CleanUp();
+    }
+    public static void DeleteBy(Transcript transcript)
+    {
+        var delete = new SdmMysqlQueryDelete(TableName);
+
+        delete.WhereEqual("ts_id", transcript.Id.ToString());
+
+        var query = SdmMysqlQuery.Execute(delete);
         query.CleanUp();
     }
 }

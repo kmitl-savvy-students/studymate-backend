@@ -1,25 +1,29 @@
 ﻿namespace studymate_backend.Libraries.Models;
 
 public class User(
-    string id,
+    int id,
     string password,
-    string nameNick,
-    string nameFirst,
-    string nameLast,
-    string profile,
-    Curriculum? curriculum
+    string nickname,
+    string firstname,
+    string lastname,
+    string profilePicture,
+    bool isAdmin,
+    Curriculum? curriculum,
+    int viewPolicy
 ) : IBaseModel
 {
-    public string id { get; set; } = id;
-    public string password { get; set; } = password;
-    public string nameNick { get; set; } = nameNick;
-    public string nameFirst { get; set; } = nameFirst;
-    public string nameLast { get; set; } = nameLast;
-    public string profile { get; set; } = profile;
-    public Curriculum? curriculum { get; set; } = curriculum;
+    public int Id { get; } = id;
+    public string Password { get; set; } = password;
+    public string Nickname { get; set; } = nickname;
+    public string Firstname { get; set; } = firstname;
+    public string Lastname { get; set; } = lastname;
+    public string ProfilePicture { get; set; } = profilePicture;
+    public bool IsAdmin { get; set; } = isAdmin;
+    public Curriculum? Curriculum { get; set; } = curriculum;
+    public int ViewPolicy { get; set; } = viewPolicy;
 
     public string GetFullName()
     {
-        return nameFirst + " " + nameLast;
+        return Firstname + " " + Lastname;
     }
 }

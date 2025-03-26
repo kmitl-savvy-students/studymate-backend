@@ -8,7 +8,6 @@
 
 # COPY ["studymate-backend.sln", "./"]
 # COPY ["studymate-backend/studymate-backend.csproj", "./studymate-backend/"]
-# COPY ["studymate-backend-tests/studymate-backend-tests.csproj", "./studymate-backend-tests/"]
 
 # RUN dotnet restore
 # RUN dotnet clean

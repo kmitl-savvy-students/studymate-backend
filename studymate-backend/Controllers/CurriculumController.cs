@@ -9,47 +9,54 @@ namespace studymate_backend.Controllers;
 [Route("api/curriculum")]
 public class CurriculumController : ControllerBase
 {
+    #region [PUT] Update
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPut("update")]
+    public ActionResult<Curriculum> Update(Curriculum curriculum)
+    {
+        SdmCurriculum.UpdateBy(curriculum);
+        return Ok();
+    }
+    #endregion
+    #region [DELETE] Delete
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpDelete("delete/{id:int}")]
+    public ActionResult<Curriculum> Delete(int id)
+    {
+        var curriculum = SdmCurriculum.GetBy(id);
+        if (curriculum == null)
+            return BadRequest();
+        SdmCurriculum.DeleteBy(curriculum);
+        return Ok();
+    }
+    #endregion
+    #region [POST] Create
+    [Authorize(AuthenticationSchemes = "StudyMateToken")]
+    [HttpPost("create")]
+    public ActionResult<Curriculum> Create(Curriculum curriculum)
+    {
+        SdmCurriculum.Insert(curriculum);
+        return Ok();
+    }
+    #endregion
+    #region [GET] Get
     [AllowAnonymous]
     [HttpGet("get")]
     public ActionResult<IEnumerable<Curriculum>> GetAll()
     {
-        var curriculums = SdmCurriculum.GetAll();
-
-        if (curriculums.Count == 0)
-            return NotFound(new { message = "Curriculum not found." });
-        return Ok(curriculums);
+        return Ok(SdmCurriculum.GetAll());
     }
-
     [AllowAnonymous]
     [HttpGet("get/{id:int}")]
     public ActionResult<Curriculum> GetBy(int id)
     {
-        var curriculum = SdmCurriculum.GetBy(id);
-
-        if (curriculum == null)
-            return NotFound(new { message = "Curriculum not found." });
-        return Ok(curriculum);
+        return Ok(SdmCurriculum.GetBy(id));
     }
-    
     [AllowAnonymous]
-    [HttpGet("get/{uniqueId}/{year}")]
-    public ActionResult<Curriculum> GetBy(string uniqueId, string year)
+    [HttpGet("get-by-program/{programId:int}")]
+    public ActionResult<IEnumerable<Curriculum>> GetAllBy(int programId)
     {
-        var curriculum = SdmCurriculum.GetBy(uniqueId, year);
-
-        if (curriculum == null)
-            return NotFound(new { message = "Curriculum not found." });
-        return Ok(curriculum);
+        return Ok(SdmCurriculum.GetAllBy(programId));
     }
-    
-    [AllowAnonymous]
-    [HttpGet("query/{uniqueId}/{year}")]
-    public ActionResult<Curriculum> QueryBy(string uniqueId, string year)
-    {
-        var curriculum = SdmCurriculum.QueryBy(uniqueId, year);
-
-        if (curriculum == null)
-            return NotFound(new { message = "Curriculum not found." });
-        return Ok(curriculum);
-    }
+    #endregion
 }

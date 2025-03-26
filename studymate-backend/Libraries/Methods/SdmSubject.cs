@@ -1,25 +1,21 @@
 ﻿using studymate_backend.Libraries.Database;
 using studymate_backend.Libraries.Database.QueryBuilders;
-using studymate_backend.Libraries.Helper;
 using studymate_backend.Libraries.Models;
 
 namespace studymate_backend.Libraries.Methods;
 
-public class SdmSubject : ISdmBaseMethod<Subject>
+public abstract class SdmSubject : ISdmBaseMethod<Subject>
 {
     public static string TableName => "subject";
-
-    public static SdmPgsqlQuerySelect GetQueryObj()
+    public static SdmMysqlQuerySelect GetQueryObj()
     {
-        return new SdmPgsqlQuerySelect(TableName);
+        return new SdmMysqlQuerySelect(TableName);
     }
-
-    public static List<Subject> ProcessQuery(ISdmPgsqlQueryBase queryBuilder, bool isArray = false)
+    public static List<Subject> ProcessQuery(ISdmMysqlQueryBase queryBuilder, bool isArray = false)
     {
-        var query = SdmPgsqlQuery.Execute(queryBuilder);
+        var query = SdmMysqlQuery.Execute(queryBuilder);
 
         var result = new List<Subject>();
-
         while (query.Next())
         {
             result.Add(new Subject(
@@ -27,20 +23,7 @@ public class SdmSubject : ISdmBaseMethod<Subject>
                 query.ToString(1),
                 query.ToString(2),
                 query.ToInt(3),
-                query.ToInt(4),
-                query.ToInt(5),
-                query.ToString(6),
-                query.ToString(7),
-                query.ToInt(8),
-                query.ToString(9),
-                query.ToInt(10),
-                query.ToInt(11),
-                query.ToString(12),
-                query.ToString(13),
-                query.ToString(14),
-                query.ToString(15),
-                query.ToString(16),
-                new SdmDateTime(query.ToDateTime(17))
+                query.ToString(4)
             ));
             if (!isArray) break;
         }
@@ -56,15 +39,42 @@ public class SdmSubject : ISdmBaseMethod<Subject>
         var result = ProcessQuery(select, true);
         return result;
     }
-
-    public static Subject? GetBy(string subjectId)
+    public static Subject? GetBy(string? id)
     {
-        var select = GetQueryObj();
-        select.WhereEqual("subject_id", subjectId);
-
-        var result = ProcessQuery(select, true);
-        if (result.Count == 0)
+        if (id == null)
             return null;
-        return result[0];
+
+        if (Cache.TryGetValue(id, out var value))
+            return value;
+
+        var select = GetQueryObj();
+        select.WhereEqual("sbj_id", id);
+
+        var result = ProcessQuery(select);
+        var subject = result.Count == 0 ? null : result[0];
+        if (subject == null)
+            return null;
+        Cache.TryAdd(id, subject);
+        return subject;
     }
+    public static void Insert(Subject subject)
+    {
+        var insert = new SdmMysqlQueryInsert(TableName);
+
+        insert.Insert("sbj_id", subject.Id);
+        insert.Insert("sbj_name_th", subject.NameTh);
+        insert.Insert("sbj_name_en", subject.NameEn);
+        insert.Insert("sbj_credit", subject.Credit.ToString());
+        insert.Insert("sbj_detail", subject.Detail);
+
+        var query = SdmMysqlQuery.Execute(insert);
+        query.CleanUp();
+    }
+    #region Caching
+    private static readonly Dictionary<string, Subject> Cache = new();
+    public static void ClearCache()
+    {
+        Cache.Clear();
+    }
+    #endregion
 }
