@@ -1,0 +1,52 @@
+name: CI for SDM-Backend CE-Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "The branch to trigger the workflow on"
+        required: true
+        default: "main"
+        type: string
+
+jobs:
+  pull_image:
+    name: Pull Backend Image
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "ce-runner"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Remove Old Docker Image
+        run: |
+          docker image prune -f
+          docker rmi -f $(docker images -q backend-prod-img) || true
+
+      - name: Build Docker Image
+        run: |
+          docker build -f Dockerfile.prod -t backend-prod-img .
+
+  deploy:
+    name: Deploy Backend to Production
+    needs: pull_image
+    runs-on:
+      labels: ["self-hosted", "Linux", "X64", "ce-runner"]
+
+    steps:
+      - name: Stop and Remove Current Container
+        run: |
+          docker compose -f docker-compose.prod.yml down -v || true
+
+      - name: Deploy New Container
+        run: |
+          docker compose -f docker-compose.prod.yml up -d --build
+
+      - name: ✅✅ Finish ✅✅
+        run: echo "Production deployment successful!"
