@@ -49,12 +49,9 @@ app.UseCors(policyBuilder =>
 {
     policyBuilder.WithOrigins(
         "http://localhost:4200",
-        "https://kmitl.savvystudymate.com",
-        "https://prod.savvystudymate.com",
         "https://preprod.savvystudymate.com",
-        "https://test.savvystudymate.com",
-        "https://savvystudymate.com",
-        "http://macbook.tntdverse.com:4200"
+        "https://kmitl.savvystudymate.com",
+        "https://ce67-27.cloud.ce.kmitl.ac.th"
     ).AllowAnyHeader().AllowAnyMethod();
 });
 
