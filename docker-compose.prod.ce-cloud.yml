@@ -1,6 +1,6 @@
 services:
   backend:
-    container_name: sdm-backend-prod-container
+    container_name: sdm-backend
     image: backend-prod-img
     restart: always
     ports:
