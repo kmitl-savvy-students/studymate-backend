@@ -243,6 +243,71 @@ public partial class TranscriptController : ControllerBase
                wordBounds.Bottom >= columnBounds.Bottom &&
                wordBounds.Top <= columnBounds.Top;
     }
+    private static string ExtractTextFromOfficialTranscript(IFormFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream();
+            using var pdfDocument = PdfDocument.Open(stream);
+
+            var textTop = new StringBuilder();
+            var textLeft = new StringBuilder();
+            var textRight = new StringBuilder();
+
+            foreach (var page in pdfDocument.GetPages())
+            {
+                var pageWidth = page.Width;
+                var pageHeight = page.Height;
+
+                const double topPercent = 0.23;
+                const double topIgnorePercent = 0.03;
+                var topBoxHeight = pageHeight * (topPercent - topIgnorePercent);
+                var topBoxBounds = new PdfRectangle(0, pageHeight - topBoxHeight, pageWidth, pageHeight);
+
+                const double bottomIgnorePercent = 0.1;
+                var leftColumnBounds = new PdfRectangle(0, pageHeight * bottomIgnorePercent, pageWidth / 2 + 20,
+                    pageHeight - pageHeight * topPercent);
+                var rightColumnBounds = new PdfRectangle(pageWidth / 2, pageHeight * bottomIgnorePercent, pageWidth,
+                    pageHeight - pageHeight * topPercent);
+
+                var topBoxText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, topBoxBounds))
+                    .Select(word => word.Text).ToArray();
+                textTop.Append(string.Join(" ", topBoxText));
+
+                var leftText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, leftColumnBounds))
+                    .Select(word => word.Text).ToArray();
+                textLeft.Append(string.Join(" ", leftText));
+
+                var rightText = page.GetWords().Where(word => IsWithinBounds(word.BoundingBox, rightColumnBounds))
+                    .Select(word => word.Text).ToArray();
+                textRight.Append(string.Join(" ", rightText)).Append(' ');
+            }
+
+            var resultLeft = RemoveGpsGpaRegex().Replace(textLeft.ToString(), "");
+            resultLeft = RemoveCheckedByRegex().Replace(resultLeft, "");
+            resultLeft = RemoveTranscriptMarkersRegex().Replace(resultLeft, "");
+            resultLeft = RemoveCreditCumulativeRegex().Replace(resultLeft, "");
+            resultLeft = RemoveAccessSpaceRegex().Replace(resultLeft, " ");
+
+            var resultRight = RemoveGpsGpaRegex().Replace(textRight.ToString(), "");
+            resultRight = RemoveCheckedByRegex().Replace(resultRight, "");
+            resultRight = RemoveTranscriptMarkersRegex().Replace(resultRight, "");
+            resultRight = RemoveCreditCumulativeRegex().Replace(resultRight, "");
+            resultRight = RemoveAccessSpaceRegex().Replace(resultRight, " ");
+
+            var finalText = (resultLeft + " " + resultRight).Trim();
+
+            finalText = Regex.Replace(finalText, @"\bAcademic Year\s+(\d{4})\b", "Year, $1-$1");
+            finalText = Regex.Replace(finalText, @"\bSpecial Semester\b", "3rd Semester");
+
+            return finalText;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error extracting text from PDF: {ex.Message}");
+            throw;
+        }
+    }
     private static string ExtractTextFromPdf(IFormFile file)
     {
         try
@@ -296,7 +361,7 @@ public partial class TranscriptController : ControllerBase
             resultRight = RemoveAccessSpaceRegex().Replace(resultRight, " ");
 
             var resultTop = textTop.ToString();
-            return !CheckForUnOfficialTranscriptRegex().IsMatch(resultTop) ? "" : (resultLeft + " " + resultRight).Trim();
+            return !CheckForUnOfficialTranscriptRegex().IsMatch(resultTop) ? ExtractTextFromOfficialTranscript(file) : (resultLeft + " " + resultRight).Trim();
         }
         catch (Exception ex)
         {
