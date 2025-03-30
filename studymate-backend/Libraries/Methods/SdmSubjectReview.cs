@@ -29,7 +29,7 @@ public class SdmSubjectReview
     
             try
             {
-                var createdDateTime = DateTime.Parse(query.ToString(6)); // แปลงจาก string เป็น DateTime
+                var createdDateTime = DateTime.Parse(query.ToString(7)); // แปลงจาก string เป็น DateTime
                 createdValue = DateOnly.FromDateTime(createdDateTime);  // แปลงจาก DateTime เป็น DateOnly
             }
             catch
