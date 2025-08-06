@@ -29,7 +29,7 @@ public class SdmSubjectReview
     
             try
             {
-                var createdDateTime = DateTime.Parse(query.ToString(6)); // แปลงจาก string เป็น DateTime
+                var createdDateTime = DateTime.Parse(query.ToString(7)); // แปลงจาก string เป็น DateTime
                 createdValue = DateOnly.FromDateTime(createdDateTime);  // แปลงจาก DateTime เป็น DateOnly
             }
             catch
@@ -208,6 +208,14 @@ public class SdmSubjectReview
     
         try
         {
+            string cleanReview = System.Text.RegularExpressions.Regex.Replace(review, "<.*?>", "").Trim();
+            int specbarCount = System.Text.RegularExpressions.Regex.Matches(cleanReview, "specbar", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Count;
+
+            if (string.IsNullOrWhiteSpace(cleanReview) || specbarCount > 3)
+            {
+                throw new ArgumentException("Review is invalid. Please write meaningful content.");
+            }
+            
             // ตรวจสอบว่าผู้ใช้ได้รีวิววิชานี้ไปแล้วหรือไม่
             var existingReview = GetBySubjectAndStudent(subjectId, studentId.ToString());
             if (existingReview != null)

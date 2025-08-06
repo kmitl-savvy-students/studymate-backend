@@ -2,6 +2,7 @@ namespace studymate_backend.Libraries.Models;
 
 public class Department(
     int id,
+    bool isVisible,
     string kmitlId,
     Faculty? faculty,
     string nameTh,
@@ -9,6 +10,7 @@ public class Department(
 ) : IBaseModel
 {
     public int Id { get; } = id;
+    public bool IsVisible { get; set; } = isVisible;
     public string KmitlId { get; set; } = kmitlId;
     public Faculty? Faculty { get; set; } = faculty;
     public string NameTh { get; set; } = nameTh;

@@ -26,7 +26,8 @@ public abstract class SdmUser : ISdmBaseMethod<User>
                 query.ToString(4),
                 query.ToString(5),
                 query.ToBool(6),
-                SdmCurriculum.GetBy(query.ToInt(7))
+                SdmCurriculum.GetBy(query.ToInt(7)),
+                query.ToInt(8)
             ));
             if (!isArray) break;
         }
@@ -67,6 +68,7 @@ public abstract class SdmUser : ISdmBaseMethod<User>
         update.Set("u_firstname", user.Firstname);
         update.Set("u_lastname", user.Lastname);
         update.Set("u_profile_pic", user.ProfilePicture);
+        update.Set("u_password", user.Password);
         update.Set("u_curr_id", user.Curriculum?.Id.ToString());
 
         update.WhereEqual("u_id", user.Id.ToString());
@@ -78,9 +80,9 @@ public abstract class SdmUser : ISdmBaseMethod<User>
     public static bool Verify(User user, string otpId)
     {
         var otpAuth = SdmOtpAuthentication.GetById(otpId);
-        if (otpAuth == null || otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow) 
-        { 
-            Console.WriteLine("❌ Not found OTP or expired"); 
+        if (otpAuth == null || otpAuth.DateExpired.ToDateTime() < DateTime.UtcNow)
+        {
+            Console.WriteLine("❌ Not found OTP or expired");
             return false;
         }
 
@@ -89,15 +91,63 @@ public abstract class SdmUser : ISdmBaseMethod<User>
             Console.WriteLine("❌ Not Your OTP");
             return false;
         }
-        
+
         if (otpAuth.Status != "VERIFIED")
         {
             Console.WriteLine("❌ OTP is not verified");
             return false;
         }
-        
+
         Insert(user);
         return true;
     }
 
+    public static void UpdateViewPolicy(User user)
+    {
+        var update = new SdmMysqlQueryUpdate(TableName);
+
+        if (user.ViewPolicy == 0)
+        {
+            update.Set("u_policy_viewed", "1");
+            update.WhereEqual("u_id", user.Id.ToString());
+            var query = SdmMysqlQuery.Execute(update);
+            query.CleanUp();
+        }
+    }
+
+    public static int GetViewPolicy(int userId)
+    {
+        var select = GetQueryObj();
+        select.WhereEqual("u_id", userId.ToString());
+
+        var result = ProcessQuery(select);
+        if (result.Count == 0)
+        {
+            Console.WriteLine("Not user");
+            return 0;
+        }
+
+        return result[0].ViewPolicy;
+    }
+
+    public static User? GetUserInfoFromToken(string token)
+    {
+        // ใช้ SdmUserToken.GetBy เพื่อดึง UserToken จาก Token ID
+        var userToken = SdmUserToken.GetBy(token);
+        if (userToken == null)
+        {
+            Console.WriteLine("[Error] Token not found or invalid.");
+            return null;
+        }
+
+        // ตรวจสอบว่า Token หมดอายุหรือไม่
+        if (userToken.DateExpired.ToDateTime() < DateTime.Now)
+        {
+            Console.WriteLine("[Error] Token has expired.");
+            return null;
+        }
+
+        // คืนค่า User ที่เชื่อมโยงกับ Token
+        return userToken.User;
+    }
 }

@@ -50,6 +50,10 @@ public class SubjectReviewController : ControllerBase
         {
             return Conflict(new { message = ex.Message });  // ส่ง 409 Conflict กลับไป
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message }); // ✅ return 400
+        }
         catch (Exception ex)
         {
             return StatusCode(500,

@@ -19,10 +19,11 @@ public abstract class SdmProgram : ISdmBaseMethod<Models.Program>
         {
             result.Add(new Models.Program(
                 query.ToInt(0),
-                query.ToString(1),
-                SdmDepartment.GetBy(query.ToInt(2)),
-                query.ToString(3),
-                query.ToString(4)
+                query.ToBool(1),
+                query.ToString(2),
+                SdmDepartment.GetBy(query.ToInt(3)),
+                query.ToString(4),
+                query.ToString(5)
             ));
             if (!isArray) break;
         }
@@ -79,6 +80,7 @@ public abstract class SdmProgram : ISdmBaseMethod<Models.Program>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
+        update.Set("prog_is_visible", program.IsVisible ? "1" : "0");
         update.Set("prog_kmitl_id", program.KmitlId);
         update.Set("prog_dep_id", program.Department?.Id.ToString());
         update.Set("prog_name_th", program.NameTh);

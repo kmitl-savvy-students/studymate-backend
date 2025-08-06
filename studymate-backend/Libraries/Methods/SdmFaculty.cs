@@ -20,9 +20,10 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
         {
             result.Add(new Faculty(
                 query.ToInt(0),
-                query.ToString(1),
+                query.ToBool(1),
                 query.ToString(2),
-                query.ToString(3)
+                query.ToString(3),
+                query.ToString(4)
             ));
             if (!isArray) break;
         }
@@ -62,6 +63,7 @@ public abstract class SdmFaculty : ISdmBaseMethod<Faculty>
     {
         var update = new SdmMysqlQueryUpdate(TableName);
 
+        update.Set("fac_is_visible", faculty.IsVisible ? "1" : "0");
         update.Set("fac_kmitl_id", faculty.KmitlId);
         update.Set("fac_name_th", faculty.NameTh);
         update.Set("fac_name_en", faculty.NameEn);
