@@ -1,0 +1,15 @@
+services:
+  backend:
+    container_name: sdm-backend
+    image: backend-prod-img
+    restart: always
+    ports:
+      - "8000:8080"
+    env_file:
+      - /home/thanatat_ch64_gmail_com/backend/.env
+    networks:
+      - prod-network
+
+networks:
+  prod-network:
+    external: true
