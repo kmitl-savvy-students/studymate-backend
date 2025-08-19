@@ -42,11 +42,11 @@ jobs:
     steps:
       - name: Stop and Remove Current Container
         run: |
-          docker compose -f docker-compose.prod.ce-cloud.yml down -v || true
+          docker compose -f docker-compose.prod.gcp.yml down -v || true
 
       - name: Deploy New Container
         run: |
-          docker compose -f docker-compose.prod.ce-cloud.yml up -d --build
+          docker compose -f docker-compose.prod.gcp.yml up -d --build
 
       - name: ✅✅ Finish ✅✅
         run: echo "Production deployment successful!"
