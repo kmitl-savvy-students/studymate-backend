@@ -13,7 +13,7 @@ jobs:
   pull_image:
     name: Pull Backend Image
     runs-on:
-      labels: ["self-hosted", "Linux", "X64", "ce-runner"]
+      labels: ["self-hosted", "Linux", "X64", "gcp-api-runner"]
 
     steps:
       - name: Checkout Code
