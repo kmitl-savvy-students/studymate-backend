@@ -51,7 +51,8 @@ app.UseCors(policyBuilder =>
         "http://localhost:4200",
         "https://preprod.savvystudymate.com",
         "https://kmitl.savvystudymate.com",
-        "https://ce67-27.cloud.ce.kmitl.ac.th"
+        "https://ce67-27.cloud.ce.kmitl.ac.th",
+        "https://gcp.savvystudymate.com"
     ).AllowAnyHeader().AllowAnyMethod();
 });
 
